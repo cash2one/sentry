@@ -1,0 +1,4 @@
+{"event_type": "glance.nos.timeout", "timestamp": "2013-01-29 07:15:25.286211", "message_id": "c5058d90-8382-4003-9bd1-59b1b61f05f3", "priority": "ERROR", "publisher_id": "10-120-240-46", "payload": "Connection NOS TimeOut: [Errno 111] ECONNREFUSED"}
+{"event_type": "glance.nos.error", "timestamp": "2013-01-29 07:16:14.694516", "message_id": "30e87538-ce75-4904-b321-46afe0dbc43c", "priority": "ERROR", "publisher_id": "10-120-240-46", "payload": "NosError('403','')"}
+Routing Key     glance_notifications.error
+Exchange        glance

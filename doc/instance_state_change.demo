@@ -1,0 +1,73 @@
+{
+  "_context_roles": [
+    "admin"
+  ],
+  "_context_request_id": "req-0191bbf3-3481-493b-98f0-48275c07ea9b",
+  "_context_quota_class": null,
+  "event_type": "compute.instance.update",
+  "_context_service_catalog": null,
+  "timestamp": "2012-12-17 09:59:02.691109",
+  "_context_auth_token": "79e73024af0f46dfb4077769884d2084",
+  "_context_instance_lock_checked": false,
+  "_context_user_id": "f5f8d00c205741a8afb79da4d7da2ff1",
+  "payload": {
+    "state_description": "",
+    "availability_zone": null,
+    "ephemeral_gb": 0,
+    "instance_type_id": 2,
+    "bandwidth": {
+    },
+    "deleted_at": "",
+    "reservation_id": "r-2m4rhhjr",
+    "instance_id": "699ea5dc-f798-459d-9318-c6f1cfa6e4b6",
+    "user_id": "f5f8d00c205741a8afb79da4d7da2ff1",
+    "state": "error",
+    "old_state": "building",
+    "old_task_state": "scheduling",
+    "metadata": [
+      {
+        "instance_uuid": "699ea5dc-f798-459d-9318-c6f1cfa6e4b6",
+        "deleted": false,
+        "created_at": "2012-12-17T09:59:02.000000",
+        "updated_at": null,
+        "value": "for test",
+        "key": "Para",
+        "deleted_at": null,
+        "id": 96
+      }
+    ],
+    "ramdisk_id": "",
+    "access_ip_v6": null,
+    "disk_gb": 0,
+    "access_ip_v4": null,
+    "kernel_id": "",
+    "host": null,
+    "display_name": "openstack_2",
+    "image_ref_url": "http://10.120.32.142:9292/images/e9f2275a-d1b7-426f-a397-256528febae8",
+    "audit_period_beginning": "2012-12-01T00:00:00.000000",
+    "root_gb": 0,
+    "tenant_id": "49d0548301a440f2bb5374b8ceef3a73",
+    "created_at": "2012-12-17 09:59:02",
+    "launched_at": "",
+    "memory_mb": 512,
+    "instance_type": "m1.tiny",
+    "vcpus": 1,
+    "image_meta": {
+      "base_image_ref": "e9f2275a-d1b7-426f-a397-256528febae8"
+    },
+    "architecture": null,
+    "new_task_state": null,
+    "audit_period_ending": "2012-12-17T09:59:02.689070",
+    "os_type": null
+  },
+  "_context_project_name": "admin",
+  "_context_read_deleted": "no",
+  "priority": "INFO",
+  "_context_is_admin": true,
+  "_context_project_id": "49d0548301a440f2bb5374b8ceef3a73",
+  "_context_timestamp": "2012-12-17T09:59:02.335557",
+  "_context_user_name": "admin",
+  "publisher_id": "scheduler.debian",
+  "message_id": "2db2f581-dd44-4627-bb9f-03216a9b1947",
+  "_context_remote_address": "127.0.0.1"
+}

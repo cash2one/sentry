@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+"""
+NVS Alarm module
+"""
+
+import os
+import sys
+
+
+# If ../sentry/__init__.py exists, add ../ to Python search path, so that
+# it will override what happens to be installed in /usr/(local/)lib/python...
+possible_topdir = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
+                                   os.pardir, os.pardir))
+if os.path.exists(os.path.join(possible_topdir, 'sentry', '__init__.py')):
+    sys.path.insert(0, possible_topdir)
+
+
+from sentry.common import config
+from sentry.common import exception
+from sentry.openstack.common import log
+from sentry.openstack.common import cfg
+
+from sentry.controller import manager
+
+
+def fail(returncode, e):
+    sys.stderr.write("ERROR: %s\n" % e)
+    sys.exit(returncode)
+
+if __name__ == '__main__':
+    config.parse_args(sys.argv)
+    log.setup('sentry')
+
+    mgr = manager.Manager()
+    try:
+        server = mgr.create()
+        server.wait()
+    except KeyboardInterrupt as ex:
+        pass
+    except Exception as ex:
+        fail(1, ex)
+    finally:
+        mgr.cleanup()

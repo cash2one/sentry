@@ -1,0 +1,61 @@
+{
+	"product_metric_list": [
+	    {"cpuUsage": "CPU利用率"},
+	    {"memUsage": "占用内存量"},
+	    {"networkReceive": "网络流入量"},
+	    {"networkTransfer": "网络流出量"},
+	    {"diskUsage": "占用磁盘存储空间"},
+	    {"diskReadRequest": "磁盘读取次数"},
+	    {"diskWriteRequest": "磁盘写入次数"},
+	    {"diskReadRate": "磁盘读取字节数"},
+	    {"diskWriteRate": "磁盘写入字节数"},
+	    {"diskReadDelay": "磁盘读操作延时"},
+	    {"diskWriteDelay": "磁盘写操作延时"}
+	],
+	"platform_NVSPlatform_metric_list": [
+		{"total_ecu": "ecu总量"},
+	    {"total_memory_mb": "内存总量(MB)"},
+	    {"total_local_gb": "实例存储总量(GB)"},
+	    {"total_private_floating_ips": "内网浮动IP总量"},
+	    {"total_public_floating_ips": "外网浮动IP总量"},
+	    {"total_private_netqos": "内网总带宽"},
+	    {"total_public_netqos": "外网总带宽"},
+	    {"remain_ecu": "剩余ecu数"},
+	    {"remain_memory_mb": "剩余实例存储(GB)"},
+	    {"remain_private_floating_ips": "剩余内网浮动IP数"},
+	   	{"remain_public_floating_ips": "剩余外网浮动IP数"},
+	    {"remain_private_netqos": "剩余内网带宽"},
+	    {"remain_public_netqos": "剩余外网带宽"},
+	    {"Servers": "云主机数(台)"},
+	    {"servers_error": "错误云主机数(台)"},
+	   	{"vcpus": "vcpus使用量"},
+	    {"ecus": "ecu使用量"},
+	   	{"memory_mb": "内存使用量(MB)"},
+	    {"local_gb": "实例存储使用量(GB)"},
+	    {"private_floating_ips": "内网浮动IP使用量"},
+	    {"public_floating_ips": "外网浮动IP使用量"},
+	    {"private_netqos": "内网带宽使用量"},
+	    {"public_netqos": "外网带宽使用量"}
+	],
+	"platform_host_metric_list": [
+	    {"Servers": "云主机数(台)"},
+	    {"servers_error": "错误云主机数(台)"},
+	   	{"vcpus": "vcpus使用量"},
+	    {"ecus": "ecu使用量"},
+	   	{"memory_mb": "内存使用量(MB)"},
+	    {"local_gb": "实例存储使用量(GB)"},
+	    {"private_floating_ips": "内网浮动IP使用量"},
+	    {"public_floating_ips": "外网浮动IP使用量"},
+	    {"private_netqos": "内网带宽使用量"},
+	    {"public_netqos": "外网带宽使用量"}
+	],
+	"product_alarm_event_list": [
+	],
+	"platform_alarm_event_list": [
+		{"NosError": "NOS故障"},
+		{"NbsError": "NBS故障"},
+		{"InstanceOffLine": "云主机离线"},
+		{"InstanceError": "云主机故障"},
+		{"PlatformError": "平台故障"}
+	]
+}

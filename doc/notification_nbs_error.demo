@@ -1,0 +1,127 @@
+{
+  "_context_roles": [
+    "admin"
+  ],
+  "_context_request_id": "req-207b5497-65cc-45f3-a908-f7c0774901f9",
+  "_context_quota_class": null,
+  "event_type": "api_nbs.nvs_connect_nbs_failure",
+  "_context_service_catalog": [
+    {
+      "endpoints_links": [
+      ],
+      "endpoints": [
+        {
+          "adminURL": "http://114.113.199.8:8774/v1.1/b9d0e72523ce4dee94efa85477bd5b40",
+          "region": "RegionOne",
+          "internalURL": "http://114.113.199.8:8774/v1.1/b9d0e72523ce4dee94efa85477bd5b40",
+          "publicURL": "http://114.113.199.8:8774/v1.1/b9d0e72523ce4dee94efa85477bd5b40"
+        }
+      ],
+      "type": "compute",
+      "name": "Compute Service"
+    },
+    {
+      "endpoints_links": [
+      ],
+      "endpoints": [
+        {
+          "adminURL": "http://114.113.199.8:9292/v1",
+          "region": "RegionOne",
+          "internalURL": "http://114.113.199.8:9292/v1",
+          "publicURL": "http://114.113.199.8:9292/v1"
+        }
+      ],
+      "type": "image",
+      "name": "Image Service"
+    },
+    {
+      "endpoints_links": [
+      ],
+      "endpoints": [
+        {
+          "adminURL": "http://114.113.199.8:7878/v1",
+          "region": "RegionOne",
+          "internalURL": "http://114.113.199.8:7878/v1",
+          "publicURL": "http://114.113.199.8:7878/v1"
+        }
+      ],
+      "type": "loadbalance",
+      "name": "Loadbalance service"
+    },
+    {
+      "endpoints_links": [
+      ],
+      "endpoints": [
+        {
+          "adminURL": "http://114.113.199.8:8776/v1/b9d0e72523ce4dee94efa85477bd5b40",
+          "region": "RegionOne",
+          "internalURL": "http://114.113.199.8:8776/v1/b9d0e72523ce4dee94efa85477bd5b40",
+          "publicURL": "http://114.113.199.8:8776/v1/b9d0e72523ce4dee94efa85477bd5b40"
+        }
+      ],
+      "type": "volume",
+      "name": "Volume Service"
+    },
+    {
+      "endpoints_links": [
+      ],
+      "endpoints": [
+        {
+          "adminURL": "http://114.113.199.8:8773/services/Admin",
+          "region": "RegionOne",
+          "internalURL": "http://114.113.199.8:8773/services/Cloud",
+          "publicURL": "http://114.113.199.8:8773/services/Cloud"
+        }
+      ],
+      "type": "ec2",
+      "name": "EC2 Service"
+    },
+    {
+      "endpoints_links": [
+      ],
+      "endpoints": [
+        {
+          "adminURL": "http://localhost:8000/v1",
+          "region": "RegionOne",
+          "internalURL": "http://localhost:8000/v1",
+          "publicURL": "http://localhost:8000/v1"
+        }
+      ],
+      "type": "orchestration",
+      "name": "Heat"
+    },
+    {
+      "endpoints_links": [
+      ],
+      "endpoints": [
+        {
+          "adminURL": "http://114.113.199.8:35357/v2.0",
+          "region": "RegionOne",
+          "internalURL": "http://114.113.199.8:5000/v2.0",
+          "publicURL": "http://114.113.199.8:5000/v2.0"
+        }
+      ],
+      "type": "identity",
+      "name": "Identity Service"
+    }
+  ],
+  "timestamp": "2013-01-18 04:48:18.351220",
+  "_context_auth_token": "b8f5ac8de2284b9684d7654b056b3bec",
+  "_context_instance_lock_checked": false,
+  "_context_unified_log_id": "7f15ee2a-02fc-4532-80da-f9fcd4130096",
+  "_context_user_id": "03c54766997349c0a06447cd74fc031f",
+  "_context_unified_log_seq": "0",
+  "payload": {
+    "url": "127.0.0.1:9080/EBS/?Action=DescribeVolumes&ProjectId=b9d0e72523ce4dee94efa85477bd5b40&InstanceId=f41c465c-7cd7-4d50-b10b-eda528fd6a68&LogId=7f15ee2a-02fc-4532-80da-f9fcd4130096&LogSeq=0"
+  },
+  "_context_project_name": "win8",
+  "_context_read_deleted": "no",
+  "priority": "ERROR",
+  "_context_is_admin": true,
+  "_context_project_id": "b9d0e72523ce4dee94efa85477bd5b40",
+  "_context_timestamp": "2013-01-18T04:48:13.654961",
+  "_context_user_name": "wp",
+  "publisher_id": "api_nbs.114-113-199-8",
+  "message_id": "029ced64-08dc-4fdd-a720-86e28ebda838",
+  "_context_remote_address": "114.113.199.8"
+}

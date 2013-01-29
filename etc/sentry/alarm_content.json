@@ -1,0 +1,37 @@
+{
+    "alarm_name": [
+        "InstanceError",
+        "NosError",
+        "NbsError",
+        "PlatformError",
+        "InstanceOffLine",
+        "UnknownError"
+    ],
+    "alarm_summary_content": {
+        "InstanceError": "虚拟机实例状态错误，虚拟机名称和uuid为： ",
+        "NosError": "NVS访问NOS错误",
+        "NbsError": "NVS访问NBS错误",
+        "PlatformError": "NVS访问管理平台错误",
+        "InstanceOffLine": "虚拟机实例离线，虚拟机名称和uuid为： ",
+        "UnknownError": "NVS未知错误"
+    },
+    "alarm_content": {
+        "InstanceError": "虚拟机实例状态错误，虚拟机详细信息以及状态为： ",
+        "NosError": "NVS访问NOS错误，发生错误的模块为： ",
+        "NbsError": "NVS访问NBS错误，发生错误的模块为： ",
+        "PlatformError": "NVS访问管理平台错误，发生错误的模块为： ",
+        "InstanceOffLine": "虚拟机实例离线，虚拟机详细信息为： ",
+        "UnknownError": "NVS发生未知错误，具体内容为： "
+    },
+    "alarm_event_type": {
+        "InstanceError": ["compute.instance.update"],
+        "NosError": ["api_keypairs.nos_connection_failure",
+                     "glance.nos.timeout",
+                     "glance.nos.error"
+                    ],
+        "NbsError": ["api_nbs.nvs_connect_nbs_failure"],
+        "PlatformError": [],
+        "InstanceOffLine": ["monitor.vm.down"],
+        "UnknownError": []
+    }
+}

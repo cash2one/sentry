@@ -1,0 +1,175 @@
+{
+  "_context_roles": [
+    "KeystoneAdmin",
+    "KeystoneServiceAdmin",
+    "admin"
+  ],
+  "_context_request_id": "req-857ac05f-5235-44c5-9226-79e1caf22ce1",
+  "_context_quota_class": null,
+  "event_type": "compute.instance.update",
+  "_context_service_catalog": [
+    {
+      "endpoints": [
+        {
+          "adminURL": "http://10.120.34.51:9292",
+          "region": "RegionOne",
+          "id": "8b33e052693642939c59532eca297a7f",
+          "internalURL": "http://10.120.34.51:9292",
+          "publicURL": "http://10.120.34.51:9292"
+        }
+      ],
+      "endpoints_links": [
+      ],
+      "type": "image",
+      "name": "glance"
+    },
+    {
+      "endpoints": [
+        {
+          "adminURL": "http://10.120.34.51:8774/v2/a3577b13ccc4437f884c715691f93177",
+          "region": "RegionOne",
+          "id": "e40225fc8dc44953b6ae24d7178dbbe9",
+          "internalURL": "http://10.120.34.51:8774/v2/a3577b13ccc4437f884c715691f93177",
+          "publicURL": "http://10.120.34.51:8774/v2/a3577b13ccc4437f884c715691f93177"
+        }
+      ],
+      "endpoints_links": [
+      ],
+      "type": "compute",
+      "name": "nova"
+    },
+    {
+      "endpoints": [
+        {
+          "adminURL": "http://10.120.34.51:8773/services/Admin",
+          "region": "RegionOne",
+          "id": "094c8e94bfa44ebb85e9d1da400602c9",
+          "internalURL": "http://10.120.34.51:8773/services/Cloud",
+          "publicURL": "http://10.120.34.51:8773/services/Cloud"
+        }
+      ],
+      "endpoints_links": [
+      ],
+      "type": "ec2",
+      "name": "ec2"
+    },
+    {
+      "endpoints": [
+        {
+          "adminURL": "http://10.120.34.51:35357/v2.0",
+          "region": "RegionOne",
+          "id": "948a566bece143979f71de9c0c8fd3c8",
+          "internalURL": "http://10.120.34.51:5000/v2.0",
+          "publicURL": "http://10.120.34.51:5000/v2.0"
+        }
+      ],
+      "endpoints_links": [
+      ],
+      "type": "identity",
+      "name": "keystone"
+    }
+  ],
+  "timestamp": "2013-01-23 02:59:06.857875",
+  "_context_auth_token": "26ac05883d224f0b8cba14660dbc8564",
+  "_context_instance_lock_checked": false,
+  "_context_unified_log_id": "1bf42f3f-6fa2-49e9-bbea-a3e181dc70b1",
+  "_context_user_id": "2c5d5b6b879740c3a1d3475fdacb59a0",
+  "_context_unified_log_seq": "0",
+  "payload": {
+    "state_description": "",
+    "availability_zone": null,
+    "ephemeral_gb": 0,
+    "instance_type_id": 2,
+    "bandwidth": {
+    },
+    "deleted_at": "",
+    "reservation_id": "r-wkwl73f2",
+    "instance_id": "389a0af6-8910-429f-8372-eff5989c10ca",
+    "user_id": "2c5d5b6b879740c3a1d3475fdacb59a0",
+    "state": "active",
+    "old_state": null,
+    "old_task_state": null,
+    "metadata": [
+      {
+        "instance_uuid": "389a0af6-8910-429f-8372-eff5989c10ca",
+        "deleted": false,
+        "created_at": "2013-01-23T02:06:20.000000",
+        "updated_at": null,
+        "value": "test",
+        "key": "test",
+        "deleted_at": null,
+        "id": 2
+      },
+      {
+        "instance_uuid": "389a0af6-8910-429f-8372-eff5989c10ca",
+        "deleted": false,
+        "created_at": "2013-01-23T02:06:20.000000",
+        "updated_at": null,
+        "value": "test",
+        "key": "para",
+        "deleted_at": null,
+        "id": 3
+      }
+    ],
+    "ramdisk_id": "",
+    "access_ip_v6": null,
+    "disk_gb": 0,
+    "access_ip_v4": null,
+    "kernel_id": "",
+    "host": "ubuntu",
+    "display_name": "cirros2",
+    "image_ref_url": "http://10.120.34.51:9292/images/42b5bb12-2500-40f9-a30d-4921d66fb2c0",
+    "audit_period_beginning": "2013-01-01T00:00:00.000000",
+    "root_gb": 0,
+    "tenant_id": "a3577b13ccc4437f884c715691f93177",
+    "created_at": "2013-01-23 02:06:20",
+    "launched_at": "2013-01-23 02:06:29",
+    "memory_mb": 512,
+    "instance_type": "m1.tiny",
+    "vcpus": 1,
+    "image_meta": {
+      "base_image_ref": "42b5bb12-2500-40f9-a30d-4921d66fb2c0",
+      "image_id_sha1": "d6e04b4b162d9b5b131564d8029ec9184381f081"
+    },
+    "architecture": null,
+    "new_task_state": null,
+    "audit_period_ending": "2013-01-23T02:59:06.854234",
+    "os_type": null
+  },
+  "_context_project_name": "admin",
+  "_context_read_deleted": "no",
+  "priority": "INFO",
+  "_context_is_admin": true,
+  "_context_project_id": "a3577b13ccc4437f884c715691f93177",
+  "_context_timestamp": "2013-01-23T02:59:06.783608",
+  "_context_user_name": "admin",
+  "publisher_id": "api.ubuntu",
+  "message_id": "87cf07bb-0b71-4ae0-ae28-8dc0189712e9",
+  "_context_remote_address": "10.120.34.51"
+},
+"tenant_id": "a3577b13ccc4437f884c715691f93177",
+"created_at": "2013-01-23 02:06:20",
+"launched_at": "2013-01-23 02:06:29",
+"memory_mb": 512,
+"instance_type": "m1.tiny",
+"vcpus": 1,
+"image_meta": {
+  "base_image_ref": "42b5bb12-2500-40f9-a30d-4921d66fb2c0",
+  "image_id_sha1": "d6e04b4b162d9b5b131564d8029ec9184381f081"
+},
+"architecture": null,
+"new_task_state": null,
+"audit_period_ending": "2013-01-23T02:59:06.854234",
+"os_type": null
+},
+"_context_project_name": "admin",
+"_context_read_deleted": "no",
+"priority": "INFO",
+"_context_is_admin": true,
+"_context_project_id": "a3577b13ccc4437f884c715691f93177",
+"_context_timestamp": "2013-01-23T02:59:06.783608",
+"_context_user_name": "admin",
+"publisher_id": "api.ubuntu",
+"message_id": "87cf07bb-0b71-4ae0-ae28-8dc0189712e9",
+"_context_remote_address": "10.120.34.51"
+}
