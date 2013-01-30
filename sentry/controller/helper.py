@@ -13,6 +13,9 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 notify_configs = [
+    cfg.BoolOpt('enable_notify_vm_state_change',
+                default=False,
+                help='Enable notify platform when vm state change'),
     cfg.StrOpt('stop_alarm_url_port',
                default='$url_port',
                help='Stop alarm url and port'),
@@ -36,12 +39,13 @@ def handle_before_alarm(message):
     include: notify cloud monitor to stop alarm when VM
              was deleted.
     """
-    create_vm_notification = ['compute.instance.create.end']
-    destroy_vm_notification = ['compute.instance.delete.end']
-    if message.get('event_type') in destroy_vm_notification:
-        _notify_platform_stop_alarm(message)
-    if message.get('event_type') in create_vm_notification:
-        _notify_platform_binding(message)
+    if CONF.enable_notify_vm_state_change:
+        create_vm_notification = ['compute.instance.create.end']
+        destroy_vm_notification = ['compute.instance.delete.end']
+        if message.get('event_type') in destroy_vm_notification:
+            _notify_platform_stop_alarm(message)
+        if message.get('event_type') in create_vm_notification:
+            _notify_platform_binding(message)
 
 
 def _notify_platform_stop_alarm(message):
