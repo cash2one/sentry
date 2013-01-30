@@ -148,17 +148,18 @@ def _format_instance_error(message, alarm_summary_content, alarm_contents):
 def _format_nos_error(message, alarm_summary_content, alarm_contents):
     publisher_id = message.get('publisher_id', 'unknown')
     payload = message.get('payload', '')
-    if message.get('event_type').startswith('glance'):
-        service_name = utils.join_string('glance.', publisher_id,
-                                         ', detail: ', payload)
-    else:
-        service_name = publisher_id
+    alarm_type = 'NosError'
     project_id = message.get('_context_project_id', 'unknown')
     namespace = 'openstack'
-    alarm_type = 'NosError'
     alarm_time = message['timestamp']
+    if message.get('event_type').startswith('glance'):
+        service_name = utils.join_string('glance.', publisher_id)
+        alarm_content = utils.join_string(alarm_contents[alarm_type],
+                                          service_name, ', Detail: ', payload)
+    else:
+        service_name = publisher_id
+        alarm_content = alarm_contents[alarm_type] + service_name
     alarm_content_summary = alarm_summary_content[alarm_type]
-    alarm_content = alarm_contents[alarm_type] + service_name
     identifier = service_name
 
     return {
