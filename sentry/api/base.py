@@ -6,6 +6,7 @@
 
 import copy
 import json
+
 import webob
 
 from sentry.file_cache import setting_list

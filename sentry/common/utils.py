@@ -5,9 +5,10 @@
 #
 
 import datetime
-from dateutil import tz
 import os
 import time
+
+from dateutil import tz
 
 from sentry.openstack.common import log as logging
 

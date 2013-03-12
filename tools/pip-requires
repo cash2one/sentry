@@ -7,3 +7,6 @@ greenlet>=0.3.1
 iso8601>=0.1.4
 setuptools_git>=0.4
 python-dateutil
+httplib2
+paste
+routes
