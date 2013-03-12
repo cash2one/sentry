@@ -14,9 +14,9 @@ mkdir -p $CONF_DIR
 cp etc/sentry/* $CONF_DIR -vr
 chown nova:nova $CONF_DIR -R
 
-chmod 755 tools/sentry
-chmod 755 tools/sentry-api
-cp tools/sentry /etc/init.d/
-cp tools/sentry-api /etc/init.d/
+chmod 755 init.d/sentry
+chmod 755 init.d/sentry-api
+cp init.d/sentry /etc/init.d/
+cp init.d/sentry-api /etc/init.d/
 
 pip install .
