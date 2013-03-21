@@ -8,10 +8,10 @@ import sentry.openstack.common.log as logging
 LOG = logging.getLogger(__name__)
 
 NOVA_OPTS = {
-             cfg.StrOpt("nova_host", default="0.0.0.0"),
-             cfg.IntOpt("nova_port", default=8774),
-             cfg.StrOpt("nova_version", default="/v2")
-             }
+    cfg.StrOpt("nova_host", default="0.0.0.0"),
+    cfg.IntOpt("nova_port", default=8774),
+    cfg.StrOpt("nova_version", default="/v2")
+}
 
 CONF = cfg.CONF
 CONF.register_opts(NOVA_OPTS)
