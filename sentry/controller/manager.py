@@ -26,12 +26,18 @@ manager_configs = [
     cfg.StrOpt('queue_suffix',
                default='sentry',
                help='Name of queue suffix'),
-    cfg.StrOpt('nova_notifications_topic',
-               default='notifications.*',
+    cfg.StrOpt('nova_sentry_mq_topic',
+               default='notifications',
                help='Name of nova notifications topic'),
-    cfg.StrOpt('glance_notifications_topic',
-               default='glance_notifications.error',
+    cfg.StrOpt('glance_sentry_mq_topic',
+               default='glance_notifications',
                help='Name of glance notifications topic'),
+    cfg.ListOpt('nova_mq_level_list',
+                default=['error', 'info', ],
+                help='notifications levels for message queue of nova'),
+    cfg.ListOpt('glance_mq_level_list',
+                default=['error', 'info', 'warn', ],
+                help='notifications levels for message queue of glance'),
 ]
 
 
@@ -54,25 +60,31 @@ class Manager(object):
             "notifications.info"
         """
         LOG.info('Start sentry')
-        nova_topic = CONF.nova_notifications_topic
-        glance_topic = CONF.glance_notifications_topic
+        nova_topic = CONF.nova_sentry_mq_topic
+        glance_topic = CONF.glance_sentry_mq_topic
         controller_hanler = handler.Handler()
 
-        LOG.info('Queue: "%s" listen on topic: "%s"' %
-                 (self.get_queue_name(nova_topic), nova_topic))
+        LOG.info('Listening on topic: "%s"' % nova_topic)
         # NOTE(hzyangtk): declare consumer binding on nova exchange
-        self.conn.declare_topic_consumer(
-                topic=nova_topic, callback=controller_hanler.handle_message,
-                queue_name=self.get_queue_name(nova_topic),
-                exchange_name='nova')
+        for nova_level in CONF.nova_mq_level_list:
+            nova_queue = self.get_queue_name(nova_topic, nova_level)
+            self.conn.declare_topic_consumer(
+                    topic=nova_topic,
+                    callback=controller_hanler.handle_message,
+                    queue_name=nova_queue,
+                    exchange_name='nova')
+            LOG.debug(_("Listening on the queue: %s") % nova_queue)
 
-        LOG.info('Queue: "%s" listen on topic: "%s"' %
-                 (self.get_queue_name(nova_topic), glance_topic))
+        LOG.info('Listening on topic: "%s"' % glance_topic)
         # NOTE(hzyangtk): declare consumer binding on glance exchange
-        self.conn.declare_topic_consumer(
-                topic=glance_topic, callback=controller_hanler.handle_message,
-                queue_name=self.get_queue_name(nova_topic),
-                exchange_name='glance')
+        for glance_level in CONF.glance_mq_level_list:
+            glance_queue = self.get_queue_name(glance_topic, glance_level)
+            self.conn.declare_topic_consumer(
+                    topic=glance_topic,
+                    callback=controller_hanler.handle_message,
+                    queue_name=glance_queue,
+                    exchange_name='glance')
+            LOG.debug(_("Listening on the queue: %s") % glance_queue)
 
         self.conn.consume_in_thread()
 
@@ -83,5 +95,5 @@ class Manager(object):
         LOG.info('Cleanup sentry')
         rpc.cleanup()
 
-    def get_queue_name(self, topic):
-        return '%s_%s' % (topic, CONF.queue_suffix)
+    def get_queue_name(self, topic, level):
+        return '%s.%s' % (topic, level)
