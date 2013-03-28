@@ -15,4 +15,5 @@ Setup
     run install.sh
 
     # Reinstall:
-    python setup.py install
+    pip uninstall sentry
+    pip install .
