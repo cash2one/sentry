@@ -54,24 +54,15 @@ class AlarmFilter(Filter):
         return flow_data
 
     def _reject_filter(self, flow_data):
+        """black list"""
         if flow_data['alarm_level'] in self.filter_reject_rule:
-            if flow_data['alarm_type'] not in self.filter_reject_rule['ERROR']:
+            if flow_data['alarm_type'] not in \
+                    self.filter_reject_rule[flow_data['alarm_level']]:
                 return flow_data
-            elif flow_data['alarm_type'] not in \
-                                        self.filter_reject_rule['INFO']:
-                return flow_data
-            else:
-                return
-        else:
-            return
 
     def _accept_filter(self, flow_data):
-        if flow_data['alarm_level'] in self.filter_reject_rule:
-            if flow_data['alarm_type'] in self.filter_accept_rule['ERROR']:
+        """white list"""
+        if flow_data['alarm_level'] in self.filter_accept_rule:
+            if flow_data['alarm_type'] in \
+                        self.filter_accept_rule[flow_data['alarm_level']]:
                 return flow_data
-            elif flow_data['alarm_type'] in self.filter_accept_rule['INFO']:
-                return flow_data
-            else:
-                return
-        else:
-            return

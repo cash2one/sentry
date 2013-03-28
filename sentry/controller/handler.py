@@ -95,7 +95,7 @@ class Handler(object):
         return self._filter_drivers.values()
 
     def _add_filter_driver(self, filter_driver):
-        """Add a notification driver at runtime."""
+        """Add a filter driver at runtime."""
         # Make sure the driver list is initialized.
         self._get_filter_drivers()
         if isinstance(filter_driver, basestring):

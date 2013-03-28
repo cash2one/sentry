@@ -95,7 +95,12 @@ def strtime(at=None, fmt=PERFECT_TIME_FORMAT):
 
 
 def join_string(*args):
-    return ''.join(args)
+    args_list = list(args)
+    for arg in args_list:
+        if not isinstance(arg, str):
+            list_index = args_list.index(arg)
+            args_list[list_index] = str(arg)
+    return ''.join(args_list)
 
 
 class Singleton(object):

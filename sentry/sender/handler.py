@@ -11,32 +11,36 @@ from sentry.common import novaclient_helper
 
 
 def is_instance_down(message, alarm_content):
-    alarm_event_type = alarm_content['alarm_event_type']
-    if message.get('event_type') in alarm_event_type['InstanceOffLine']:
+    alarm_event_type = alarm_content.get('alarm_event_type', {})
+    if message.get('event_type') in alarm_event_type.get('InstanceOffLine',
+                                                         []):
         return True
     else:
         return False
 
 
 def is_instance_state_error(message, alarm_content):
-    alarm_event_type = alarm_content['alarm_event_type']
-    if message.get('event_type') in alarm_event_type['InstanceError']:
+    alarm_event_type = alarm_content.get('alarm_event_type', {})
+    if message.get('event_type') in alarm_event_type.get('InstanceError',
+                                                         []):
         if message.get('payload').get('state') == 'error':
             return True
     return False
 
 
 def is_nos_connection_failure(message, alarm_content):
-    alarm_event_type = alarm_content['alarm_event_type']
-    if message.get('event_type') in alarm_event_type['NosError']:
+    alarm_event_type = alarm_content.get('alarm_event_type', {})
+    if message.get('event_type') in alarm_event_type.get('NosError',
+                                                         []):
         return True
     else:
         return False
 
 
 def is_nbs_connection_failure(message, alarm_content):
-    alarm_event_type = alarm_content['alarm_event_type']
-    if message.get('event_type') in alarm_event_type['NbsError']:
+    alarm_event_type = alarm_content.get('alarm_event_type', {})
+    if message.get('event_type') in alarm_event_type.get('NbsError',
+                                                         []):
         return True
     else:
         return False
@@ -69,12 +73,15 @@ def set_alarm_timestamp(message):
         if datetime_string is None:
             message['timestamp'] = long(time.time() * 1000)
         else:
+            if not isinstance(datetime_string, str) and \
+                    not isinstance(datetime_string, unicode):
+                raise TypeError()
             ori_datetime = utils.parse_strtime(datetime_string,
                                                '%Y-%m-%d %H:%M:%S.%f')
             local_datetime = utils.tz_utc_to_local(ori_datetime)
             message['timestamp'] = utils.datetime_to_timestamp(
                                             local_datetime)
-    except ValueError:
+    except (ValueError, TypeError):
         # NOTE(hzyangtk): ValueError will be thrown when datetime
         #                 format not match.
         message['timestamp'] = long(time.time() * 1000)

@@ -13,7 +13,7 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 notify_configs = [
-    cfg.BoolOpt('enable_notify_vm_state_change',
+    cfg.BoolOpt('enable_platform_stop_alarm',
                 default=False,
                 help='Enable notify platform when vm state change'),
     cfg.StrOpt('stop_alarm_url_port',
@@ -22,6 +22,9 @@ notify_configs = [
     cfg.StrOpt('stop_alarm_request_uri',
                default=None,
                help='Stop alarm request uri.'),
+    cfg.BoolOpt('enable_platform_binding',
+                default=False,
+                help='Enable notify platform binding when vm create'),
     cfg.StrOpt('alarm_binding_url_port',
                default='$url_port',
                help='Binding alarm url and port'),
@@ -39,11 +42,12 @@ def handle_before_alarm(message):
     include: notify cloud monitor to stop alarm when VM
              was deleted.
     """
-    if CONF.enable_notify_vm_state_change:
-        create_vm_notification = ['compute.instance.create.end']
+    if CONF.enable_platform_stop_alarm:
         destroy_vm_notification = ['compute.instance.delete.end']
         if message.get('event_type') in destroy_vm_notification:
             _notify_platform_stop_alarm(message)
+    if CONF.enable_platform_binding:
+        create_vm_notification = ['compute.instance.create.end']
         if message.get('event_type') in create_vm_notification:
             _notify_platform_binding(message)
 
@@ -75,7 +79,7 @@ def _notify_platform_stop_alarm(message):
         LOG.debug(_("Notify platform stop alarm success"))
     else:
         LOG.warning(_("Notify platform stop alarm failed, with response"
-                      " status") % response.status)
+                      " status: %s") % response.status)
 
 
 def _notify_platform_binding(message):
@@ -112,4 +116,4 @@ def _notify_platform_binding(message):
         LOG.debug(_("Notify platform binding success"))
     else:
         LOG.warning(_("Notify platform binding failed, with response"
-                      " status") % response.status)
+                      " status: %s") % response.status)

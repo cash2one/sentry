@@ -1,0 +1,14 @@
+/data/log/sentry/sentry.log {
+    daily
+    missingok
+    compress
+    delaycompress
+    rotate 30
+}
+/data/log/sentry/sentry-api.log {
+    daily
+    missingok
+    compress
+    delaycompress
+    rotate 30
+}
