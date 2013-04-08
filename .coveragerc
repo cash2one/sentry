@@ -1,0 +1,5 @@
+[run]
+omit = sentry/tests/*, sentry/openstack/*
+
+[html]
+directory = cover
