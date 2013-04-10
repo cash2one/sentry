@@ -68,7 +68,7 @@ def _notify_platform_stop_alarm(message):
                    'ProjectId': project_id,
                    'Namespace': namespace,
                    'Dimension': dimension
-                   }
+    }
     send_notification = http_communication.HttpCommunication(url,
                         request_uri, headers, httpMethod, params_dict)
     response = send_notification.send_request_to_server()

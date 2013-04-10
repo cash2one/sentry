@@ -18,7 +18,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="NVS Alarm System"
 NAME=sentry
-DAEMON=/usr/local/bin/sentry
+DAEMON=/usr/bin/sentry
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 NOVA_USER=nova

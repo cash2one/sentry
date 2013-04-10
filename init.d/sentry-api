@@ -16,7 +16,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="NVS Alarm System API"
 NAME=sentry-api
-DAEMON=/usr/local/bin/sentry-api
+DAEMON=/usr/bin/sentry-api
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 NOVA_USER=nova
