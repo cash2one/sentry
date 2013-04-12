@@ -1,0 +1,56 @@
+接口说明：
+在管理平台上，添加报警规则的时候，需要获取各个服务某个聚合项下的实例列表。
+譬如：
+请求获取：“分布式数据库：单台数据库服务器”的实例的时候，需要返回所有的数据库服务器列表
+请求获取“分布式数据库：聚合集群下所有数据库服务器”的时候，需要返回所有的DDB集群列表
+
+参数说明：
+请求参数
+ProjectId：某个用户
+DimensionName：聚合的名称，譬如host、Platform、AZ，即聚合集群下所有数据库服务器
+IsPlatformManager：标识是不是平台管理员，是则传1，否则不传
+返回数据
+实例列表：
+[
+    {
+        "id": "101",
+        "screenName": " ddb1 "
+    },
+    {
+        "id": "102",
+        "screenName": " ddb 2 "
+    }
+]
+
+
+
+1. 产品管理员：即IsPlatformManager不传时
+请求:
+curl -H x-auth-token:336229cc66a74c1eb01ad513e7a2ccee '0.0.0.0:9901/get-instance-list?ProjectId=a3577b13ccc4437f884c715691f93177'
+
+返回结果: 返回当前用户的project下所有的主机列表。现在为所有主机的IP地址，之后可能会改成UUID。
+["10.0.0.3", "10.0.0.2"]
+
+
+
+2. 平台管理员:
+(1) 当DimensionName=Platform时
+	请求：
+	curl -H x-auth-token:336229cc66a74c1eb01ad513e7a2ccee '0.0.0.0:9901/get-instance-list?ProjectId=a3577b13ccc4437f884c715691f93177&IsPlatformManager=1&DimensionName=Platform'
+
+	返回结果： 返回含NVSPlatform字符串的list
+	["NVSPlatform"]
+
+(2) 当DimensionName=host时
+	请求：
+	curl -H x-auth-token:336229cc66a74c1eb01ad513e7a2ccee '0.0.0.0:9901/get-instance-list?ProjectId=a3577b13ccc4437f884c715691f93177&IsPlatformManager=1&DimensionName=host'
+
+	返回结果： 返回所有的宿主物理机的主机名称（id和screenName暂时相同，都为主机名称）
+	[{"id": "ubuntu", "screenName": "ubuntu"}]
+
+(3) 当DimensionName=AZ时
+	请求：
+	curl -H x-auth-token:336229cc66a74c1eb01ad513e7a2ccee '0.0.0.0:9901/get-instance-list?ProjectId=a3577b13ccc4437f884c715691f93177&IsPlatformManager=1&DimensionName=AZ'
+
+	返回结果： 返回所有的AZ列表（id和screenName暂时相同，都为AZ名称）
+	[{"id": "nova", "screenName": "nova"}]

@@ -97,8 +97,8 @@ def get_product_instance_list(req):
                 try:
                     ip_v4 = ip_addrs.get('private')[0].get('addr')
                 except (KeyError, IndexError, TypeError):
-                    LOG.excetion(_("Get ip address error with uuid: %s")
-                                 % instance.get('id'))
+                    LOG.exception(_("Get ip address error with uuid: %s")
+                                  % instance.get('id'))
             if ip_v4 == None:
                 LOG.warning(_("instance ip not found with uuid: %s")
                             % instance.get('id'))
@@ -120,10 +120,13 @@ def get_platform_instance_list(req):
 
     result = []
 
-    if req.params.get('DimensionName') == 'host':
+    dimension_name = req.params.get('DimensionName')
+    if dimension_name == 'host':
         result = _get_platform_host_list(tenant_id, token)
-    elif req.params.get('DimensionName') == 'Platform':
+    elif dimension_name == 'Platform':
         result.append('NVSPlatform')
+    elif dimension_name == 'AZ':
+        result = _get_platform_AZ_list(tenant_id, token)
     else:
         raise webob.exc.HTTPBadRequest()
 
@@ -143,6 +146,36 @@ def _get_platform_host_list(tenant_id, token):
         msg = _("host not found")
         raise webob.exc.HTTPNotFound(explanation=msg)
     host_set = set()
+    host_list = list()
     for host in hosts:
-        host_set.add(host.get('host_name'))
-    return list(host_set)
+        host_name = host.get('host_name')
+        if host_name not in host_set:
+            host_set.add(host_name)
+            host_list.append({
+                'id': host_name,
+                'screenName': host_name
+            })
+    return host_list
+
+
+def _get_platform_AZ_list(tenant_id, token):
+    """Return all the AZ list"""
+    method = 'GET'
+    path = '/%s/availability-zones' % tenant_id
+    params = {}
+    nova_client = client.NovaClient(token)
+    result, headers = nova_client.send_request(
+                            method, path, params, headers={})
+    availability_zones = result.get('availability_zones')
+    if availability_zones is None:
+        msg = _("availability zone not found")
+        raise webob.exc.HTTPNotFound(explanation=msg)
+    az_list = list()
+    for az in availability_zones:
+        if az.get('zoneState') == 'available':
+            az_info = {
+                'id': az.get('zoneName'),
+                'screenName': az.get('zoneName')
+            }
+            az_list.append(az_info)
+    return az_list
