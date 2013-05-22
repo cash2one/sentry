@@ -1,5 +1,5 @@
 [gerrit]
-host=scm.hz.netease.com
+host=scm.service.163.org
 port=29418
 project=openstack/sentry.git
 defaultbranch=master
