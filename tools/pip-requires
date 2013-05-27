@@ -13,4 +13,4 @@ routes
 PasteDeploy==1.5.0
 python-novaclient
 
--e git+ssh://jenkins@scm.hz.netease.com:2222/openstack/nt_version.git@master#egg=nt_version
+-e git+ssh://jenkins@scm.service.163.org:2222/openstack/nt_version.git@master#egg=nt_version
