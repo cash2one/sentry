@@ -41,15 +41,25 @@ def handle_before_alarm(message):
     handle process before alarm
     include: notify cloud monitor to stop alarm when VM
              was deleted.
+             notify cloud monitor to bind alarm when VM
+             was created or renamed.
     """
+    event_type = message.get('event_type')
     if CONF.enable_platform_stop_alarm:
         destroy_vm_notification = ['compute.instance.delete.end']
-        if message.get('event_type') in destroy_vm_notification:
+        if event_type in destroy_vm_notification:
             _notify_platform_stop_alarm(message)
     if CONF.enable_platform_binding:
         create_vm_notification = ['compute.instance.create.end']
-        if message.get('event_type') in create_vm_notification:
+        change_vm_name_notification = ['compute.instance.update']
+        if event_type in create_vm_notification:
             _notify_platform_binding(message)
+        elif event_type in change_vm_name_notification:
+            old_display_name = message.get('payload').get('old_display_name')
+            display_name = message.get('payload').get('display_name')
+            if (old_display_name != display_name and
+                                        old_display_name is not None):
+                _notify_platform_binding(message)
 
 
 def _notify_platform_stop_alarm(message):
@@ -84,7 +94,7 @@ def _notify_platform_stop_alarm(message):
 
 def _notify_platform_binding(message):
     """
-    Notify platform to binding vm`s UUID to ip
+    Notify platform to binding vm`s UUID to instance_id
     """
     LOG.debug(_("Begin notify platform binding. Message is: %s") % message)
     url = CONF.alarm_binding_url_port
@@ -94,12 +104,7 @@ def _notify_platform_binding(message):
     project_id = message.get('payload').get('tenant_id')
     namespace = 'openstack'
     dimension = 'openstack=' + message.get('payload').get('instance_id')
-    instance_name = message.get('payload').get('display_name')
-    try:
-        fixed_ip = message['payload']['fixed_ips'][0]['address']
-    except (KeyError, IndexError, TypeError):
-        fixed_ip = '-'
-    screen_name = instance_name + ": " + fixed_ip
+    screen_name = message.get('payload').get('display_name')
     params_dict = {
                    'ProjectId': project_id,
                    'Namespace': namespace,
