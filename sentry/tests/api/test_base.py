@@ -30,7 +30,8 @@ def fake_send_request_without_ip(self, method, path, params, headers):
 
 
 def fake_send_request_with_ip(self, method, path, params, headers):
-    return {'servers': [{'addresses': {'private': [{'addr': '1.0.0.1'}]}}]}, {}
+    return {'servers': [{'name':'fake_name',
+                         'addresses': {'private': [{'addr': '1.0.0.1'}]}}]}, {}
 
 
 def fake_get_platform_host_list(tenant_id, token):
@@ -143,7 +144,7 @@ class TestBase(test.TestCase):
                        fake_send_request_with_ip)
         req = FakeRequest(params={'ProjectId': '0001'},
                           headers={'x-auth-token': '001'})
-        expect_result = '["1.0.0.1"]'
+        expect_result = '["fake_name:1.0.0.1"]'
         result = base.get_product_instance_list(req)
         self.assertEquals(expect_result, result)
 

@@ -103,8 +103,19 @@ def _notify_platform_binding(message):
     httpMethod = 'POST'
     project_id = message.get('payload').get('tenant_id')
     namespace = 'openstack'
-    dimension = 'openstack=' + message.get('payload').get('instance_id')
-    screen_name = message.get('payload').get('display_name')
+    instance_id = message.get('payload').get('instance_id')
+    dimension = 'openstack=' + instance_id
+
+    try:
+        fixed_ip = message['payload']['fixed_ips'][0]['address']
+    except (KeyError, IndexError, TypeError):
+        LOG.warning(_("Notify platform binding failed because ip info can't be"
+                      " obtained for instance %s.") % instance_id)
+        return
+
+    display_name = message.get('payload').get('display_name')
+    screen_name = display_name + ":" + fixed_ip
+
     params_dict = {
                    'ProjectId': project_id,
                    'Namespace': namespace,
