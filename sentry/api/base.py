@@ -93,19 +93,20 @@ def get_product_instance_list(req):
         for instance in instances:
             ip_addrs = instance.get('addresses')
             name = instance.get('name')
+            uuid = instance.get('id')
             ip_v4 = None
             if ip_addrs:
                 try:
                     ip_v4 = ip_addrs.get('private')[0].get('addr')
                 except (KeyError, IndexError, TypeError):
                     LOG.exception(_("Get ip address error with uuid: %s")
-                                  % instance.get('id'))
+                                  % uuid)
             if ip_v4 == None:
-                LOG.warning(_("instance ip not found with uuid: %s")
-                            % instance.get('id'))
+                LOG.warning(_("instance ip not found with uuid: %s") % uuid)
                 continue
-            res_instances.append("%(name)s:%(ip)s" % {'name': name,
-                                                      'ip': ip_v4})
+            screenName = "%(name)s:%(ip)s" % {'name': name, 'ip': ip_v4}
+            res_instance = {"id": uuid, "screenName": screenName}
+            res_instances.append(res_instance)
     return json.dumps(res_instances)
 
 

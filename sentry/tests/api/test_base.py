@@ -26,11 +26,12 @@ def fake_send_request_no_data(self, method, path, params, headers):
 
 
 def fake_send_request_without_ip(self, method, path, params, headers):
-    return {'servers': [{'addresses': {'private': []}}]}, {}
+    return {'servers': [{'name':'fake_name', 'id':'fake_uuid',
+                         'addresses': {'private': []}}]}, {}
 
 
 def fake_send_request_with_ip(self, method, path, params, headers):
-    return {'servers': [{'name':'fake_name',
+    return {'servers': [{'name':'fake_name', 'id':'fake_uuid',
                          'addresses': {'private': [{'addr': '1.0.0.1'}]}}]}, {}
 
 
@@ -144,9 +145,9 @@ class TestBase(test.TestCase):
                        fake_send_request_with_ip)
         req = FakeRequest(params={'ProjectId': '0001'},
                           headers={'x-auth-token': '001'})
-        expect_result = '["fake_name:1.0.0.1"]'
+        expect_res = '[{"id": "fake_uuid", "screenName": "fake_name:1.0.0.1"}]'
         result = base.get_product_instance_list(req)
-        self.assertEquals(expect_result, result)
+        self.assertEquals(expect_res, result)
 
     def test_get_platform_instance_list(self):
         # project id invalid
