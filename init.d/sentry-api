@@ -17,6 +17,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="NVS Alarm System API"
 NAME=sentry-api
 DAEMON=/usr/bin/sentry-api
+DAEMON_ARGS="--config-file=/etc/sentry/sentry.conf"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 NOVA_USER=nova
@@ -26,11 +27,14 @@ NOVA_USER=nova
 
 . /lib/lsb/init-functions
 
+test -f '/etc/sentry/sentry-pass.conf' && DAEMON_ARGS=${DAEMON_ARGS}" --config-file=/etc/sentry/sentry-pass.conf"
+
 do_start()
 {
 	start-stop-daemon --start --background --quiet --chuid ${NOVA_USER}:nova --make-pidfile --pidfile $PIDFILE --startas $DAEMON --test > /dev/null \
 		|| return 1
-	start-stop-daemon --start --background --quiet --chuid ${NOVA_USER}:nova --make-pidfile --pidfile $PIDFILE --startas $DAEMON \
+	start-stop-daemon --start --background --quiet --chuid ${NOVA_USER}:nova --make-pidfile --pidfile $PIDFILE --startas $DAEMON -- \
+        $DAEMON_ARGS \
 		|| return 2
 }
 
