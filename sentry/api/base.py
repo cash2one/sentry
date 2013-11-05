@@ -68,9 +68,10 @@ def get_platform_alarm_event_list(req):
     return json.dumps(alarm_event_list, ensure_ascii=False)
 
 
-def get_product_instance_list(req):
-    """Return product instance list of sentry"""
+def _get_instance_list_for_certain_virt_type(req):
+    """Return the instance list for certain virt type, such as kvm or lxc"""
     tenant_id = req.params.get('ProjectId', None)
+    virt_type = req.params.get('VirtType', None)
     if tenant_id is None:
         msg = _("project id invalid")
         raise webob.exc.HTTPBadRequest(explanation=msg)
@@ -87,8 +88,34 @@ def get_product_instance_list(req):
     result, headers = nova_client.send_request(
                             method, path, params, headers={})
 
-    res_instances = []
     instances = result.get('servers')
+    if virt_type is None or not instances:
+        return instances
+
+    res_instances = []
+    for instance in instances:
+        image_id = instance.get('image').get('id')
+        if not image_id:
+            LOG.warning(_("instance %s image is None") % instance.get('id'))
+        else:
+            path = '/%s/images/%s' % (tenant_id, image_id)
+            result, headers = nova_client.send_request(method, path,
+                                                       params, headers={})
+            try:
+                image_type = result['image']['metadata']['hypervisor_type']
+                if image_type == virt_type:
+                    res_instances.append(instance)
+            except (KeyError, TypeError):
+                LOG.warning(_("image %s have no hypervisor_type metadata")
+                            % image_id)
+
+    return res_instances
+
+
+def get_product_instance_list(req):
+    """Return product instance list of sentry"""
+    res_instances = []
+    instances = _get_instance_list_for_certain_virt_type(req)
     if instances:
         for instance in instances:
             ip_addrs = instance.get('addresses')

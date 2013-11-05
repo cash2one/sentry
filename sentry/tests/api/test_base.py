@@ -111,6 +111,66 @@ class TestBase(test.TestCase):
         result = base.get_platform_alarm_event_list('')
         self.assertEquals(expect_result, result)
 
+    def test_get_instance_list_for_lxc_virt_type(self):
+        self.send_request_called_times = 0
+
+        def fake_send_request(fake_self, method, path, params, headers):
+            if self.send_request_called_times == 0:
+                self.send_request_called_times += 1
+                return {'servers': [{'name':'fake_name1', 'id':'fake_uuid1',
+                                     'image': {'id': 'fake_img_id1'},
+                                     'addresses': {'private': []}},
+                                    {'name':'fake_name2', 'id':'fake_uuid2',
+                                     'image': {'id': 'fake_img_id2'},
+                                     'addresses': {'private': []}}]}, {}
+            else:
+                if 'images/fake_img_id1' in path:
+                    return {'image': {'id': 'fake_img_id1', 'metadata':
+                                      {'hypervisor_type': 'lxc'}}}, {}
+                elif 'images/fake_img_id2' in path:
+                    return {'image': {'id': 'fake_img_id2', 'metadata':
+                                      {'hypervisor_type': 'qemu'}}}, {}
+
+        # get instance list with lxc virt type
+        self.stubs.Set(client.NovaClient, "send_request", fake_send_request)
+        req = FakeRequest(params={'ProjectId': '0001', 'VirtType': 'lxc'},
+                          headers={'x-auth-token': '001'})
+        expect_result = [{'name':'fake_name1', 'id':'fake_uuid1',
+                          'image': {'id': 'fake_img_id1'},
+                          'addresses': {'private': []}}]
+        result = base._get_instance_list_for_certain_virt_type(req)
+        self.assertEquals(expect_result, result)
+
+    def test_get_instance_list_for_kvm_virt_type(self):
+        self.send_request_called_times = 0
+
+        def fake_send_request(fake_self, method, path, params, headers):
+            if self.send_request_called_times == 0:
+                self.send_request_called_times += 1
+                return {'servers': [{'name':'fake_name1', 'id':'fake_uuid1',
+                                     'image': {'id': 'fake_img_id1'},
+                                     'addresses': {'private': []}},
+                                    {'name':'fake_name2', 'id':'fake_uuid2',
+                                     'image': {'id': 'fake_img_id2'},
+                                     'addresses': {'private': []}}]}, {}
+            else:
+                if 'images/fake_img_id1' in path:
+                    return {'image': {'id': 'fake_img_id1', 'metadata':
+                                      {'hypervisor_type': 'lxc'}}}, {}
+                elif 'images/fake_img_id2' in path:
+                    return {'image': {'id': 'fake_img_id2', 'metadata':
+                                      {'hypervisor_type': 'qemu'}}}, {}
+
+        # get instance list with lxc virt type
+        self.stubs.Set(client.NovaClient, "send_request", fake_send_request)
+        req = FakeRequest(params={'ProjectId': '0001', 'VirtType': 'qemu'},
+                          headers={'x-auth-token': '001'})
+        expect_result = [{'name':'fake_name2', 'id':'fake_uuid2',
+                          'image': {'id': 'fake_img_id2'},
+                          'addresses': {'private': []}}]
+        result = base._get_instance_list_for_certain_virt_type(req)
+        self.assertEquals(expect_result, result)
+
     def test_get_product_instance_list(self):
         # project id invalid
         req = FakeRequest(params={})
