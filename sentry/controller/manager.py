@@ -4,11 +4,13 @@
 # @author: hzyangtk
 #
 
+import logging as std_logging
 import eventlet
 from eventlet import greenpool
+from oslo.config import cfg
+
 
 from sentry.controller import handler
-from sentry.openstack.common import cfg
 from sentry.openstack.common import log
 from sentry.openstack.common import rpc
 
@@ -59,6 +61,7 @@ class Manager(object):
         Example:
             "notifications.info"
         """
+        CONF.log_opt_values(LOG, std_logging.DEBUG)
         LOG.info('Start sentry')
         nova_topic = CONF.nova_sentry_mq_topic
         glance_topic = CONF.glance_sentry_mq_topic

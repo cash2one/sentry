@@ -10,7 +10,7 @@ import httplib
 import time
 import urllib
 
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 from sentry.openstack.common import log
 
 

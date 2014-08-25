@@ -6,7 +6,7 @@
 
 from sentry.common import utils
 from sentry.controller import helper as controller_helper
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 from sentry.openstack.common import importutils
 from sentry.openstack.common import log
 from sentry.sender import manager as sender_manager

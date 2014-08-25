@@ -1,5 +1,6 @@
-# Copyright 2011 OpenStack LLC.
-# All Rights Reserved.
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+#    Copyright 2011 OpenStack Foundation
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -13,23 +14,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import eventlet
+eventlet.monkey_patch()
+
+import contextlib
+import sys
 
 from oslo.config import cfg
-from sentry.openstack.common import jsonutils
-from sentry.openstack.common import log as logging
 
+from sentry.openstack.common import log as logging
+from sentry.openstack.common import rpc
+from sentry.openstack.common.rpc import impl_zmq
 
 CONF = cfg.CONF
+CONF.register_opts(rpc.rpc_opts)
+CONF.register_opts(impl_zmq.zmq_opts)
 
 
-def notify(_context, message):
-    """Notifies the recipient of the desired event given the model.
-    Log notifications using openstack's default logging system"""
+def main():
+    CONF(sys.argv[1:], project='oslo')
+    logging.setup("oslo")
 
-    priority = message.get('priority',
-                           CONF.default_notification_level)
-    priority = priority.lower()
-    logger = logging.getLogger(
-        'sentry.openstack.common.notification.%s' %
-        message['event_type'])
-    getattr(logger, priority)(jsonutils.dumps(message))
+    with contextlib.closing(impl_zmq.ZmqProxy(CONF)) as reactor:
+        reactor.consume_in_thread()
+        reactor.wait()

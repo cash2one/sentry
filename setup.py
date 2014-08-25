@@ -22,6 +22,6 @@ setuptools.setup(
         'Programming Language :: Python :: 2.7',
         'Environment :: No Input/Output (Daemon)',
     ],
-    scripts=['bin/sentry', 'bin/sentry-api'],
+    scripts=['bin/sentry'],
     py_modules=[]
 )

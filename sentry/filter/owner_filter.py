@@ -8,7 +8,7 @@ import json
 
 from sentry.filter.filter import Filter
 from sentry.openstack.common import log
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 
 CONF = cfg.CONF
 

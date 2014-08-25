@@ -5,7 +5,7 @@
 #
 
 from sentry.common import exception
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 from sentry.openstack.common import log as logging
 from novaclient.v1_1.client import Client
 

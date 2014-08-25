@@ -9,7 +9,7 @@ from sentry.file_cache import alarm_content as alarm_content_list
 from sentry.sender import handler
 from sentry.sender import http_sender
 from sentry.openstack.common import log
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 
 
 CONF = cfg.CONF

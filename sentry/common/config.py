@@ -12,13 +12,10 @@ import os
 import sys
 
 from paste import deploy
+from oslo.config import cfg
 
-from sentry.openstack.common import cfg
 
-
-# init the configuration
 CONF = cfg.CONF
-CONF(args=None, project='sentry', usage=None, default_config_files=None)
 
 
 def parse_args(args=None, usage=None, default_config_files=None):
@@ -26,51 +23,6 @@ def parse_args(args=None, usage=None, default_config_files=None):
                 project='sentry',
                 usage=usage,
                 default_config_files=default_config_files)
-
-
-def setup_logging():
-    """
-    Sets up the logging options for a log with supplied name
-    """
-
-    if CONF.log_config:
-        # Use a logging configuration file for all settings...
-        if os.path.exists(CONF.log_config):
-            logging.config.fileConfig(CONF.log_config)
-            return
-        else:
-            raise RuntimeError("Unable to locate specified logging "
-                               "config file: %s" % CONF.log_config)
-
-    root_logger = logging.root
-    if CONF.debug:
-        root_logger.setLevel(logging.DEBUG)
-    elif CONF.verbose:
-        root_logger.setLevel(logging.INFO)
-    else:
-        root_logger.setLevel(logging.WARNING)
-
-    formatter = logging.Formatter(CONF.log_format, CONF.log_date_format)
-
-    if CONF.use_syslog:
-        try:
-            facility = getattr(logging.handlers.SysLogHandler,
-                               CONF.syslog_log_facility)
-        except AttributeError:
-            raise ValueError(_("Invalid syslog facility"))
-
-        handler = logging.handlers.SysLogHandler(address='/dev/log',
-                                                 facility=facility)
-    elif CONF.log_file:
-        logfile = CONF.log_file
-        if CONF.log_dir:
-            logfile = os.path.join(CONF.log_dir, logfile)
-        handler = logging.handlers.WatchedFileHandler(logfile)
-    else:
-        handler = logging.StreamHandler(sys.stdout)
-
-    handler.setFormatter(formatter)
-    root_logger.addHandler(handler)
 
 
 def _get_deployment_flavor():

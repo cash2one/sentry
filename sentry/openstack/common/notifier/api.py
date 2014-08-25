@@ -15,7 +15,7 @@
 
 import uuid
 
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 from sentry.openstack.common import context
 from sentry.openstack.common.gettextutils import _
 from sentry.openstack.common import importutils

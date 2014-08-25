@@ -12,7 +12,6 @@ nose-exclude
 openstack.nose_plugin>=0.7
 nosehtmloutput>=0.0.3
 pep8==1.1
-sphinx>=1.1.2
 requests
 
 # Optional packages that should be installed when testing

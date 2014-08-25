@@ -5,7 +5,7 @@
 #
 
 from sentry.common import http_communication
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 from sentry.openstack.common import log
 
 

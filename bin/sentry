@@ -1,4 +1,34 @@
+# -*- coding: utf8 -*-
 #!/usr/bin/env python
+#
+#          The Animal Protects No Bug
+#               ~~~      ~~~
+#             __| |______| |__```
+#            |                |
+#            |                | ````
+#            |     `````      | ```````
+#            |   ████--████   | `````
+#            |                | ```
+#            |      _[_       |
+#            |                |
+#            |____        ____|
+#                 |      |
+#                 |      |
+#                 |      |  `
+#                 |      |  `
+#                 |      |  ```
+#                 |      |  ```
+#                 |      |   `````
+#                 |      |   ```````
+#                 |      |__________````
+#                 |                 |__``
+#                 |                 |__|```
+#                 |_________________|
+#                   | | |   | | |
+#                   |`|`|   |`|`|
+#                   |_|_|   |_|_|          -gtt116
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
 NVS Alarm module
@@ -17,9 +47,7 @@ if os.path.exists(os.path.join(possible_topdir, 'sentry', '__init__.py')):
 
 
 from sentry.common import config
-from sentry.common import exception
 from sentry.openstack.common import log
-from sentry.openstack.common import cfg
 
 from sentry.controller import manager
 
@@ -29,16 +57,15 @@ def fail(returncode, e):
     sys.exit(returncode)
 
 if __name__ == '__main__':
-    config.parse_args(sys.argv)
-    log.setup('sentry')
-
-    mgr = manager.Manager()
     try:
+        config.parse_args(sys.argv[1:])
+        log.setup('sentry')
+
+        mgr = manager.Manager()
         server = mgr.create()
         server.wait()
     except KeyboardInterrupt as ex:
-        pass
+        sys.stderr.write("Receive terminate signal, exit.\n")
+        sys.exit(0)
     except Exception as ex:
         fail(1, ex)
-    finally:
-        mgr.cleanup()

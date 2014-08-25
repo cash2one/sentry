@@ -2,7 +2,7 @@ import json
 
 from sentry.common import client
 from sentry.common import utils
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 import sentry.openstack.common.log as logging
 
 LOG = logging.getLogger(__name__)

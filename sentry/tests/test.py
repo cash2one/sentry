@@ -7,7 +7,7 @@
 import unittest
 import stubout
 
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 
 
 FLAGS = cfg.CONF

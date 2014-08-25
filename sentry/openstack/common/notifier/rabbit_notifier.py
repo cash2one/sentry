@@ -14,7 +14,7 @@
 #    under the License.
 
 
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 from sentry.openstack.common import context as req_context
 from sentry.openstack.common.gettextutils import _
 from sentry.openstack.common import log as logging

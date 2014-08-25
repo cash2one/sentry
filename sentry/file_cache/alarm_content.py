@@ -8,7 +8,7 @@ import os
 
 from sentry.common import exception
 from sentry.common import utils
-from sentry.openstack.common import cfg
+from oslo.config import cfg
 from sentry.openstack.common import jsonutils
 
 
