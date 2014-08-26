@@ -4,3 +4,4 @@
 .ropeproject/
 sentry.egg-info/
 .tox/
+.tags
