@@ -4,7 +4,7 @@
 # @author: hzyangtk@corp.netease.com
 #
 
-from sentry.controller import handler
+from sentry.controller.handlers import alarm as handler
 from sentry.controller import helper as controller_helper
 from sentry.openstack.common import importutils
 from sentry.tests import test

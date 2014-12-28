@@ -1,0 +1,122 @@
+{
+  "_context_roles": [
+    "KeystoneAdmin",
+  "KeystoneServiceAdmin",
+  "admin"
+    ],
+  "_context_request_id": "req-cc3eb4c4-7079-47d9-805d-fdfdf60f9f7e",
+  "_context_quota_class": null,
+  "event_type": "compute.instance.delete.end",
+  "_context_service_catalog": [
+  {
+    "endpoints": [
+    {
+      "adminURL": "http://10.120.34.51:9292",
+      "region": "RegionOne",
+      "internalURL": "http://10.120.34.51:9292",
+      "id": "8b33e052693642939c59532eca297a7f",
+      "publicURL": "http://10.120.34.51:9292"
+    }
+    ],
+      "endpoints_links": [
+        ],
+      "type": "image",
+      "name": "glance"
+  },
+  {
+    "endpoints": [
+    {
+      "adminURL": "http://10.120.34.51:8774/v2/a3577b13ccc4437f884c715691f93177",
+      "region": "RegionOne",
+      "internalURL": "http://10.120.34.51:8774/v2/a3577b13ccc4437f884c715691f93177",
+      "id": "e40225fc8dc44953b6ae24d7178dbbe9",
+      "publicURL": "http://10.120.34.51:8774/v2/a3577b13ccc4437f884c715691f93177"
+    }
+    ],
+      "endpoints_links": [
+        ],
+      "type": "compute",
+      "name": "nova"
+  },
+  {
+    "endpoints": [
+    {
+      "adminURL": "http://10.120.34.51:8773/services/Admin",
+      "region": "RegionOne",
+      "internalURL": "http://10.120.34.51:8773/services/Cloud",
+      "id": "094c8e94bfa44ebb85e9d1da400602c9",
+      "publicURL": "http://10.120.34.51:8773/services/Cloud"
+    }
+    ],
+      "endpoints_links": [
+        ],
+      "type": "ec2",
+      "name": "ec2"
+  },
+  {
+    "endpoints": [
+    {
+      "adminURL": "http://10.120.34.51:35357/v2.0",
+      "region": "RegionOne",
+      "internalURL": "http://10.120.34.51:5000/v2.0",
+      "id": "948a566bece143979f71de9c0c8fd3c8",
+      "publicURL": "http://10.120.34.51:5000/v2.0"
+    }
+    ],
+      "endpoints_links": [
+        ],
+      "type": "identity",
+      "name": "keystone"
+  }
+  ],
+    "timestamp": "2013-01-21 08:51:29.179835",
+    "_context_auth_token": "47c4d416bf8f48c8b456aabc245e4a27",
+    "_context_instance_lock_checked": false,
+    "_context_unified_log_id": "8b20486e-b4cd-4efb-b808-173ed3cdd595",
+    "_context_user_id": "2c5d5b6b879740c3a1d3475fdacb59a0",
+    "_context_unified_log_seq": "0",
+    "payload": {
+      "state_description": "",
+      "availability_zone": null,
+      "ephemeral_gb": 0,
+      "instance_type_id": 2,
+      "deleted_at": "2013-01-21 08:51:29.047498",
+      "reservation_id": "r-bkc9wwl1",
+      "instance_id": "e6e990ec-e277-44bd-a78c-34d8c56bf340",
+      "user_id": "2c5d5b6b879740c3a1d3475fdacb59a0",
+      "state": "deleted",
+      "launched_at": "2013-01-17 04:03:43",
+      "metadata": [
+        ],
+      "ramdisk_id": "",
+      "access_ip_v6": null,
+      "disk_gb": 0,
+      "access_ip_v4": null,
+      "kernel_id": "",
+      "host": "ubuntu",
+      "display_name": "cirros-vm1.1",
+      "image_ref_url": "http://10.120.34.51:9292/images/42b5bb12-2500-40f9-a30d-4921d66fb2c0",
+      "root_gb": 0,
+      "tenant_id": "a3577b13ccc4437f884c715691f93177",
+      "created_at": "2013-01-17 04:03:36",
+      "memory_mb": 512,
+      "instance_type": "m1.tiny",
+      "vcpus": 1,
+      "image_meta": {
+        "base_image_ref": "42b5bb12-2500-40f9-a30d-4921d66fb2c0",
+        "image_id_sha1": "d6e04b4b162d9b5b131564d8029ec9184381f081"
+      },
+      "architecture": null,
+      "os_type": null
+    },
+    "_context_project_name": "admin",
+    "_context_read_deleted": "no",
+    "priority": "INFO",
+    "_context_is_admin": true,
+    "_context_project_id": "a3577b13ccc4437f884c715691f93177",
+    "_context_timestamp": "2013-01-21T08:51:25.283820",
+    "_context_user_name": "admin",
+    "publisher_id": "compute.ubuntu",
+    "message_id": "7525675b-0acd-4edb-a3bb-fc86646573d7",
+    "_context_remote_address": "10.120.34.51"
+}

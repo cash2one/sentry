@@ -37,6 +37,7 @@ NVS Alarm module
 
 import os
 import sys
+import traceback
 
 
 # If ../sentry/__init__.py exists, add ../ to Python search path, so that
@@ -55,6 +56,7 @@ from sentry.controller import manager
 
 def fail(returncode, e):
     sys.stderr.write("ERROR: %s\n" % e)
+    sys.stderr.write(traceback.format_exc())
     sys.exit(returncode)
 
 if __name__ == '__main__':
