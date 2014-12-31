@@ -1,5 +1,5 @@
 [gerrit]
-host=scm.service.163.org
+host=scm.cloud.netease.com
 port=29418
 project=openstack/sentry.git
 defaultbranch=netease/havana
