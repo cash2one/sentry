@@ -20,7 +20,7 @@ CONF = cfg.CONF
 CONF.register_opts(database_opts)
 
 ENGINE = None
-SESSION = None
+MAKER = None
 
 
 def get_engine():
@@ -31,9 +31,9 @@ def get_engine():
 
 
 def get_session():
-    global SESSION
-    if not SESSION:
+    global MAKER
+    if not MAKER:
         engine = get_engine()
-        SESSION = sessionmaker(bind=engine)
+        MAKER = sessionmaker(bind=engine)
 
-    return SESSION
+    return MAKER()

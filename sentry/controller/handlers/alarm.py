@@ -13,6 +13,8 @@ from sentry.sender import manager as sender_manager
 
 
 handler_configs = [
+    cfg.BoolOpt('enable_alarm', default=True,
+                help="Enable alarm when receive ERROR"),
     cfg.StrOpt('alarm_level',
                default='ERROR',
                help='Alarm level'),
@@ -31,7 +33,6 @@ LOG = log.getLogger(__name__)
 class Handler(object):
 
     def __init__(self):
-        LOG.debug("Controller handler init.")
         self._filter_drivers = None
 
     def handle_message(self, message):
@@ -117,4 +118,8 @@ class Handler(object):
 
     def _do_send_alarm(self, message):
         """Send messages to alarm system."""
+        if not CONF.enable_alarm:
+            LOG.debug("Alarm handler was disabled.")
+            return
+
         sender_manager.send_alarm(message)

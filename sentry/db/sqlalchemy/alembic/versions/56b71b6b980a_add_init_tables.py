@@ -1,13 +1,13 @@
-"""Create event, raw tables
+"""add init tables
 
-Revision ID: 29114b357bef
-Revises:
-Create Date: 2015-01-01 12:01:32.788399
+Revision ID: 56b71b6b980a
+Revises: hzgaott
+Create Date: 2015-01-01 15:06:32.415174
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '29114b357bef'
+revision = '56b71b6b980a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,8 +25,9 @@ def upgrade():
     )
     op.create_table('events',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('object_id', sa.String(length=100), nullable=True),
     sa.Column('message_id', sa.String(length=100), nullable=True),
-    sa.Column('raw_message', sa.Integer(), nullable=True),
+    sa.Column('raw_message_id', sa.Integer(), nullable=True),
     sa.Column('token', sa.String(length=100), nullable=True),
     sa.Column('is_admin', sa.Boolean(), nullable=True),
     sa.Column('request_id', sa.String(length=100), nullable=True),
@@ -38,12 +39,13 @@ def upgrade():
     sa.Column('event_type', sa.String(length=100), nullable=True),
     sa.Column('payload', sa.Text(), nullable=True),
     sa.Column('level', sa.String(length=20), nullable=True),
+    sa.Column('remote_address', sa.String(length=20), nullable=True),
     sa.Column('publisher_id', sa.String(length=100), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
     sa.Column('hostname', sa.String(length=50), nullable=True),
     sa.Column('binary', sa.String(length=20), nullable=True),
     sa.Column('service', sa.String(length=20), nullable=True),
-    sa.ForeignKeyConstraint(['raw_message'], ['raw_messages.id'], ),
+    sa.ForeignKeyConstraint(['raw_message_id'], ['raw_messages.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index('event_message_id', 'events',

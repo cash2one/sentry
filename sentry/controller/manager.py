@@ -78,6 +78,7 @@ class Pipeline(object):
         if not isinstance(message, dict):
             LOG.warn("Message is not a dict object: %s" % message)
 
+        LOG.debug("Processing message: %s" % message['event_type'])
         for handler in self.handlers:
             try:
                 handler.handle_message(message)

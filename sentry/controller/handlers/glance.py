@@ -6,12 +6,13 @@ from sentry.controller import handlers
 LOG = logging.getLogger(__name__)
 
 
-class Handler(handlers.PersistentHandler):
+class Handler(handlers.MySQLHandler):
     def handle_message(self, msg):
 
         event = models.Event()
 
         event.service = 'glance'
+        event.raw_json = msg
         try:
     #        event.token = msg['_context_auth_token']
     #        event.is_admin = msg['_context_is_admin']
@@ -31,12 +32,9 @@ class Handler(handlers.PersistentHandler):
             event.timestamp = msg['timestamp']
     #        event.remote_address = msg['_context_remote_address']
     #        event.catelog = msg['_context_service_catalog']
-            event.object_id = msg['payload']['id']
+            event.object_id = msg['payload'].get('id')
+            event = self.save_event(event)
+            return event
         except Exception as ex:
-            msg['exception'] = str(ex)
-            msg['module'] = __name__
-            self.save_unknown_event(msg)
-
-        event.raw_id = self.save_notification(msg)
-        self.save_event(event)
-        return event
+            LOG.exception("Message invalid: %(ex)s\n"
+                          "n%(msg)s" % {'ex': ex, 'msg': msg})

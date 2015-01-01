@@ -6,11 +6,12 @@ from sentry.controller import handlers
 LOG = logging.getLogger(__name__)
 
 
-class Handler(handlers.PersistentHandler):
+class Handler(handlers.MySQLHandler):
     def handle_message(self, msg):
         event = models.Event()
         event.service = 'neutron'
 
+        event.raw_json = msg
         try:
             # event.token = msg['_context_auth_token']
             event.is_admin = msg['_context_is_admin']
@@ -29,13 +30,37 @@ class Handler(handlers.PersistentHandler):
             # event.remote_address = msg['_context_remote_address']
             # event.catelog = msg['_context_service_catalog']
 
-            event.object_id = msg['payload']['network']['id']
+            event.object_id = self.object_id(msg)
             event.binary, event.hostname = event.publisher_id.split('.')
+            event = self.save_event(event)
+            return event
         except Exception as ex:
-            msg['exception'] = str(ex)
-            msg['module'] = __name__
-            self.save_unknown_event(msg)
+            LOG.exception("Message invalid: %(ex)s\n"
+                          "n%(msg)s" % {'ex': ex, 'msg': msg})
 
-        event.raw_id = self.save_notification(msg)
-        self.save_event(event)
-        return event
+    def object_id(self, msg):
+        event_type = msg['event_type']
+
+        if event_type in ['port.create.start',
+                          'subnet.create.start',
+                          'router.create.start',
+                          'vpnservice.create.start',
+                          'port.update.start',
+                          'monitor.create.start',
+                          'network.create.start']:
+            return None
+
+        #port, create, start
+        resource, method, status = event_type.split('.')
+
+        if method == 'delete':
+            return msg['payload']['%s_id' % resource]
+
+        payload = msg['payload']
+        # 'id' in first object in payload
+        try:
+            return payload[payload.keys()[0]]['id']
+        except KeyError as ex:
+            LOG.exception("missing object_id. exception: %(ex)\n"
+                          "%(msg)s" % {'ex': ex, 'msg': msg})
+            return None

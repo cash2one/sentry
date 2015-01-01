@@ -1,4 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from sqlalchemy import Column, ForeignKey, DateTime, Boolean, Text, Index
 from sqlalchemy import String, Integer
 
@@ -18,9 +19,11 @@ class Event(BASE):
     )
 
     id = Column(Integer, primary_key=True)
+    object_id = Column(String(100))
     message_id = Column(String(100))
     token = Column(String(100), nullable=False)
-    raw_message = Column(Integer, ForeignKey('raw_messages.id'))
+    raw_message_id = Column(Integer, ForeignKey('raw_messages.id'))
+    raw_message = relationship('RawMessage', backref="event", uselist=False)
     token = Column(String(100))
     is_admin = Column(Boolean, default=False)
     request_id = Column(String(100))
@@ -33,6 +36,7 @@ class Event(BASE):
     event_type = Column(String(100))
     payload = Column(Text())
     level = Column(String(20))
+    remote_address = Column(String(20))
     publisher_id = Column(String(100))
     timestamp = Column(DateTime())
     hostname = Column(String(50))
