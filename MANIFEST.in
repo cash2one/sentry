@@ -1,0 +1,13 @@
+include AUTHORS
+include README.rst
+include ChangeLog
+include LICENSE
+include sentry/db/sqlalchemy/alembic/README
+include sentry/db/sqlalchemy/alembic/alembic.ini
+include sentry/db/sqlalchemy/alembic/script.py.mako
+include sentry/db/sqlalchemy/alembic/README
+
+exclude .gitignore
+exclude .gitreview
+
+global-exclude *.pyc

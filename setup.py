@@ -8,8 +8,8 @@ setuptools.setup(
     name='sentry',
     version='1.0',
     description='Alarm System for Openstack',
-    author='Para Yang',
-    author_email='hzyangtk@corp.netease.com',
+    author='Netease',
+    author_email='nvs@corp.netease.com',
     packages=setuptools.find_packages(exclude=['bin']),
     include_package_data=True,
     cmdclass=setup.get_cmdclass(),
@@ -22,6 +22,11 @@ setuptools.setup(
         'Programming Language :: Python :: 2.7',
         'Environment :: No Input/Output (Daemon)',
     ],
-    scripts=['bin/sentry'],
-    py_modules=[]
+    entry_points={
+        'console_scripts': [
+            'sentry-manage = sentry.cmd.manage:main',
+            'sentry = sentry.cmd.server:main',
+        ]
+    },
+    py_modules=[],
 )

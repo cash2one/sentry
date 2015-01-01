@@ -1,0 +1,795 @@
+commit 476a6e379670a4e37f2800a12604cbc3695a6ca5
+Author: gtt116 <gtt116@gmail.com>
+Date:   Sun Dec 28 15:41:19 2014 +0800
+
+    Refactor message handler to pipeline mode
+    
+    之前sentry的逻辑是将每一个消息过滤一遍，将剩下的消息报给云监控。
+    现在将整个过滤逻辑扩展成pipeline模式。具体的，每一个队列都对应
+    一个pipeline，pipeline由若干handler组成，handler之间无耦合，handler
+    可以重用。pipeline中的handler可以通过配置文件指定。原来的handler重命名
+    为alarmHandler，变成为可复用的handler，作为每一个pipeline的第一个handler。
+    
+    另外加了nova，cinder，glance，neutron的消息处理handler，这些handler解析
+    消息，并且持久化。由于每个项目的消息体都不大一样，所以抽象了一个
+    公共模型Event，用来统一表示一个解析后的消息。
+    
+    为了保证以后新的notification可以兼容handler，为所有的handler写了单元测试框架。
+    所有需要解析的消息样例放在sentry/doc/example/NAME中。测试时会读取对应目录
+    中的样本给handler解析，如果解析出现问题则单元测试会出错。以后有新的样本需要
+    分析只要放到example对应的目录下，然后跑单元测试即可。
+    
+    下一步会将sentry-api重新引入，最后sentry的架构会成这样：
+    
+    sentry-api --- <database>  ----- sentry --- <rabbitMQ>
+    sentry-api                      sentry
+    sentry-api                      sentry
+    ....                           ....
+    
+    sentry-api, sentry可以分别横向扩展。sentry-api提供API接口和web页面，基本是
+    只读的。sentry负责从消息队列获取消息，解析，并持久化。
+    编写sentry逻辑时一定要注意不要破坏了sentry的可伸缩性
+    
+    Change-Id: Ie37ecac4bd7b5bfaa00eda4c31b8fdaa9cde9296
+
+ bin/sentry                                        |   2 +
+ doc/compute.instance.delete.end                   | 122 ---------------
+ doc/compute.instance.update                       | 175 ----------------------
+ doc/example/README.md                             |   3 +
+ doc/example/cinder/cinder.1.js                    |  54 +++++++
+ doc/example/cinder/cinder.2.js                    |  54 +++++++
+ doc/example/cinder/cinder.3.js                    |  54 +++++++
+ doc/example/cinder/cinder.4.js                    |  54 +++++++
+ doc/example/glance/glance.1.js                    |  26 ++++
+ doc/example/glance/glance.2.js                    |  26 ++++
+ doc/example/glance/glance.3.js                    |  26 ++++
+ doc/example/glance/glance.4.js                    |  26 ++++
+ doc/example/glance/glance.5.js                    |  26 ++++
+ doc/example/neutron/neutron.1.js                  |  27 ++++
+ doc/example/neutron/neutron.10.js                 |  25 ++++
+ doc/example/neutron/neutron.11.js                 |  42 ++++++
+ doc/example/neutron/neutron.12.js                 |  29 ++++
+ doc/example/neutron/neutron.13.js                 |  43 ++++++
+ doc/example/neutron/neutron.14.js                 |  25 ++++
+ doc/example/neutron/neutron.15.js                 |  27 ++++
+ doc/example/neutron/neutron.16.js                 |  35 +++++
+ doc/example/neutron/neutron.17.js                 |  51 +++++++
+ doc/example/neutron/neutron.18.js                 |  70 +++++++++
+ doc/example/neutron/neutron.19.js                 |  25 ++++
+ doc/example/neutron/neutron.2.js                  |  42 ++++++
+ doc/example/neutron/neutron.20.js                 |  25 ++++
+ doc/example/neutron/neutron.21.js                 |  25 ++++
+ doc/example/neutron/neutron.22.js                 |  25 ++++
+ doc/example/neutron/neutron.23.js                 |  27 ++++
+ doc/example/neutron/neutron.24.js                 |  42 ++++++
+ doc/example/neutron/neutron.25.js                 |  29 ++++
+ doc/example/neutron/neutron.26.js                 |  42 ++++++
+ doc/example/neutron/neutron.27.js                 |  25 ++++
+ doc/example/neutron/neutron.28.js                 |  29 ++++
+ doc/example/neutron/neutron.29.js                 |  25 ++++
+ doc/example/neutron/neutron.3.js                  |  27 ++++
+ doc/example/neutron/neutron.30.js                 |  42 ++++++
+ doc/example/neutron/neutron.31.js                 |  30 ++++
+ doc/example/neutron/neutron.32.js                 |  43 ++++++
+ doc/example/neutron/neutron.33.js                 |  29 ++++
+ doc/example/neutron/neutron.34.js                 |  27 ++++
+ doc/example/neutron/neutron.35.js                 |  43 ++++++
+ doc/example/neutron/neutron.36.js                 |  27 ++++
+ doc/example/neutron/neutron.37.js                 |  42 ++++++
+ doc/example/neutron/neutron.38.js                 |  37 +++++
+ doc/example/neutron/neutron.39.js                 |  51 +++++++
+ doc/example/neutron/neutron.4.js                  |  42 ++++++
+ doc/example/neutron/neutron.40.js                 |  64 ++++++++
+ doc/example/neutron/neutron.41.js                 |  25 ++++
+ doc/example/neutron/neutron.42.js                 |  28 ++++
+ doc/example/neutron/neutron.43.js                 |  48 ++++++
+ doc/example/neutron/neutron.44.js                 |  25 ++++
+ doc/example/neutron/neutron.46.js                 |  25 ++++
+ doc/example/neutron/neutron.47.js                 |  25 ++++
+ doc/example/neutron/neutron.5.js                  |  32 ++++
+ doc/example/neutron/neutron.6.js                  |  62 ++++++++
+ doc/example/neutron/neutron.7.js                  |  25 ++++
+ doc/example/neutron/neutron.8.js                  |  27 ++++
+ doc/example/neutron/neutron.9.js                  |  25 ++++
+ doc/example/neutron/neutron.info                  |  21 +++
+ doc/example/nova/compute.instance.delete.end.json | 122 +++++++++++++++
+ doc/example/nova/compute.instance.update.json     | 149 ++++++++++++++++++
+ doc/example/nova/instance_state_change.demo       |  73 +++++++++
+ doc/example/nova/notification_example.demo        | 116 ++++++++++++++
+ doc/instance_state_change.demo                    |  73 ---------
+ doc/monitor_notification_instance.demo            |  53 -------
+ doc/monitor_notification_service.demo             |  17 ---
+ doc/notification_example.demo                     | 116 --------------
+ sentry/controller/handler.py                      | 120 ---------------
+ sentry/controller/handlers/__init__.py            |  21 +++
+ sentry/controller/handlers/alarm.py               | 120 +++++++++++++++
+ sentry/controller/handlers/cinder.py              |  41 +++++
+ sentry/controller/handlers/glance.py              |  42 ++++++
+ sentry/controller/handlers/neutron.py             |  41 +++++
+ sentry/controller/handlers/nova.py                |  41 +++++
+ sentry/controller/manager.py                      | 152 +++++++++++++++----
+ sentry/db/models.py                               | 141 +++++++++++++++++
+ sentry/db/mongo.py                                |  63 ++++++++
+ sentry/tests/handlers/__init__.py                 |   0
+ sentry/tests/handlers/base.py                     |  96 ++++++++++++
+ 80 files changed, 3144 insertions(+), 708 deletions(-)
+
+commit d8e1f7b449f3ae5f988c0e151f28ce397a3db6ac
+Author: gtt116 <gtt116@gmail.com>
+Date:   Wed Dec 31 21:56:43 2014 +0800
+
+    Add readme
+    
+    Change-Id: Ic13b6b99009cf262142a80a4090293706ba92d26
+
+ README.md | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+commit 479286a4a8ea4986010fa7f1ee009beeefe20d27
+Author: gtt116 <gtt116@gmail.com>
+Date:   Wed Dec 31 21:18:47 2014 +0800
+
+    Update gitignore and gitreview
+    
+    Change-Id: I0284b3d22ae1fb8cec4f8aa1b2cb492acebc11dd
+
+ .gitignore | 1 +
+ .gitreview | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+commit 4ea34a8880bc8b2bd414fca80cdb7583cebc7775
+Author: gtt116 <gtt116@gmail.com>
+Date:   Tue Aug 26 16:59:04 2014 +0800
+
+    Fix file type bug
+    
+    Change-Id: Iea54cd538ffdd346fa525fbc1a6445ab63f4eb19
+
+ .gitreview | 2 +-
+ bin/sentry | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+commit 3483c405b97025de4343df763b6f0e317d3bb409
+Author: stanzgy <stan.zgy@gmail.com>
+Date:   Tue Aug 26 15:53:50 2014 +0800
+
+    update gitignore
+
+ .gitignore | 1 +
+ 1 file changed, 1 insertion(+)
+
+commit 248325b3af4474c1b0db27ff9dd543282c4c29ef
+Author: gtt116 <gtt116@gmail.com>
+Date:   Mon Aug 25 12:11:11 2014 +0800
+
+    Update sentry with lastest modules (Lots of work)
+    
+    The patch do below work:
+    * Remove unused sentry-api, and tests for it.
+    * Update requirements, test-requirement version to match global.
+    * Switch to oslo.config.
+    * Log all config items before service start.
+    * Update openstack.common.rpc modules which from nova.
+    * Update some openstack.common modules which rpc needs.
+    * By the way, HA RabbitMQ are also supported.
+    
+    NewFeature: CLOUD-10031
+    Change-Id: I53ea45111fd29c9037ac9d824fa5e85935d2ac92
+
+ .gitignore                                         |    5 +-
+ bin/sentry                                         |   45 +-
+ bin/sentry-api                                     |   43 -
+ etc/sentry/sentry.conf                             |    3 +
+ sentry/api/__init__.py                             |    0
+ sentry/api/base.py                                 |  211 ---
+ sentry/api/handler.py                              |   71 -
+ sentry/api/manager.py                              |   67 -
+ sentry/api/wsgi.py                                 |  384 -----
+ sentry/api/wsgi_service.py                         |  110 --
+ sentry/common/config.py                            |   50 +-
+ sentry/common/http_communication.py                |    2 +-
+ sentry/common/novaclient_helper.py                 |    2 +-
+ sentry/controller/handler.py                       |    2 +-
+ sentry/controller/helper.py                        |    2 +-
+ sentry/controller/manager.py                       |    5 +-
+ sentry/file_cache/alarm_content.py                 |    2 +-
+ sentry/file_cache/setting_list.py                  |    2 +-
+ sentry/filter/alarm_filter.py                      |    2 +-
+ sentry/filter/owner_filter.py                      |    2 +-
+ sentry/openstack/client.py                         |    2 +-
+ sentry/openstack/common/cfg.py                     | 1653 --------------------
+ sentry/openstack/common/excutils.py                |   73 +-
+ sentry/openstack/common/log.py                     |  246 ++-
+ sentry/openstack/common/network_utils.py           |   81 +
+ sentry/openstack/common/notifier/api.py            |    2 +-
+ sentry/openstack/common/notifier/log_notifier.py   |    2 +-
+ .../openstack/common/notifier/rabbit_notifier.py   |    2 +-
+ sentry/openstack/common/rpc/__init__.py            |   98 +-
+ sentry/openstack/common/rpc/amqp.py                |  378 ++++-
+ sentry/openstack/common/rpc/common.py              |  310 +++-
+ sentry/openstack/common/rpc/dispatcher.py          |   84 +-
+ sentry/openstack/common/rpc/impl_fake.py           |   33 +-
+ sentry/openstack/common/rpc/impl_kombu.py          |  361 +++--
+ sentry/openstack/common/rpc/impl_qpid.py           |  590 ++++---
+ sentry/openstack/common/rpc/impl_zmq.py            |  470 +++---
+ sentry/openstack/common/rpc/matchmaker.py          |  296 ++--
+ sentry/openstack/common/rpc/matchmaker_redis.py    |  145 ++
+ sentry/openstack/common/rpc/matchmaker_ring.py     |  108 ++
+ sentry/openstack/common/rpc/proxy.py               |   83 +-
+ sentry/openstack/common/rpc/securemessage.py       |  521 ++++++
+ sentry/openstack/common/rpc/serializer.py          |   52 +
+ sentry/openstack/common/rpc/service.py             |   78 +
+ sentry/openstack/common/rpc/zmq_receiver.py        |   40 +
+ sentry/openstack/common/sslutils.py                |  100 ++
+ sentry/sender/http_sender.py                       |    2 +-
+ sentry/sender/manager.py                           |    2 +-
+ sentry/tests/api/__init__.py                       |    0
+ sentry/tests/api/test_base.py                      |  281 ----
+ sentry/tests/api/test_hanlder.py                   |  121 --
+ sentry/tests/test.py                               |    2 +-
+ setup.py                                           |    2 +-
+ tools/pip-requires                                 |   11 +-
+ tools/test-requires                                |    1 -
+ 54 files changed, 3322 insertions(+), 3918 deletions(-)
+
+commit 5d3e456a641734008400aa7f421238fe23067150
+Author: Guan Qiang <hzguanqiang@corp.netease.com>
+Date:   Fri May 30 11:56:35 2014 +0800
+
+    Change Service run-level
+    
+    Change-Id: Idbf55b1a3cead6110d2c6b0de18b5c900f35c51b
+    JIRA: CLOUD-9518
+
+ init.d/sentry | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+commit fbf2c74c875f0a37afa896694367edde69cbf95a
+Author: Guan Qiang <hzguanqiang@corp.netease.com>
+Date:   Tue Nov 5 02:35:44 2013 +0000
+
+    Add sentry api support for lxc monitor
+    
+    The monitoring dimension of lxc and kvm is different, so we need to
+    get instance list for certain virt type.
+    
+    Change-Id: Ic35e894eb0ef41d1400f636458a8c9956d9d3399
+    details: http://jira.hz.netease.com/browse/CLOUD-7114
+
+ sentry/api/base.py            | 33 +++++++++++++++++++++---
+ sentry/tests/api/test_base.py | 60 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 90 insertions(+), 3 deletions(-)
+
+commit 1bd6976abea9f476a2d8fde13165630a72ca73e1
+Author: gtt116 <gtt116@gmail.com>
+Date:   Fri Aug 2 11:33:49 2013 +0800
+
+    Loading secret config file for sentry.
+    
+    the secret config file path: /etc/sentry/sentry-pass.conf
+    
+    Change-Id: I32f3d4a888d7bbf070570841f2e1b4585656f570
+
+ init.d/sentry     | 6 +++++-
+ init.d/sentry-api | 6 +++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+commit c0b2b3a8f6d05b9b8c4c8b690dad3599ae5a3174
+Author: Guan Qiang <hzguanqiang@corp.netease.com>
+Date:   Wed Jun 19 09:51:47 2013 +0800
+
+    Bump sentry version to 1.0.5
+    
+    Change-Id: I9162cea77ab0c6d3d960f41bf5a9b5ece51f8b8d
+
+ sentry/nt_version.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit debf24e9f2d7967883ae8558b399f960dc11f886
+Author: Guan Qiang <hzguanqiang@corp.netease.com>
+Date:   Tue Jun 18 13:53:16 2013 +0800
+
+    Modify get-instance-list api return value.
+    
+    Change get-instance-list api return value just as following:
+       [{“id”: uuid1, "screenName":"instance_name1:ip1"}]
+    
+    Change-Id: I4c8ed6c2a532d2585883f08f88a62ecde02dfada
+    Details:http://jira.hz.netease.com/browse/CLOUD-5187
+
+ sentry/api/base.py            | 11 ++++++-----
+ sentry/tests/api/test_base.py |  9 +++++----
+ 2 files changed, 11 insertions(+), 9 deletions(-)
+
+commit 1592c8a91e5f14c380f3b601020ad44026cd02c5
+Author: Guan Qiang <hzguanqiang@corp.netease.com>
+Date:   Sat Jun 8 17:28:55 2013 +0800
+
+    Modify vm alarm dimension.
+    
+    * Change alarm dimension to "instance_name:ip".
+    * Modify sentry api interface "get-alarm-event-list" to return
+      "instance_name:ip" instead of "ip"
+    
+    Change-Id: I473b0abfe60dcae03c7f809ec757cf18466488c6
+    Details:http://jira.hz.netease.com/browse/CLOUD-5187
+
+ sentry/api/base.py            |  4 +++-
+ sentry/controller/helper.py   | 15 +++++++++++++--
+ sentry/tests/api/test_base.py |  5 +++--
+ 3 files changed, 19 insertions(+), 5 deletions(-)
+
+commit 42eb5e41bd6d1bb2400e6675c4fccabb0f367955
+Author: Guan Qiang <hzguanqiang@corp.netease.com>
+Date:   Sat Jun 8 11:28:26 2013 +0800
+
+    Modify sentry version.
+    
+    Change-Id: I1b4f3ae09b202bc3f41b522f3bd2082369e8ef3f
+
+ sentry/nt_version.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit f11463164abbb800dd211cc4cfbfb256c0b27fe5
+Author: Guan Qiang <hzguanqiang@corp.netease.com>
+Date:   Thu Jun 6 16:50:32 2013 +0800
+
+    Modify vm alarm dimension.
+    
+    Modify vm alarm dimension, changing alarm dimension from ip to
+    instance_id as the vm identification.
+    
+    Change-Id: I4b44973d4479af520900a6d354d3560a6a00d2bd
+    details:http://jira.hz.netease.com/browse/CLOUD-5187
+
+ sentry/controller/helper.py | 23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
+
+commit 98cb9e647d8a989b81b2a5ffd02615f763f5feaa
+Author: TianTian <gtt116@126.com>
+Date:   Mon May 27 16:15:36 2013 +0800
+
+    Change requirement into new home.
+    
+    Change-Id: Ia66618eca6981206d5fef027c07716f89f3e0488
+
+ tools/pip-requires | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 624956972e194927266bf743bbd65d65012278c0
+Author: stanzgy <stan.zgy@gmail.com>
+Date:   Fri May 24 11:22:42 2013 +0800
+
+    bump nt_version to 1.0.3
+
+ sentry/nt_version.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit f98ff6a107f73a96e6126d255d483f2fd6dfc937
+Author: Guan Qiang <hzguanqiang@corp.netease.com>
+Date:   Wed May 22 15:15:57 2013 +0800
+
+    Modify gitreview host address.
+    
+    Change-Id: I9b31fe18a7275595753481f23a98a50c6291773f
+
+ .gitreview | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 45a0c172d977c6af00c39422a2dd690367072be9
+Author: Guan Qiang <hzguanqiang@corp.netease.com>
+Date:   Wed May 22 14:43:18 2013 +0800
+
+    Eliminate the dependance of rabbitMQ-server
+    
+    Eliminate the dependance of rabbitMQ-server for sentry.
+    
+    Change-Id: Idec4c608fd26c94f11698213a740dcad40f3c7de
+    Details:http://jira.hz.netease.com/browse/CLOUD-4922
+
+ init.d/sentry      | 2 --
+ tools/apt-requires | 1 -
+ 2 files changed, 3 deletions(-)
+
+commit 088f35a627b87ea449209dca9992c48a321fd998
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Fri Apr 12 10:37:54 2013 +0800
+
+    Add new api when dimensionName is AZ return all AZs to platform
+    
+    * this api will return all AZs to platform when call API get-instance-list
+      with choose dimensionName=AZ and IsPlatformManager is True.
+    
+    http://jira.hz.netease.com/browse/CLOUD-4259
+    
+    Change-Id: Ifeea63471d7484ac4059e6f89a65f72eca775ede
+
+ doc/sentry-api/api-request-demo |  56 +++++++++++++++
+ sentry/api/base.py              |  45 ++++++++++--
+ sentry/tests/api/test_base.py   | 152 +++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 246 insertions(+), 7 deletions(-)
+
+commit 70cb8d8dc3ade7c16c62052fd5dd6423a15827c8
+Author: TianTian <gtt116@126.com>
+Date:   Fri Apr 12 15:57:42 2013 +0800
+
+    Support nt_version API
+    
+    Change-Id: I8c4a25eff42a865be5d00da001c658ecbba04e36
+
+ etc/sentry/api-paste.ini | 5 ++++-
+ sentry/nt_version.py     | 1 +
+ tools/pip-requires       | 2 ++
+ 3 files changed, 7 insertions(+), 1 deletion(-)
+
+commit 6dac72a1f791baf5648fbead0fbc56626b87d941
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Wed Apr 10 14:11:05 2013 +0800
+
+    Modify initd boot script from /usr/local/bin to /usr/bin
+    
+    http://jira.hz.netease.com/browse/CLOUD-3988
+    
+    Change-Id: I4baf43e948918c2dc9948152bb4fb4736b0eb85b
+
+ etc/sentry/sentry-online.conf | 37 +++++++++++++++++++++++++++++++++++++
+ init.d/sentry                 |  2 +-
+ init.d/sentry-api             |  2 +-
+ sentry/controller/helper.py   |  2 +-
+ 4 files changed, 40 insertions(+), 3 deletions(-)
+
+commit a1a94e834771890128fabc3884febd0b90031635
+Author: TianTian <gtt116@126.com>
+Date:   Mon Apr 8 11:19:40 2013 +0800
+
+    Exclude `openstack/common/` when do coverage
+    
+    Use nose-cov to fine-gain control of coverage.
+    
+    Change-Id: I1f2328c8efe368998e8666a61e9ac243e98e159d
+
+ .coveragerc         |  5 +++++
+ tools/test-requires |  2 ++
+ tox.ini             | 12 ++++--------
+ 3 files changed, 11 insertions(+), 8 deletions(-)
+
+commit 585d2ebe01156ea507a14b223b40f520b6fb2ad2
+Author: TianTian <gtt116@126.com>
+Date:   Sun Apr 7 16:38:35 2013 +0800
+
+    Set cover target project name to 'sentry'
+    
+    Otherwise, the coverage will contain other project like eventlet, greenlet,
+    etc.
+    
+    Change-Id: I47a784fe121122e588c3ee49f93843d3ab2c8336
+
+ setup.cfg | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+commit 4c553795c809f5b688a6d2209fb0d63c15a68f41
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Thu Mar 28 11:38:16 2013 +0800
+
+    Remove setup.py data_files
+    
+    Change-Id: Ia52cb0717bc921eaee260f2d9f2f1feb54415045
+
+ sentry/api/wsgi_service.py | 2 +-
+ setup.py                   | 3 ---
+ 2 files changed, 1 insertion(+), 4 deletions(-)
+
+commit 6929d056680e809c8baeccf99acd2a8d27bbf1d9
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Thu Mar 28 11:36:19 2013 +0800
+
+    Update README
+    
+    Change-Id: I909f8b4ee17e82be7f4000d824ea4ca6a079af2c
+
+ README.md | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+commit ed492256f2b18426c77d5c984aefe3105f336f24
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Thu Mar 28 11:07:01 2013 +0800
+
+    Add sentry to Jekins
+
+ setup.cfg           | 34 ++++++++++++++++++++++++++++++++++
+ tools/test-requires | 20 ++++++++++++++++++++
+ tox.ini             | 33 +++++++++++++++++++++++++++++++++
+ 3 files changed, 87 insertions(+)
+
+commit a06a8d471d09dc3d4d1ea5df8d63527df096e23e
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Thu Mar 28 09:52:34 2013 +0800
+
+    Unittest for Sentry and some modification
+    
+    * add unittests for sentry
+    * some exception handle
+    * add a new switch to platform binding and stop alarm.
+    
+    Change-Id: I78d76166e13e1810ac7a9ecbdf1ddaa4c3b8f126
+
+ etc/logrotate.d/sentry                   |  14 ++
+ sentry/common/utils.py                   |   7 +-
+ sentry/controller/handler.py             |   2 +-
+ sentry/controller/helper.py              |  14 +-
+ sentry/filter/alarm_filter.py            |  23 +--
+ sentry/sender/handler.py                 |  25 ++-
+ sentry/tests/alarm.cfg                   |  17 --
+ sentry/tests/api/__init__.py             |   0
+ sentry/tests/api/test_base.py            |  69 ++++++++
+ sentry/tests/api/test_hanlder.py         | 121 ++++++++++++++
+ sentry/tests/common/test_utils.py        |  36 ----
+ sentry/tests/controller/test_handler.py  | 107 ++++++++++++
+ sentry/tests/controller/test_helper.py   | 118 +++++++++++++
+ sentry/tests/controller/test_manager.py  |  26 ---
+ sentry/tests/fake_instance.py            |  22 +++
+ sentry/tests/filter/__init__.py          |   0
+ sentry/tests/filter/alarm_filter.conf    |  12 ++
+ sentry/tests/filter/owner_filter.conf    |  18 ++
+ sentry/tests/filter/test_alarm_filter.py |  90 ++++++++++
+ sentry/tests/filter/test_owner_filter.py | 141 ++++++++++++++++
+ sentry/tests/owner.cfg                   |  12 --
+ sentry/tests/sender/__init__.py          |   0
+ sentry/tests/sender/test_handler.py      | 113 +++++++++++++
+ sentry/tests/sender/test_manager.py      | 275 +++++++++++++++++++++++++++++++
+ sentry/tests/test.py                     |  29 ++++
+ 25 files changed, 1168 insertions(+), 123 deletions(-)
+
+commit 07845618eb04b41a8d4833b41431eecd2ae4528b
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Fri Mar 22 17:53:35 2013 +0800
+
+    Add  gitignore and gitreview
+
+ .gitignore | 3 ++-
+ .gitreview | 7 +++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+commit 125cc5c5a95942498bd67459596adec38e99c0a1
+Merge: 820901f 7681d87
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Fri Mar 22 17:36:47 2013 +0800
+
+    Merge branch 'master' of ssh://scm.hz.netease.com:2222/openstack/sentry
+
+commit 820901f5362c626d97fe53356c5d6b5283a4e99f
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Fri Mar 22 17:32:53 2013 +0800
+
+    Add sentry pip requirs and switch to new message queue
+    
+    Now sentry will listen on new message queue, for example
+    notifications.error and glance_notifications.error
+
+ etc/sentry/sentry.conf       |  2 --
+ sentry/controller/manager.py | 54 +++++++++++++++++++++++++++-----------------
+ tools/pip-requires           |  2 ++
+ 3 files changed, 35 insertions(+), 23 deletions(-)
+
+commit 7681d87f728287ea8bd566edbfb1cf89c82d8aa3
+Author: stanzgy <stan.zgy@gmail.com>
+Date:   Thu Mar 21 17:49:52 2013 +0800
+
+    fixed syntax error
+
+ sentry/openstack/client.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+commit c4836f2428a318baca2615c0c792828decc46b4a
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Thu Mar 21 17:47:10 2013 +0800
+
+    Fix sentry syntax with dict to list
+
+ sentry/openstack/client.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+commit b1fd516e7559aef09c39907f6019314443ab0f65
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Thu Mar 21 17:33:06 2013 +0800
+
+    Modify sentry syntax error
+
+ sentry/openstack/client.py | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+commit 9dd61a09d70965d28a856e89663937ceb0ecd2a0
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Thu Mar 21 17:33:06 2013 +0800
+
+    Modify sentry syntax error
+
+ sentry/openstack/client.py | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+commit aab4ad9386eabd9ca3d01a4c0f929e9db6500962
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Tue Mar 12 16:51:15 2013 +0800
+
+    Add apt-requires
+
+ tools/apt-requires | 1 +
+ 1 file changed, 1 insertion(+)
+
+commit ecf7a579f7a49cf87f88c15dc3baf14942d61b88
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Tue Mar 12 16:47:08 2013 +0800
+
+    Move init.d file location
+
+ init.d/sentry     | 90 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ init.d/sentry-api | 88 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ install.sh        |  8 ++---
+ tools/sentry      | 90 -------------------------------------------------------
+ tools/sentry-api  | 88 -----------------------------------------------------
+ 5 files changed, 182 insertions(+), 182 deletions(-)
+
+commit b59da5879337b2a4a11c7c0e4126eaee505ec4cf
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Tue Mar 12 16:38:34 2013 +0800
+
+    Add pip-requires for sentry project
+
+ sentry/api/base.py     | 1 +
+ sentry/common/utils.py | 3 ++-
+ tools/pip-requires     | 3 +++
+ tools/sentry-api       | 2 --
+ 4 files changed, 6 insertions(+), 3 deletions(-)
+
+commit 6952608d93c463f5b0489a6aa3ec1ba3ef2ce805
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Thu Jan 31 18:02:51 2013 +0800
+
+    Update pip requires
+
+ tools/pip-requires | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+commit c62790b5c6a8f4ecfcbde10a77f86853eebfe04f
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Wed Jan 30 16:54:42 2013 +0800
+
+    Add a switch to enable_notify_vm_state_change
+
+ sentry/controller/helper.py | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+commit 68f78d7b7d1e82bd34a395d36cb7d9b03cb08fb7
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Wed Jan 30 16:10:10 2013 +0800
+
+    Modify NosError data format for glance_nos module
+
+ sentry/sender/manager.py | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+commit 8e43db6f065065b56b578b83675fd6dd1dc2ba44
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Tue Jan 29 17:40:47 2013 +0800
+
+    New add project Sentry
+    
+    NVS Alarm Service - Sentry
+    four main modules: controller, filter, sender and api
+    
+    Change-Id: I4f94554961c1f379a574282b885b37fbb399ecd0
+
+ README.md                                          |   18 +
+ bin/sentry                                         |   44 +
+ bin/sentry-api                                     |   43 +
+ doc/compute.instance.delete.end                    |  122 ++
+ doc/compute.instance.update                        |  175 +++
+ doc/instance_state_change.demo                     |   73 +
+ doc/monitor_notification_instance.demo             |   53 +
+ doc/monitor_notification_service.demo              |   17 +
+ doc/notification_example.demo                      |  116 ++
+ doc/notification_glance_nos.demo                   |    4 +
+ doc/notification_nbs_error.demo                    |  127 ++
+ doc/payload_example.demo                           |   81 +
+ etc/sentry/alarm_content.json                      |   37 +
+ etc/sentry/api-paste.ini                           |   12 +
+ etc/sentry/filter/alarm_filter.conf                |   15 +
+ etc/sentry/filter/owner_filter.conf                |   23 +
+ etc/sentry/sentry.conf                             |   39 +
+ etc/sentry/setting_list.json                       |   61 +
+ install.sh                                         |   22 +
+ sentry/__init__.py                                 |    8 +
+ sentry/api/__init__.py                             |    0
+ sentry/api/base.py                                 |  147 ++
+ sentry/api/handler.py                              |   71 +
+ sentry/api/manager.py                              |   67 +
+ sentry/api/wsgi.py                                 |  384 +++++
+ sentry/api/wsgi_service.py                         |  110 ++
+ sentry/common/__init__.py                          |    0
+ sentry/common/auth.py                              |  285 ++++
+ sentry/common/client.py                            |  632 ++++++++
+ sentry/common/config.py                            |  147 ++
+ sentry/common/exception.py                         |  253 +++
+ sentry/common/http_communication.py                |   84 +
+ sentry/common/novaclient_helper.py                 |  100 ++
+ sentry/common/utils.py                             |  113 ++
+ sentry/controller/__init__.py                      |    0
+ sentry/controller/handler.py                       |  120 ++
+ sentry/controller/helper.py                        |  111 ++
+ sentry/controller/manager.py                       |   87 ++
+ sentry/file_cache/__init__.py                      |    0
+ sentry/file_cache/alarm_content.py                 |   61 +
+ sentry/file_cache/setting_list.py                  |   61 +
+ sentry/filter/__init__.py                          |    0
+ sentry/filter/alarm_filter.py                      |   77 +
+ sentry/filter/filter.py                            |   27 +
+ sentry/filter/owner_filter.py                      |  118 ++
+ sentry/openstack/__init__.py                       |    0
+ sentry/openstack/client.py                         |   66 +
+ sentry/openstack/common/README                     |   13 +
+ sentry/openstack/common/__init__.py                |    0
+ sentry/openstack/common/cfg.py                     | 1653 ++++++++++++++++++++
+ sentry/openstack/common/context.py                 |   81 +
+ sentry/openstack/common/excutils.py                |   49 +
+ sentry/openstack/common/gettextutils.py            |   33 +
+ sentry/openstack/common/importutils.py             |   59 +
+ sentry/openstack/common/iniparser.py               |  130 ++
+ sentry/openstack/common/jsonutils.py               |  148 ++
+ sentry/openstack/common/local.py                   |   37 +
+ sentry/openstack/common/log.py                     |  452 ++++++
+ sentry/openstack/common/notifier/__init__.py       |   14 +
+ sentry/openstack/common/notifier/api.py            |  181 +++
+ sentry/openstack/common/notifier/log_notifier.py   |   35 +
+ sentry/openstack/common/notifier/no_op_notifier.py |   19 +
+ .../openstack/common/notifier/rabbit_notifier.py   |   46 +
+ sentry/openstack/common/notifier/test_notifier.py  |   22 +
+ sentry/openstack/common/policy.py                  |  300 ++++
+ sentry/openstack/common/rpc/__init__.py            |  264 ++++
+ sentry/openstack/common/rpc/amqp.py                |  418 +++++
+ sentry/openstack/common/rpc/common.py              |  311 ++++
+ sentry/openstack/common/rpc/dispatcher.py          |  150 ++
+ sentry/openstack/common/rpc/impl_fake.py           |  184 +++
+ sentry/openstack/common/rpc/impl_kombu.py          |  755 +++++++++
+ sentry/openstack/common/rpc/impl_qpid.py           |  599 +++++++
+ sentry/openstack/common/rpc/impl_zmq.py            |  718 +++++++++
+ sentry/openstack/common/rpc/matchmaker.py          |  258 +++
+ sentry/openstack/common/rpc/proxy.py               |  165 ++
+ sentry/openstack/common/setup.py                   |  358 +++++
+ sentry/openstack/common/timeutils.py               |  126 ++
+ sentry/openstack/common/version.py                 |  148 ++
+ sentry/sender/__init__.py                          |    5 +
+ sentry/sender/handler.py                           |   81 +
+ sentry/sender/http_sender.py                       |  151 ++
+ sentry/sender/manager.py                           |  288 ++++
+ sentry/tests/__init__.py                           |    0
+ sentry/tests/alarm.cfg                             |   17 +
+ sentry/tests/common/__init__.py                    |    0
+ sentry/tests/common/test_utils.py                  |   36 +
+ sentry/tests/controller/__init__.py                |    0
+ sentry/tests/controller/test_manager.py            |   26 +
+ sentry/tests/owner.cfg                             |   12 +
+ setup.py                                           |   30 +
+ tools/pip-requires                                 |    1 +
+ tools/sentry                                       |   90 ++
+ tools/sentry-api                                   |   90 ++
+ 93 files changed, 12764 insertions(+)
+
+commit f9d1a01a22b6f0807080c421685357ba51d48ba8
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Mon Jan 28 11:08:05 2013 +0800
+
+    Modify .gitignore
+
+ .gitignore | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit a395926be56322d4001cb008d85b25f6acecf923
+Author: hzyangtk <hzyangtk@corp.netease.com>
+Date:   Mon Jan 28 10:48:22 2013 +0800
+
+    Init sentry project
+    
+    First time to push sentry project
+
+ .gitignore | 2 ++
+ 1 file changed, 2 insertions(+)

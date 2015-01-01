@@ -13,3 +13,6 @@ routes
 PasteDeploy==1.5.0
 python-novaclient
 oslo.config>=1.2.0
+SQLAlchemy>=0.7.8,<=0.7.99
+alembic>=0.4.1
+MySQL-python

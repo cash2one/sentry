@@ -59,7 +59,8 @@ def fail(returncode, e):
     sys.stderr.write(traceback.format_exc())
     sys.exit(returncode)
 
-if __name__ == '__main__':
+
+def main():
     try:
         config.parse_args(sys.argv[1:])
         log.setup('sentry')
