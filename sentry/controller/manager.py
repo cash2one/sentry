@@ -1,10 +1,4 @@
-#
-# Created on 2012-11-16
-#
-# @author: hzyangtk
-#
 
-import logging as std_logging
 import eventlet
 from oslo.config import cfg
 
@@ -24,9 +18,9 @@ from sentry.openstack.common import jsonutils
 
 
 manager_configs = [
-    cfg.StrOpt('queue_suffix',
-               default='sentry',
-               help='Name of queue suffix'),
+    cfg.BoolOpt("ack_on_error", default=False,
+                help="Whether to ack the message if process failed, "
+                "default is False."),
     cfg.StrOpt('nova_sentry_mq_topic',
                default='notifications',
                help='Name of nova notifications topic'),
@@ -94,7 +88,6 @@ class Pipeline(object):
 class Manager(object):
 
     def __init__(self):
-        self.conn = rpc.create_connection(new=True)
         # faild early
         self.nova_handlers = self.registry_handlers(
             CONF.nova_event_handlers)
@@ -134,8 +127,8 @@ class Manager(object):
         Example:
             "notifications.info"
         """
-        CONF.log_opt_values(LOG, std_logging.DEBUG)
         LOG.info('Start sentry service.')
+        self.conn = rpc.create_connection(new=True)
 
         # Nova
         self._declare_queue_consumer(
@@ -178,6 +171,7 @@ class Manager(object):
                 topic=topic,
                 callback=handler,
                 queue_name=queue,
+                ack_on_error=CONF.ack_on_error,
             )
             LOG.debug("Declare queue name: %(queue)s, topic: %(topic)s" %
                       {"queue": queue, "topic": topic})
