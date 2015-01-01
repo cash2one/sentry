@@ -47,11 +47,15 @@ possible_topdir = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
 if os.path.exists(os.path.join(possible_topdir, 'sentry', '__init__.py')):
     sys.path.insert(0, possible_topdir)
 
+import logging as std_logging
+from oslo.config import cfg
 
 from sentry.common import config
+from sentry.controller import manager
 from sentry.openstack.common import log
 
-from sentry.controller import manager
+LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 
 def fail(returncode, e):
@@ -64,6 +68,7 @@ def main():
     try:
         config.parse_args(sys.argv[1:])
         log.setup('sentry')
+        CONF.log_opt_values(LOG, std_logging.DEBUG)
 
         mgr = manager.Manager()
         server = mgr.create()
