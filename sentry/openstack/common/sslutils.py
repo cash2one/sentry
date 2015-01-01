@@ -19,7 +19,7 @@ import ssl
 
 from oslo.config import cfg
 
-from nova.openstack.common.gettextutils import _  # noqa
+from sentry.openstack.common.gettextutils import _  # noqa
 
 
 ssl_opts = [
