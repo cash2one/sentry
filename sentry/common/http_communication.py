@@ -21,7 +21,7 @@ request_configs = [
                default=3,
                help='Retry counts when http connection failed.'),
     cfg.FloatOpt('http_retry_delay',
-                 default=3,
+                 default=3.0,
                  help='Retry dealy when http connection failed.'),
 ]
 
