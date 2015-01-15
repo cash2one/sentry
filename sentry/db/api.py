@@ -7,3 +7,7 @@ IMPL = db_api.DBAPI(backend_mapping=_BACKEND_MAPPING)
 
 def event_create(event):
     return IMPL.event_create(event)
+
+
+def event_query():
+    return IMPL.event_query()
