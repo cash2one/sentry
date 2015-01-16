@@ -9,5 +9,9 @@ def event_create(event):
     return IMPL.event_create(event)
 
 
-def event_query():
-    return IMPL.event_query()
+def event_get_all(*args, **kwargs):
+    return IMPL.event_get_all(*args, **kwargs)
+
+
+def event_schema(*args, **kwargs):
+    return IMPL.event_schema(*args, **kwargs)

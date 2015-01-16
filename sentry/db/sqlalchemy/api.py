@@ -1,5 +1,7 @@
 import sys
 
+from sqlalchemy.sql.expression import desc, asc
+
 from sentry.db.sqlalchemy import session
 from sentry.db.sqlalchemy import models
 from sentry.openstack.common import jsonutils
@@ -43,5 +45,57 @@ def event_create(event):
     se.commit()
 
 
-def event_get_all():
-    pass
+def _validate_search_dict(model, search_dict):
+    can_search = model.get_searchable()
+    for key in search_dict.keys():
+        if not key in can_search:
+            raise ValueError("search by %(key)s invalid, only support: "
+                             "%(can)s" % {'key': key, 'can': can_search})
+
+
+def _validate_sort_keys(model, sort_keys):
+    sorts_criterion = []
+    can_sort = model.get_sortable()
+    for key in sort_keys:
+        neg = False
+        if key[0] == '-':
+            key = key[1:]
+
+        if not (key in can_sort):
+            raise ValueError("sort by %(key)s invalid, only support: "
+                             "%(can)s" % {'key': key, 'can': can_sort})
+        if neg:
+            criterion = desc(getattr(model, key))
+        else:
+            criterion = asc(getattr(model, key))
+
+        sorts_criterion.append(criterion)
+    return sorts_criterion
+
+
+def event_get_all(search_dict={}, sorts=[]):
+    se = session.get_session()
+
+    # failed fast
+    if search_dict:
+        _validate_search_dict(models.Event, search_dict)
+
+    if sorts:
+        sorts_criterion = _validate_sort_keys(models.Event, sorts)
+
+    query = se.query(models.Event)
+
+    if search_dict:
+        query = query.filter_by(**search_dict)
+
+    for sort in sorts_criterion:
+        query = query.order_by(sort)
+
+    return query
+
+
+def event_schema():
+    fields = models.Event.get_fields()
+    sortables = models.Event.get_sortable()
+    searchable = models.Event.get_searchable()
+    return fields, sortables, searchable

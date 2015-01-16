@@ -510,6 +510,25 @@
 #platform_project_id_list=
 
 
+[api]
+
+#
+# Options defined in sentry.api
+#
+
+# sentry-api listen on the port. (integer value)
+#listen_port=7788
+
+# sentry-api listen on the host. (string value)
+#listen_host=localhost
+
+# Whether enable builtin api debug mode. (boolean value)
+#api_debug=false
+
+# Default item return in a API call. (integer value)
+#default_items=20
+
+
 [database]
 
 #

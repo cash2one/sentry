@@ -1,12 +1,56 @@
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import object_mapper
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, ForeignKey, DateTime, Boolean, Text, Index
 from sqlalchemy import String, Integer
 
+from sentry.openstack.common import jsonutils
+
 BASE = declarative_base()
 
 
-class Event(BASE):
+class BaseModel(object):
+    """Base class for models."""
+
+    __table_initialized__ = False
+
+    _json_fields = []
+    _sortable_excludes = []
+    _searchable_excludes = []
+
+    @classmethod
+    def get_fields(cls):
+        return cls.metadata.tables[cls.__tablename__].columns.keys()
+
+    @property
+    def fields(self):
+        return dict(object_mapper(self).columns).keys()
+
+    @classmethod
+    def get_sortable(cls):
+        excludes = getattr(cls, '_sortable_excludes', [])
+        return set(cls.get_fields()) - set(excludes)
+
+    @classmethod
+    def get_searchable(cls):
+        excludes = getattr(cls, '_searchable_excludes', [])
+        return set(cls.get_fields()) - set(excludes)
+
+    def to_dict(self):
+        json_fields = self._json_fields
+        obj = {}
+        for field in self.fields:
+            attr = getattr(self, field)
+
+            if field in json_fields:
+                obj[field] = jsonutils.loads(attr)
+            else:
+                obj[field] = attr
+
+        return obj
+
+
+class Event(BASE, BaseModel):
 
     __tablename__ = 'events'
     __table_args__ = (
@@ -18,12 +62,19 @@ class Event(BASE):
         Index('request_id', 'request_id'),
     )
 
+    _sortable_excludes = ['raw_message', 'raw_message_id',
+                          'payload', 'roles']
+    _searchable_excludes = ['raw_message', 'raw_message_id',
+                            'payload', 'roles']
+    _json_fields = ['roles', 'payload']
+
     id = Column(Integer, primary_key=True)
     object_id = Column(String(100))
     message_id = Column(String(100))
     token = Column(String(100), nullable=False)
     raw_message_id = Column(Integer, ForeignKey('raw_messages.id'))
     raw_message = relationship('RawMessage', backref="event", uselist=False)
+    #FIXME: duplicated column
     token = Column(String(100))
     is_admin = Column(Boolean, default=False)
     request_id = Column(String(100))
@@ -45,7 +96,7 @@ class Event(BASE):
     service = Column(String(20))
 
 
-class RawMessage(BASE):
+class RawMessage(BASE, BaseModel):
 
     __tablename__ = 'raw_messages'
     __table_args__ = ()
