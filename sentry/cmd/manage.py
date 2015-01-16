@@ -42,6 +42,7 @@ from oslo.config import cfg
 
 from sentry.common import config
 from sentry.db.sqlalchemy import session
+from sentry.openstack.common import log as logging
 
 
 CONF = cfg.CONF
@@ -82,6 +83,15 @@ def do_revision(config, cmd):
                        sql=CONF.command.sql)
 
 
+def do_shell(config, cmd):
+    try:
+        import IPython
+        IPython.embed()
+    except ImportError:
+        import code
+        code.interact()
+
+
 def add_command_parsers(subparsers):
     for name in ['current', 'history', 'branches']:
         parser = subparsers.add_parser(name)
@@ -105,6 +115,9 @@ def add_command_parsers(subparsers):
     parser.add_argument('--sql', action='store_true')
     parser.set_defaults(func=do_revision)
 
+    parser = subparsers.add_parser('shell')
+    parser.set_defaults(func=do_shell)
+
 
 command_opt = cfg.SubCommandOpt('command',
                                 title='Command',
@@ -117,6 +130,7 @@ CONF.register_opts([])
 
 def main():
     config.parse_args(sys.argv[1:])
+    logging.setup('sentry')
     configx = alembic_config.Config(
          os.path.join(os.path.abspath(os.path.dirname(session.__file__)),
                       'alembic', 'alembic.ini')
