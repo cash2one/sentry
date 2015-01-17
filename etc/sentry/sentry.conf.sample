@@ -525,6 +525,12 @@
 # Whether enable builtin api debug mode. (boolean value)
 #api_debug=false
 
+# The number of forked works (integer value)
+#workers=1
+
+# The number of eventlet threads (integer value)
+#threads=10
+
 # Default item return in a API call. (integer value)
 #default_items=20
 
