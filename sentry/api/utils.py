@@ -1,4 +1,5 @@
 from math import ceil
+from functools import partial
 from oslo.config import cfg
 
 from sentry.api import bottle
@@ -8,8 +9,9 @@ CONF = cfg.CONF
 
 
 def create_bottle_app(autojson=False, catchall=False):
+    pretty_jsondumps = partial(jsonutils.dumps, indent=4)
     app = bottle.Bottle(autojson=autojson, catchall=catchall)
-    app.install(bottle.JSONPlugin(jsonutils.dumps))
+    app.install(bottle.JSONPlugin(pretty_jsondumps))
     return app
 
 
