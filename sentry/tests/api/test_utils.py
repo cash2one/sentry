@@ -41,6 +41,14 @@ class PaginatorTestCase(test.TestCase):
         self.assertEqual(page1.object_list, ['a', 'b'])
         self.assertEqual(page2.object_list, ['c', 'd'])
 
+    def test_invalid_page(self):
+        objs = ['a', 'b', 'c', 'd', 'e']
+        pager = utils.Paginator(objs, 2)
+
+        self.assertRaises(ValueError, pager.page, 300)
+        self.assertRaises(ValueError, pager.page, -100)
+        self.assertRaises(ValueError, pager.page, 0)
+
 
 class RequestQueryTestCase(test.TestCase):
 
@@ -116,6 +124,12 @@ class RequestQueryTestCase(test.TestCase):
         request = fake.fake_request('GET', '/a', 'page=ax1')
 
         self.assertRaises(ValueError, utils.RequestQuery, request)
+
+    def test_negetive_page(self):
+        request = fake.fake_request('GET', '/a', 'page=-20')
+
+        query = utils.RequestQuery(request)
+        self.assertEqual(query.page_num, -20)
 
     def test_search(self):
         request = fake.fake_request('GET', '/a', 'sort=1&a=b')
