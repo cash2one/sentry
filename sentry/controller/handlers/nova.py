@@ -65,7 +65,7 @@ class Handler(handlers.MySQLHandler):
 
         try:
             return msg['payload']['instance_id']
-        except (TypeError, ValueError, KeyError) as ex:
-            LOG.exception("missing object_id. exception: %(ex)\n"
-                          "%(msg)s" % {'ex': ex, 'msg': unicode(msg)})
+        except (TypeError, ValueError, KeyError):
+            msg = ("No instance_id in payload in %s" % msg)
+            LOG.exception(msg)
             return None
