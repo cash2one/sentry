@@ -3,8 +3,8 @@
 # Provides:          sentry-api
 # Required-Start:    $network $local_fs $remote_fs $syslog
 # Required-Stop:     $remote_fs
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
+# Default-Start:     2 4 5
+# Default-Stop:      0 1 3 6
 # Short-Description: NVS Alarm System API
 # Description:       Provides alarm API service for all the systems in
 #                    OpenStack cloud computing system
