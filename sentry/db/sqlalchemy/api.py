@@ -46,24 +46,38 @@ def event_create(event):
 
 
 def _validate_search_dict(model, search_dict):
+    """
+    Inspect search dict contains invalid key of model searchable.
+    """
     can_search = model.get_searchable()
     for key in search_dict.keys():
         if not key in can_search:
-            raise ValueError("search by %(key)s invalid, only support: "
-                             "%(can)s" % {'key': key, 'can': can_search})
+            msg = ("search by %(key)s invalid, only support: %(can)s" %
+                    {'key': key, 'can': can_search})
+            raise ValueError(msg)
 
 
 def _validate_sort_keys(model, sort_keys):
+    """
+    Inspect sort_keys is searchable in model, if not raise ValueError.
+    Return a new list contains sqlalchemy sort criterion.
+    """
     sorts_criterion = []
     can_sort = model.get_sortable()
+
+    if not sort_keys:
+        return []
+
     for key in sort_keys:
         neg = False
         if key[0] == '-':
             key = key[1:]
 
         if not (key in can_sort):
-            raise ValueError("sort by %(key)s invalid, only support: "
-                             "%(can)s" % {'key': key, 'can': can_sort})
+            msg = ("sort by %(key)s invalid, only support: %(can)s" %
+                   {'key': key, 'can': can_sort})
+            raise ValueError(msg)
+
         if neg:
             criterion = desc(getattr(model, key))
         else:
@@ -80,8 +94,7 @@ def event_get_all(search_dict={}, sorts=[]):
     if search_dict:
         _validate_search_dict(models.Event, search_dict)
 
-    if sorts:
-        sorts_criterion = _validate_sort_keys(models.Event, sorts)
+    sorts_criterion = _validate_sort_keys(models.Event, sorts)
 
     query = se.query(models.Event)
 

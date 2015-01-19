@@ -1,5 +1,6 @@
 from sentry.api.v1 import app
 from sentry.api import utils
+from sentry.api import http_exception
 from sentry.api.bottle import request
 from sentry.db import api as dbapi
 
@@ -28,12 +29,16 @@ def event_viewer(page):
 @route('/events', method='GET')
 @route('/events/', method='GET')
 def index():
-    query = utils.RequestQuery(request)
+    try:
+        query = utils.RequestQuery(request)
 
-    event_query = dbapi.event_get_all(query.search_dict, query.sort)
+        event_query = dbapi.event_get_all(query.search_dict, query.sort)
 
-    paginator = utils.Paginator(event_query, query.limit)
-    page = paginator.page(query.page_num)
+        paginator = utils.Paginator(event_query, query.limit)
+        page = paginator.page(query.page_num)
+    except ValueError as ex:
+        msg = str(ex)
+        raise http_exception.HTTPBadRequest(msg)
 
     return event_viewer(page)
 

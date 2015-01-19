@@ -1,7 +1,9 @@
 import logging as ori_logging
 
+from gunicorn import glogging
 from oslo.config import cfg
 
+from sentry.api import bottle
 from sentry.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
@@ -31,9 +33,6 @@ api_group = cfg.OptGroup(name="api", title="Sentry API Options")
 CONF = cfg.CONF
 CONF.register_group(api_group)
 CONF.register_opts(api_configs, api_group)
-
-
-from gunicorn import glogging
 
 
 def run():
