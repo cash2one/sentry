@@ -1,7 +1,16 @@
 from math import ceil
 from oslo.config import cfg
 
+from sentry.api import bottle
+from sentry.openstack.common import jsonutils
+
 CONF = cfg.CONF
+
+
+def create_bottle_app(autojson=False, catchall=False):
+    app = bottle.Bottle(autojson=autojson, catchall=catchall)
+    app.install(bottle.JSONPlugin(jsonutils.dumps))
+    return app
 
 
 class Paginator(object):

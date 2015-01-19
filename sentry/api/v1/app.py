@@ -1,5 +1,4 @@
-from sentry.api import bottle
-from sentry.openstack.common import jsonutils
+from sentry.api import utils
 
-app = bottle.Bottle(autojson=False)
-app.install(bottle.JSONPlugin(jsonutils.dumps))
+
+app = utils.create_bottle_app()

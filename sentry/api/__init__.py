@@ -50,10 +50,10 @@ def run():
         def setup(self, cfg):
             pass
 
-    from sentry.api import bottle
+    from sentry.api import root
     from sentry.api.v1.app import app as v1app
 
-    root_app = bottle.Bottle()
+    root_app = root.app
     root_app.mount('/v1', v1app)
     # future v2
     #root_app.mount('/v2', v2.app)
