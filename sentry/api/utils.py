@@ -59,7 +59,7 @@ class Paginator(object):
 
     def page(self, page_num):
         page_num = self.validate_number(page_num)
-        bottom = (page_num - 1)
+        bottom = (page_num - 1) * self.per_page
         top = bottom + self.per_page
         if top > self.count:
             top = self.count
@@ -89,8 +89,11 @@ class RequestQuery(object):
         query_dict = dict(request.query.allitems())
         self._query_dict = query_dict
 
-        self._sort = query_dict.pop('sort', '')
-        self._sort = self._sort.split(',')
+        sort = query_dict.pop('sort', None)
+        if sort:
+            self._sort = sort.split(',')
+        else:
+            self._sort = []
 
         self._page_num = int(query_dict.pop('page', 1))
         self._limit = int(query_dict.pop('limit', CONF.api.default_items))
@@ -99,14 +102,18 @@ class RequestQuery(object):
     @property
     def sort(self):
         """
-        return a list like ['a', '-b']
+        Return a list. If not specifiy sort, return a empty list.
+        Multiple sort given, return the latest.
+
+        .e.g ['a', '-b']
         """
         return self._sort
 
     @property
     def page_num(self):
         """
-        return int page num, if multiple page given, return the latest
+        Return the page num (int), if multiple page given, return the latest
+        Default is 1.
         """
         return self._page_num
 
