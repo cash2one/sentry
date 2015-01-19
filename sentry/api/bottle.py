@@ -2512,6 +2512,36 @@ class GunicornServer(ServerAdapter):
         config.update(self.options)
 
         class GunicornApplication(Application):
+            def load_config(self):
+                # NOTE(gtt): Hack gunicorn to not parse sys.argv,
+                # otherwise will be conflict with oslo.config
+                parser = self.cfg.parser()
+                args = parser.parse_args(args=[], namespace=None)
+
+                # optional settings from apps
+                cfg = self.init(parser, args, args.args)
+
+                # Load up the any app specific configuration
+                if cfg and cfg is not None:
+                    for k, v in cfg.items():
+                        self.cfg.set(k.lower(), v)
+
+                if args.config:
+                    self.load_config_from_file(args.config)
+                else:
+                    default_config = None
+                    if default_config is not None:
+                        self.load_config_from_file(default_config)
+
+                # Lastly, update the configuration with any command line
+                # settings.
+                for k, v in args.__dict__.items():
+                    if v is None:
+                        continue
+                    if k == "args":
+                       continue
+                    self.cfg.set(k.lower(), v)
+
             def init(self, parser, opts, args):
                 return config
 
