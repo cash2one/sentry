@@ -53,6 +53,8 @@ class Handler(handlers.MySQLHandler):
                                  'aggregate.updatemetadata.end',
                                  'aggregate.updateprop.start',
                                  'aggregate.updateprop.end',
+                                 'network.floating_ip.allocate',
+                                 'network.floating_ip.allocate',
                                  'add_host_to_aggregate',
                                  'remove_host_from_aggregate',
                                  'create_aggregate',
