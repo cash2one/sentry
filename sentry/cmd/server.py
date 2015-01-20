@@ -53,6 +53,7 @@ from oslo.config import cfg
 from sentry.common import config
 from sentry.controller import manager
 from sentry.openstack.common import log
+from sentry.openstack.common.rpc import impl_kombu  # noqa
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
