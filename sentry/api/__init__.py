@@ -13,7 +13,7 @@ api_configs = [
                default=7788,
                help="sentry-api listen on the port."),
     cfg.StrOpt("listen_host",
-               default="localhost",
+               default="0.0.0.0",
                help="sentry-api listen on the host."),
     cfg.BoolOpt("api_debug",
                 default=False,

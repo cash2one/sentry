@@ -520,7 +520,7 @@
 #listen_port=7788
 
 # sentry-api listen on the host. (string value)
-#listen_host=localhost
+#listen_host=0.0.0.0
 
 # Whether enable builtin api debug mode. (boolean value)
 #api_debug=false
