@@ -452,6 +452,10 @@ class Connection(object):
 
             if self.conf.fake_rabbit:
                 params['transport'] = 'memory'
+            else:
+                # NOTE(gtt): Explictly using amqplib, otherwise kombu
+                # will prefer librabbitmq.
+                params['transport'] = 'amqplib'
             if self.conf.rabbit_use_ssl:
                 params['ssl'] = ssl_params
 
