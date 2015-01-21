@@ -135,5 +135,6 @@ def main():
          os.path.join(os.path.abspath(os.path.dirname(session.__file__)),
                       'alembic', 'alembic.ini')
     )
+    configx.set_main_option('script_location', 'sentry.db.sqlalchemy:alembic')
     configx.set_main_option('sqlalchemy.url', CONF.sql_connection)
     CONF.command.func(configx, CONF.command.name)
