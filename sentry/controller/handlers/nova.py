@@ -54,7 +54,7 @@ class Handler(handlers.MySQLHandler):
                                  'aggregate.updateprop.start',
                                  'aggregate.updateprop.end',
                                  'network.floating_ip.allocate',
-                                 'network.floating_ip.allocate',
+                                 'network.floating_ip.deallocate',
                                  'add_host_to_aggregate',
                                  'remove_host_from_aggregate',
                                  'create_aggregate',
