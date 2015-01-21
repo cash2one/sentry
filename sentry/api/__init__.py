@@ -1,3 +1,4 @@
+import sys
 import logging as ori_logging
 
 from gunicorn import glogging
@@ -63,12 +64,18 @@ def run():
     for route in root_app.routes:
         LOG.debug(str(route))
 
+    # NOTE(gtt): A Hack to work around gunicorn and oslo.config
+    # Since gunicorn will parse sys.argv which is not compatible
+    # with oslo.config. At this time, oslo have already finished
+    # parse sys.argv, so delete it.
+    del sys.argv[1:]
+
     bottle.run(root_app,
                server='gunicorn',
                worker_class='eventlet',
                logger_class=Logging,
                workers=CONF.api.workers,
-               threads=CONF.api.threads,
                debug=CONF.api.api_debug,
                port=CONF.api.listen_port,
-               host=CONF.api.listen_host)
+               host=CONF.api.listen_host,
+               quiet=True)
