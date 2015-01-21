@@ -4,6 +4,12 @@ from sentry.tests.api import fake
 
 
 class PaginatorTestCase(test.TestCase):
+    def test_no_count(self):
+        objs = []
+        pager = utils.Paginator(objs, 1)
+        self.assertEqual(pager.count, 0)
+        self.assertEqual(pager.total_page_number, 0)
+        self.assertEqual(pager.page(1).object_list, [])
 
     def test_count_correctly1(self):
         # even object list
