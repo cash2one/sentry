@@ -6,3 +6,4 @@ sentry.egg-info/
 .tox/
 .tags
 .venv
+build/
