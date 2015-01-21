@@ -1,16 +1,15 @@
-#
-# Created on 2013-3-13
-#
-# @author: hzyangtk@corp.netease.com
-#
+# -*-coding: utf8 -*-
 
 import unittest
 import stubout
 
 from oslo.config import cfg
 
+from sentry.db.sqlalchemy import session
+from sentry.db.sqlalchemy import models
 
-FLAGS = cfg.CONF
+
+CONF = cfg.CONF
 
 
 class TestCase(unittest.TestCase):
@@ -22,8 +21,23 @@ class TestCase(unittest.TestCase):
 
     def tearDown(self):
         self.stubs.UnsetAll()
+        CONF.reset()
 
     def flags(self, **kw):
         """Override flag variables for a test."""
         for k, v in kw.iteritems():
-            FLAGS.set_override(k, v)
+            CONF.set_override(k, v)
+
+
+class DBTestCase(TestCase):
+    """With sqlite database setup"""
+
+    def setUp(self):
+        super(DBTestCase, self).setUp()
+        self.flags(sql_connection='sqlite://')
+        self.engine = session.get_engine()
+        models.BASE.metadata.create_all(self.engine)
+
+    def tearDown(self):
+        models.BASE.metadata.drop_all(self.engine)
+        super(DBTestCase, self).tearDown()

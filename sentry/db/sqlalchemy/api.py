@@ -69,19 +69,22 @@ def _validate_sort_keys(model, sort_keys):
         return []
 
     for key in sort_keys:
-        neg = False
+        if len(key) < 2:
+            raise ValueError('sort by "%s" not support' % key)
+
         if key[0] == '-':
+            neg = True
             key = key[1:]
+        else:
+            neg = False
 
         if not (key in can_sort):
             msg = ("sort by %(key)s invalid, only support: %(can)s" %
                    {'key': key, 'can': can_sort})
             raise ValueError(msg)
 
-        if neg:
-            criterion = desc(getattr(model, key))
-        else:
-            criterion = asc(getattr(model, key))
+        criterion = desc(getattr(model, key)) if neg else \
+                asc(getattr(model, key))
 
         sorts_criterion.append(criterion)
     return sorts_criterion
