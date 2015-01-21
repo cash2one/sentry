@@ -5,7 +5,9 @@ include LICENSE
 include sentry/db/sqlalchemy/alembic/README
 include sentry/db/sqlalchemy/alembic/alembic.ini
 include sentry/db/sqlalchemy/alembic/script.py.mako
-include sentry/db/sqlalchemy/alembic/README
+include sentry/db/sqlalchemy/alembic/env.py
+include sentry/db/sqlalchemy/alembic/versions/*.sql
+include sentry/db/sqlalchemy/alembic/versions/*.py
 
 exclude .gitignore
 exclude .gitreview
