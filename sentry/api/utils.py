@@ -60,6 +60,10 @@ class Paginator(object):
         return number
 
     def page(self, page_num):
+        if self.count == 0:
+            return Page([], page_num, self.total_page_number,
+                        self.per_page, self.count)
+
         page_num = self.validate_number(page_num)
         bottom = (page_num - 1) * self.per_page
         top = bottom + self.per_page
