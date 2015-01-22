@@ -1,3 +1,4 @@
+import os
 import sys
 import logging as ori_logging
 
@@ -49,6 +50,45 @@ def run():
 
         def setup(self, cfg):
             pass
+
+        def debug(self, msg, *args, **kwargs):
+            pass
+
+        def access(self, resp, req, environ, request_time):
+            """Log access like apache, this method is borrow from gunicorn."""
+            status = resp.status.split(None, 1)[0]
+            atoms = {
+                'h': environ.get('REMOTE_ADDR', '-'),
+                'l': '-',
+                'u': '-',
+                't': self.now(),
+                'r': "%s %s %s" % (environ['REQUEST_METHOD'],
+                                   environ['RAW_URI'],
+                                   environ["SERVER_PROTOCOL"]),
+                's': status,
+                'b': str(resp.response_length) or '-',
+                'f': environ.get('HTTP_REFERER', '-'),
+                'a': environ.get('HTTP_USER_AGENT', '-'),
+                'T': str(request_time.seconds),
+                'D': str(request_time.microseconds),
+                'p': "<%s>" % os.getpid()
+            }
+            # add request headers
+            if hasattr(req, 'headers'):
+                req_headers = req.headers
+            else:
+                req_headers = req
+
+            atoms.update(dict([("{%s}i" % k.lower(), v)
+                               for k, v in req_headers]))
+
+            # add response headers
+            atoms.update(dict([("{%s}o" % k.lower(), v)
+                               for k, v in resp.headers]))
+
+            access_format = ('"%(h)s "%(r)s" %(s)s %(b)s '
+                             '"%(f)s" "%(a)s"')
+            self.error_log.info(access_format % atoms)
 
     from sentry.api import root
     from sentry.api.v1.app import app as v1app
