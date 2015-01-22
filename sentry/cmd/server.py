@@ -69,9 +69,10 @@ def main():
     try:
         config.parse_args(sys.argv[1:])
         log.setup('sentry')
-        CONF.log_opt_values(LOG, std_logging.DEBUG)
 
         mgr = manager.Manager()
+        # After manager instantiated, some handler will be imported
+        CONF.log_opt_values(LOG, std_logging.DEBUG)
         server = mgr.create()
         server.wait()
     except KeyboardInterrupt as ex:
