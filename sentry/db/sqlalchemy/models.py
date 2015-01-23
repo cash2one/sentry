@@ -54,12 +54,17 @@ class Event(BASE, BaseModel):
 
     __tablename__ = 'events'
     __table_args__ = (
-        Index('event_message_id', 'message_id'),
-        Index('project_name_x_user_name_idx',
-              'project_name', 'user_name'),
-        Index('project_id_x_user_id_idx',
-              'project_id', 'user_id'),
-        Index('request_id', 'request_id'),
+        Index('timestamp_x_event_message_id',
+              'timestamp', 'message_id'),
+        Index('timestamp_x_project_name_x_user_name_idx',
+              'timestamp', 'project_name', 'user_name'),
+        Index('timestamp_x_project_id_x_user_id_idx',
+              'timestamp', 'project_id', 'user_id'),
+        Index('timestamp_x_request_id',
+              'timestamp', 'request_id'),
+        Index('timestamp_x_token_x_objectid_x_requestid_x_eventtype_x_b_x_s',
+              'timestamp', 'token', 'object_id', 'request_id', 'event_type',
+              'binary', 'service'),
     )
 
     _sortable_excludes = ['raw_message', 'raw_message_id',
