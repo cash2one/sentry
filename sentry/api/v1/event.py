@@ -50,6 +50,9 @@ def schema():
     ret = {
         "schema": {
             "fields": fields,
+            # NOTE(gtt): When these fields changed, please notify
+            # `hzshaochunfei@corp.netease.com`, they need to
+            # change their codes.
             "searchable": searchable,
             "sortable": sortables,
         }

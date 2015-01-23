@@ -64,6 +64,8 @@ class Event(BASE, BaseModel):
 
     _sortable_excludes = ['raw_message', 'raw_message_id',
                           'payload', 'roles']
+    # NOTE(gtt): When these fields changed, please notify
+    # `hzshaochunfei@corp.netease.com`, they need to change their codes.
     _searchable_excludes = ['raw_message', 'raw_message_id',
                             'payload', 'roles']
     _json_fields = ['roles', 'payload']
