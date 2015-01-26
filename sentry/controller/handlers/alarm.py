@@ -47,6 +47,10 @@ class Handler(object):
           'payload': {'instance_id': 12, ... }
         }
         """
+        if not CONF.enable_alarm:
+            LOG.debug("Alarm handler was disabled.")
+            return
+
         try:
             # NOTE(hzyangtk): handle message before alarm like notify
             #                 cloud monitor to stop alarm when instance
@@ -118,8 +122,4 @@ class Handler(object):
 
     def _do_send_alarm(self, message):
         """Send messages to alarm system."""
-        if not CONF.enable_alarm:
-            LOG.debug("Alarm handler was disabled.")
-            return
-
         sender_manager.send_alarm(message)

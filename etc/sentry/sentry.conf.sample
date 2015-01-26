@@ -75,13 +75,13 @@
 #nova_event_handlers=alarm,nova
 
 # cinder event handlers (list value)
-#cinder_event_handlers=alarm,cinder
+#cinder_event_handlers=cinder
 
 # neutron event handlers (list value)
-#neutron_event_handlers=alarm,neutron
+#neutron_event_handlers=neutron
 
 # glance event handlers (list value)
-#glance_event_handlers=alarm,glance
+#glance_event_handlers=glance
 
 # Whether to ack the message if process failed, default is
 # False. (boolean value)
