@@ -1,6 +1,7 @@
 
 import functools
 import eventlet
+from kombu import entity
 from oslo.config import cfg
 
 from sentry.openstack.common import log
@@ -185,14 +186,19 @@ class Manager(object):
         self.conn.consume_in_thread()
         LOG.info('Start consuming notifications.')
 
+    def _clean_exchange(self, name):
+        LOG.debug("cleanup exchange %s" % name)
+        ex = entity.Exchange(name=name, channel=self.conn.get_channel())
+        ex.delete()
+
     def _declare_queue_consumer(self, levels, topic, handler, exchange,
                         durable=False, auto_delete=False, exclusive=False,
                         ha_queue=False):
-        def queue_name(topic, level):
-            return '%s.%s' % (topic, level)
+
+        self._clean_exchange(exchange)
 
         for level in levels:
-            queue = queue_name(topic, level)
+            queue = '%s.%s' % (topic, level)
 
             kwargs = dict(
                 name=queue,
