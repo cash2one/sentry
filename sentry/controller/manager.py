@@ -189,7 +189,10 @@ class Manager(object):
     def _clean_exchange(self, name):
         LOG.debug("cleanup exchange %s" % name)
         ex = entity.Exchange(name=name, channel=self.conn.get_channel())
-        ex.delete()
+        try:
+            ex.delete()
+        except Exception as ex:
+            LOG.warn("Cleanup exchange failed. %s" % ex)
 
     def _declare_queue_consumer(self, levels, topic, handler, exchange,
                         durable=False, auto_delete=False, exclusive=False,
