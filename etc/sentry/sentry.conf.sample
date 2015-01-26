@@ -104,15 +104,27 @@
 
 # notifications levels for message queue of glance (list
 # value)
-#glance_mq_level_list=error,info,warn
+#glance_mq_level_list=error,info
 
 # notifications levels for message queue of neutron (list
 # value)
-#neutron_mq_level_list=error,info,warn
+#neutron_mq_level_list=error,info
 
 # notifications levels for message queue of neutron (list
 # value)
-#cinder_mq_level_list=error,info,warn
+#cinder_mq_level_list=error,info
+
+# cinder notification durable (boolean value)
+#cinder_durable=false
+
+# nova notification durable (boolean value)
+#nova_durable=false
+
+# neutron notification durable (boolean value)
+#neutron_durable=false
+
+# neutron notification durable (boolean value)
+#glance_durable=false
 
 
 #
