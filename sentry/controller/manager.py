@@ -68,13 +68,13 @@ handlers = [
                 default=['alarm', 'nova'],
                 help="Nova event handlers"),
     cfg.ListOpt('cinder_event_handlers',
-                default=['alarm', 'cinder'],
+                default=['cinder'],
                 help="cinder event handlers"),
     cfg.ListOpt('neutron_event_handlers',
-                default=['alarm', 'neutron'],
+                default=['neutron'],
                 help="neutron event handlers"),
     cfg.ListOpt('glance_event_handlers',
-                default=['alarm', 'glance'],
+                default=['glance'],
                 help="glance event handlers"),
 ]
 
