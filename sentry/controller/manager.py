@@ -1,4 +1,5 @@
 
+import functools
 import eventlet
 from oslo.config import cfg
 
@@ -6,6 +7,7 @@ from sentry.openstack.common import log
 from sentry.openstack.common import rpc
 from sentry.openstack.common import importutils
 from sentry.openstack.common import jsonutils
+from sentry.openstack.common.rpc import impl_kombu
 
 """
     Sentry listenning on rabbitmq and receive notification
@@ -34,17 +36,30 @@ manager_configs = [
                default='cinder_notifications',
                help='Name of neutron notifications topic'),
     cfg.ListOpt('nova_mq_level_list',
-                default=['error', 'info', ],
+                default=['error', 'info'],
                 help='notifications levels for message queue of nova'),
     cfg.ListOpt('glance_mq_level_list',
-                default=['error', 'info', 'warn', ],
+                default=['error', 'info'],
                 help='notifications levels for message queue of glance'),
     cfg.ListOpt('neutron_mq_level_list',
-                default=['error', 'info', 'warn', ],
+                default=['error', 'info'],
                 help='notifications levels for message queue of neutron'),
     cfg.ListOpt('cinder_mq_level_list',
-                default=['error', 'info', 'warn', ],
+                default=['error', 'info'],
                 help='notifications levels for message queue of neutron'),
+
+    cfg.BoolOpt('cinder_durable',
+                default=False,
+                help="cinder notification durable"),
+    cfg.BoolOpt('nova_durable',
+                default=False,
+                help="nova notification durable"),
+    cfg.BoolOpt('neutron_durable',
+                default=False,
+                help="neutron notification durable"),
+    cfg.BoolOpt('glance_durable',
+                default=False,
+                help="neutron notification durable"),
 ]
 
 handlers = [
@@ -136,6 +151,8 @@ class Manager(object):
             CONF.nova_mq_level_list,
             CONF.nova_sentry_mq_topic,
             self.nova_pipeline.process,
+            'nova-sentry',
+            durable=CONF.nova_durable,
         )
 
         # neutron
@@ -143,6 +160,8 @@ class Manager(object):
             CONF.neutron_mq_level_list,
             CONF.neutron_sentry_mq_topic,
             self.neutron_pipeline.process,
+            'neutron-sentry',
+            durable=CONF.neutron_durable,
         )
 
         # glance
@@ -150,6 +169,8 @@ class Manager(object):
             CONF.glance_mq_level_list,
             CONF.glance_sentry_mq_topic,
             self.glance_pipeline.process,
+            'glance-sentry',
+            durable=CONF.glance_durable,
         )
 
         # cinder
@@ -157,23 +178,37 @@ class Manager(object):
             CONF.cinder_mq_level_list,
             CONF.cinder_sentry_mq_topic,
             self.cinder_pipeline.process,
+            'cinder-sentry',
+            durable=CONF.cinder_durable,
         )
 
         self.conn.consume_in_thread()
         LOG.info('Start consuming notifications.')
 
-    def _declare_queue_consumer(self, levels, topic, handler):
+    def _declare_queue_consumer(self, levels, topic, handler, exchange,
+                        durable=False, auto_delete=False, exclusive=False,
+                        ha_queue=False):
         def queue_name(topic, level):
             return '%s.%s' % (topic, level)
 
         for level in levels:
             queue = queue_name(topic, level)
-            self.conn.declare_topic_consumer(
-                topic=topic,
-                callback=handler,
-                queue_name=queue,
+
+            kwargs = dict(
+                name=queue,
                 ack_on_error=CONF.ack_on_error,
+                exchange_name=exchange,
+                durable=durable,
+                auto_delete=auto_delete,
+                exclusive=exclusive,
             )
+
+            if ha_queue:
+                kwargs['queue_arguments'] = {'x-ha-policy': 'all'}
+
+            self.conn.declare_consumer(
+                functools.partial(impl_kombu.TopicConsumer, **kwargs),
+                topic, handler)
             LOG.debug("Declare queue name: %(queue)s, topic: %(topic)s" %
                       {"queue": queue, "topic": topic})
 
