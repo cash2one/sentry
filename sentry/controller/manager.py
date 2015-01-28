@@ -105,6 +105,7 @@ class Pipeline(object):
 class Manager(object):
 
     def __init__(self):
+        self.thread = None
         # faild early
         self.nova_handlers = self.registry_handlers(
             CONF.nova_event_handlers)
@@ -221,8 +222,17 @@ class Manager(object):
             LOG.debug("Declare queue name: %(queue)s, topic: %(topic)s" %
                       {"queue": queue, "topic": topic})
 
-    def create(self):
-        return eventlet.spawn(self.serve())
+    def run_server(self):
+        self.thread = eventlet.spawn(self.serve)
+
+    def wait(self):
+        if self.thread is None:
+            raise Exception('Must calling run_server() before wait().')
+
+        try:
+            self.thread.wait()
+        except KeyboardInterrupt:
+            LOG.info("KeyboardInterrupt received, Exit.")
 
     def cleanup(self):
         LOG.info('Cleanup sentry')
