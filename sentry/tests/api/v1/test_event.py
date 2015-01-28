@@ -39,9 +39,9 @@ class EventAPITests(test.DBTestCase):
         self.assertEqual(resp.json['pagination']['current_page'], 1)
 
     def test_index_events(self):
-        self._insert_event(token='1')
-        self._insert_event(token='2')
-        self._insert_event(token='3')
+        self._insert_event(user_name='1')
+        self._insert_event(user_name='2')
+        self._insert_event(user_name='3')
 
         resp = self.app.get('/events?limit=1')
         self.assertEqual(resp.json['pagination']['total_page'], 3)
@@ -49,49 +49,49 @@ class EventAPITests(test.DBTestCase):
         self.assertEqual(resp.json['pagination']['current_page'], 1)
 
     def test_index_event_search_by_stuff(self):
-        self._insert_event(token='1')
-        self._insert_event(token='2')
-        self._insert_event(token='3')
+        self._insert_event(user_name='1')
+        self._insert_event(user_name='2')
+        self._insert_event(user_name='3')
 
-        resp = self.app.get('/events?token=1')
+        resp = self.app.get('/events?user_name=1')
         self.assertEqual(resp.json['pagination']['total_page'], 1)
         self.assertEqual(resp.json['pagination']['limit'], 20)
         self.assertEqual(resp.json['pagination']['current_page'], 1)
 
         self.assertEqual(len(resp.json['events']), 1)
-        self.assertEqual(resp.json['events'][0]['token'], '1')
+        self.assertEqual(resp.json['events'][0]['user_name'], '1')
 
     def test_index_event_sort_by(self):
-        self._insert_event(token='1')
-        self._insert_event(token='4')
-        self._insert_event(token='9')
-        self._insert_event(token='ab')
+        self._insert_event(user_name='1')
+        self._insert_event(user_name='4')
+        self._insert_event(user_name='9')
+        self._insert_event(user_name='ab')
 
-        resp = self.app.get('/events?sort=token')
+        resp = self.app.get('/events?sort=user_name')
         self.assertEqual(resp.json['pagination']['total_page'], 1)
         self.assertEqual(resp.json['pagination']['limit'], 20)
         self.assertEqual(resp.json['pagination']['current_page'], 1)
 
-        self.assertEqual(resp.json['events'][0]['token'], '1')
-        self.assertEqual(resp.json['events'][1]['token'], '4')
-        self.assertEqual(resp.json['events'][2]['token'], '9')
-        self.assertEqual(resp.json['events'][3]['token'], 'ab')
+        self.assertEqual(resp.json['events'][0]['user_name'], '1')
+        self.assertEqual(resp.json['events'][1]['user_name'], '4')
+        self.assertEqual(resp.json['events'][2]['user_name'], '9')
+        self.assertEqual(resp.json['events'][3]['user_name'], 'ab')
 
     def test_index_event_sort_by_desc(self):
-        self._insert_event(token='1')
-        self._insert_event(token='4')
-        self._insert_event(token='9')
-        self._insert_event(token='ab')
+        self._insert_event(user_name='1')
+        self._insert_event(user_name='4')
+        self._insert_event(user_name='9')
+        self._insert_event(user_name='ab')
 
-        resp = self.app.get('/events?sort=-token')
+        resp = self.app.get('/events?sort=-user_name')
         self.assertEqual(resp.json['pagination']['total_page'], 1)
         self.assertEqual(resp.json['pagination']['limit'], 20)
         self.assertEqual(resp.json['pagination']['current_page'], 1)
 
-        self.assertEqual(resp.json['events'][0]['token'], 'ab')
-        self.assertEqual(resp.json['events'][1]['token'], '9')
-        self.assertEqual(resp.json['events'][2]['token'], '4')
-        self.assertEqual(resp.json['events'][3]['token'], '1')
+        self.assertEqual(resp.json['events'][0]['user_name'], 'ab')
+        self.assertEqual(resp.json['events'][1]['user_name'], '9')
+        self.assertEqual(resp.json['events'][2]['user_name'], '4')
+        self.assertEqual(resp.json['events'][3]['user_name'], '1')
 
     def test_index_event_schema(self):
         resp = self.app.get('/events/schema')

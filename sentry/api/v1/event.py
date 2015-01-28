@@ -20,6 +20,7 @@ def event_viewer(page):
     for event in page.object_list:
         event_dict = event.to_dict()
         event_dict.pop('raw_message_id')
+        event_dict.pop('token')
         events.append(event_dict)
     ret['events'] = events
 
