@@ -78,10 +78,8 @@ class Event(BASE, BaseModel):
     id = Column(Integer, primary_key=True)
     object_id = Column(String(100))
     message_id = Column(String(100))
-    token = Column(String(100), nullable=False)
     raw_message_id = Column(Integer, ForeignKey('raw_messages.id'))
     raw_message = relationship('RawMessage', backref="event", uselist=False)
-    #FIXME: duplicated column
     token = Column(String(100))
     is_admin = Column(Boolean, default=False)
     request_id = Column(String(100))
