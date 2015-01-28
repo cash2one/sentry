@@ -3,6 +3,7 @@ from sentry.api import utils
 from sentry.api import http_exception
 from sentry.api.bottle import request
 from sentry.db import api as dbapi
+from sentry.openstack.common import timeutils
 
 route = app.app.route
 
@@ -21,6 +22,7 @@ def event_viewer(page):
         event_dict = event.to_dict()
         event_dict.pop('raw_message_id')
         event_dict.pop('token')
+        event_dict['timestamp'] = timeutils.isotime(event_dict['timestamp'])
         events.append(event_dict)
     ret['events'] = events
 
