@@ -72,7 +72,7 @@ class Event(BASE, BaseModel):
     # NOTE(gtt): When these fields changed, please notify
     # `hzshaochunfei@corp.netease.com`, they need to change their codes.
     _searchable_excludes = ['raw_message', 'raw_message_id',
-                            'payload', 'roles']
+                            'payload', 'roles', 'token', 'id', 'message_id']
     _json_fields = ['roles', 'payload']
 
     id = Column(Integer, primary_key=True)

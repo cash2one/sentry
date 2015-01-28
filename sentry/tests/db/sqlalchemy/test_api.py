@@ -19,7 +19,7 @@ class DBAPICommonTestCase(test.TestCase):
         api._validate_search_dict(models.Event, {})
 
         # no exception raised
-        api._validate_search_dict(models.Event, {'id': 'hehe'})
+        api._validate_search_dict(models.Event, {'user_name': 'hehe'})
 
     def test_validate_sort_key_passin_none(self):
         self.assertEqual(
@@ -76,80 +76,82 @@ class DBAPITests(test.DBTestCase):
 
     def test_create_event(self):
         # no exception raises
-        self._insert_event(token='foo')
+        self._insert_event(user_name='foo')
 
-    def test_event_get_all_sort_by_token(self):
-        event1 = self._insert_event(token='1')
-        event2 = self._insert_event(token='2')
-        result = api.event_get_all(sorts=['token'])
+    def test_event_get_all_sort_by_user_name(self):
+        event1 = self._insert_event(user_name='1')
+        event2 = self._insert_event(user_name='2')
+        result = api.event_get_all(sorts=['user_name'])
 
-        self.assertEqual(event1.token, result.first().token)
-        self.assertEqual(event2.token, result[1].token)
+        self.assertEqual(event1.user_name, result.first().user_name)
+        self.assertEqual(event2.user_name, result[1].user_name)
 
-    def test_event_get_all_sort_by_token_desc(self):
-        event1 = self._insert_event(token='1')
-        event2 = self._insert_event(token='2')
+    def test_event_get_all_sort_by_user_name_desc(self):
+        event1 = self._insert_event(user_name='1')
+        event2 = self._insert_event(user_name='2')
 
-        result = api.event_get_all(sorts=['-token'])
+        result = api.event_get_all(sorts=['-user_name'])
 
-        self.assertEqual(event2.token, result[0].token,
-                         "First result should be token2")
-        self.assertEqual(event1.token, result[1].token,
-                         "Second result should be token1")
+        self.assertEqual(event2.user_name, result[0].user_name,
+                         "First result should be user_name2")
+        self.assertEqual(event1.user_name, result[1].user_name,
+                         "Second result should be user_name1")
 
     def test_event_get_all_sort_by_multiple(self):
-        event1 = self._insert_event(request_id='1', token='5')
-        event2 = self._insert_event(request_id='2', token='4')
+        event1 = self._insert_event(request_id='1', user_name='5')
+        event2 = self._insert_event(request_id='2', user_name='4')
 
-        # sort by desc token first, since two event have different token id
+        # sort by desc user_name first, since two event have different
+        # user_name.
         # so the result will not take request_id into consideration.
-        result = api.event_get_all(sorts=['-token', 'request_id'])
+        result = api.event_get_all(sorts=['-user_name', 'request_id'])
 
-        self.assertEqual(event1.token, result[0].token,
-                         "First result should be token2")
-        self.assertEqual(event2.token, result[1].token,
-                         "Second result should be token1")
+        self.assertEqual(event1.user_name, result[0].user_name,
+                         "First result should be user_name2")
+        self.assertEqual(event2.user_name, result[1].user_name,
+                         "Second result should be user_name1")
 
     def test_event_get_all_sort_by_multiple2(self):
-        event1 = self._insert_event(request_id='1', token='0')
-        event2 = self._insert_event(request_id='2', token='0')
+        event1 = self._insert_event(request_id='1', user_name='0')
+        event2 = self._insert_event(request_id='2', user_name='0')
 
-        # sort by desc token first, since two event have the same token id
+        # sort by desc user_name first, since two event have the same user_name
+        # id
         # so the result will be affected by request_id.
-        result = api.event_get_all(sorts=['-token', 'request_id'])
+        result = api.event_get_all(sorts=['-user_name', 'request_id'])
 
-        self.assertEqual(event1.token, result[0].token,
-                         "First result should be token2")
-        self.assertEqual(event2.token, result[1].token,
-                         "Second result should be token1")
+        self.assertEqual(event1.user_name, result[0].user_name,
+                         "First result should be user_name2")
+        self.assertEqual(event2.user_name, result[1].user_name,
+                         "Second result should be user_name1")
 
-        result = api.event_get_all(sorts=['-token', '-request_id'])
+        result = api.event_get_all(sorts=['-user_name', '-request_id'])
 
-        self.assertEqual(event1.token, result[1].token,
-                         "First result should be token2")
-        self.assertEqual(event2.token, result[0].token,
-                         "Second result should be token1")
+        self.assertEqual(event1.user_name, result[1].user_name,
+                         "First result should be user_name2")
+        self.assertEqual(event2.user_name, result[0].user_name,
+                         "Second result should be user_name1")
 
     def test_event_get_all_search(self):
-        event1 = self._insert_event(request_id='1', token='0')
-        event2 = self._insert_event(request_id='2', token='0')
+        event1 = self._insert_event(request_id='1', user_name='0')
+        event2 = self._insert_event(request_id='2', user_name='0')
 
-        result = api.event_get_all({'token': '0'}, sorts=['request_id'])
+        result = api.event_get_all({'user_name': '0'}, sorts=['request_id'])
 
         self.assertEqual(2, result.count())
         self.assertEqual(event1.request_id, result[0].request_id)
         self.assertEqual(event2.request_id, result[1].request_id)
 
     def test_event_get_all_search_no_result(self):
-        event1 = self._insert_event(request_id='1', token='0')
-        event2 = self._insert_event(request_id='2', token='0')
+        event1 = self._insert_event(request_id='1', user_name='0')
+        event2 = self._insert_event(request_id='2', user_name='0')
 
-        result = api.event_get_all({'token': '2'})
+        result = api.event_get_all({'user_name': '2'})
         self.assertEqual(0, result.count())
 
     def test_event_get_all_search_one_result(self):
-        event1 = self._insert_event(request_id='1', token='0')
-        event2 = self._insert_event(request_id='2', token='0')
+        event1 = self._insert_event(request_id='1', user_name='0')
+        event2 = self._insert_event(request_id='2', user_name='0')
 
         result = api.event_get_all({'request_id': '1'})
         self.assertEqual(1, result.count())
