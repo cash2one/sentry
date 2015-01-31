@@ -65,7 +65,7 @@ manager_configs = [
 
 handlers = [
     cfg.ListOpt('nova_event_handlers',
-                default=['alarm', 'nova'],
+                default=['alarm', 'nova', 'notifier'],
                 help="Nova event handlers"),
     cfg.ListOpt('cinder_event_handlers',
                 default=['cinder'],

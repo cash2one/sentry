@@ -44,6 +44,32 @@
 
 
 #
+# Options defined in sentry.controller.handlers.notifier
+#
+
+# Enable notification about instance deleting (boolean value)
+#enable_notifier=true
+
+# The RabbitMQ address which used to notify. (string value)
+#notifier_rabbit_host=$rabbit_host
+
+# The RabbitMQ port which used to notify (integer value)
+#notifier_rabbit_port=5672
+
+# The RabbitMQ userid to notify (string value)
+#notifier_rabbit_userid=$rabbit_userid
+
+# The RabbitMQ password to notify (string value)
+#notifier_rabbit_password=$rabbit_password
+
+# The RabbitMQ virtual host to notify (string value)
+#notifier_rabbit_virtual_host=$rabbit_virtual_host
+
+# The exchange name of nvs notifier. (string value)
+#notifier_exchange=nvs_fanout
+
+
+#
 # Options defined in sentry.controller.helper
 #
 
@@ -72,7 +98,7 @@
 #
 
 # Nova event handlers (list value)
-#nova_event_handlers=alarm,nova
+#nova_event_handlers=alarm,nova,notifier
 
 # cinder event handlers (list value)
 #cinder_event_handlers=cinder
