@@ -16,13 +16,16 @@ def create_bottle_app(autojson=False, catchall=False):
 
 
 class Paginator(object):
-    def __init__(self, object_list, per_page):
+    def __init__(self, object_list, per_page, count=None):
         """
         :para object_list: should be a list or QuerySet.
         """
         self.object_list = object_list
         self.per_page = per_page
-        self._count = None
+        if count:
+            self._count = count
+        else:
+            self._count = None
         self._total_page_number = None
 
     @property

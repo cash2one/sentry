@@ -1,5 +1,6 @@
 import sys
 
+from sqlalchemy import func
 from sqlalchemy.sql.expression import desc, asc
 
 from sentry.db.sqlalchemy import session
@@ -90,6 +91,15 @@ def _validate_sort_keys(model, sort_keys):
     return sorts_criterion
 
 
+def _get_count(session, model):
+    """Sqlalchemy count using subquery which is slow.
+
+    :param model: should contains `id` field.
+    """
+    query = session.query(func.count(model.id))
+    return query.first()[0]
+
+
 def event_get_all(search_dict={}, sorts=[]):
     se = session.get_session()
 
@@ -107,7 +117,8 @@ def event_get_all(search_dict={}, sorts=[]):
     for sort in sorts_criterion:
         query = query.order_by(sort)
 
-    return query
+    count = _get_count(se, models.Event)
+    return count, query
 
 
 def event_schema():
