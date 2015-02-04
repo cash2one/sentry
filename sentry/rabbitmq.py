@@ -7,7 +7,6 @@ from contextlib import contextmanager
 
 import eventlet
 from eventlet import pools
-
 import kombu
 from kombu import entity
 from kombu import connection
