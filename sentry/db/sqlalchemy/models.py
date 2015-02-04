@@ -18,6 +18,9 @@ class BaseModel(object):
     _sortable_excludes = []
     _searchable_excludes = []
 
+    # Each model should have field `id`
+    id = Column(Integer, primary_key=True)
+
     @classmethod
     def get_fields(cls):
         return cls.metadata.tables[cls.__tablename__].columns.keys()
@@ -75,7 +78,6 @@ class Event(BASE, BaseModel):
                             'payload', 'roles', 'token', 'id', 'message_id']
     _json_fields = ['roles', 'payload']
 
-    id = Column(Integer, primary_key=True)
     object_id = Column(String(100))
     message_id = Column(String(100))
     raw_message_id = Column(Integer, ForeignKey('raw_messages.id'))
