@@ -43,6 +43,23 @@ class RabbitClient(object):
     def _put_connection(self, conn):
         self.pool.put(conn)
 
+    def ensure(self, method, error_callback=None, max_retry=20):
+        with self.get_connection() as conn:
+            count = 0
+            while count <= max_retry:
+                count += 1
+                try:
+                    method(conn)
+                    break
+                except Exception as ex:
+                    if error_callback and callable(error_callback):
+                        error_callback(ex)
+                    else:
+                        LOG.exception("Retry for %s times.." % count)
+                        eventlet.sleep(1)
+
+                conn.make_sure_connected()
+
     def fanout(self, exchange_name, msg, durable=False, ttl=None):
         """
         :param exchange_name: string, represent the exchange name, the
@@ -51,44 +68,25 @@ class RabbitClient(object):
         :param durable: boolean, whether make a durable message.
         :param ttl: int, expiration of message in milliseconds.
         """
-        conn = self._acquire_connection()
-
-        while True:
-            try:
-                channel = conn.get_channel()
-                exchange = entity.Exchange(name=exchange_name, type='fanout',
+        def _fanout(conn):
+            channel = conn.get_channel()
+            exchange = entity.Exchange(name=exchange_name, type='fanout',
                                         channel=channel, durable=durable)
-                exchange.declare()
+            exchange.declare()
 
-                # RabbitMQ support below properites:
-                #
-                #   content_type
-                #   content_encoding
-                #   priority
-                #   correlation_id
-                #   reply_to
-                #   expiration
-                #   message_id
-                #   timestamp
-                #   type
-                #   user_id
-                #   app_id
-                #   cluster_id
-                properties = {}
+            # NOTE(gtt):RabbitMQ support below properites:
+            #   content_type, content_encoding, priority, correlation_id
+            #   reply_to, expiration, message_id, timestamp, type, user_id
+            #   app_id, cluster_id
+            properties = {}
 
-                if ttl:
-                    properties['expiration'] = str(ttl)
+            if ttl:
+                properties['expiration'] = str(ttl)
 
-                producer = kombu.Producer(channel, exchange=exchange)
-                producer.publish(msg, **properties)
+            producer = kombu.Producer(channel, exchange=exchange)
+            producer.publish(msg, **properties)
 
-                break
-            except Exception:
-                LOG.exception("Retry..")
-                eventlet.sleep(1)
-                conn.make_sure_connected()
-
-        self._put_connection(conn)
+        self.ensure(_fanout)
 
 
 class Connection(object):
@@ -104,18 +102,25 @@ class Connection(object):
             'transport': self.conf.get('transport', 'amqplib'),
         }
         self.connection = connection.Connection(**conn_kwargs)
-        self.make_sure_connected()
 
     def get_channel(self):
+        """calling on this method will connection to server."""
         return self.connection.channel()
 
-    def make_sure_connected(self):
-        while True:
+    def make_sure_connected(self, max_retry=None):
+        if max_retry is None:
+            max_retry = 20
+
+        count = 0
+        while count <= max_retry:
+            count += 1
             try:
                 self.reconnect()
                 break
-            except Exception:
-                LOG.exception("Connection to rabbitmq server failed, retry")
+            except Exception as ex:
+                LOG.error("Connection to rabbitmq server failed: %(ex)s, "
+                          "retry for %(count)s times." %
+                          {'ex': ex, 'count': count})
                 eventlet.sleep(1)
 
     def reconnect(self):
