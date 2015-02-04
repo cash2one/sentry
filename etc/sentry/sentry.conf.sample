@@ -168,6 +168,9 @@
 # database (string value)
 #sql_connection=sqlite:////sentry/db/sentry.sqlite
 
+# Whether echo raw sql in log. (boolean value)
+#sql_debug=false
+
 
 #
 # Options defined in sentry.file_cache.alarm_content
