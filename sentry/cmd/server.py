@@ -15,6 +15,7 @@ possible_topdir = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
 if os.path.exists(os.path.join(possible_topdir, 'sentry', '__init__.py')):
     sys.path.insert(0, possible_topdir)
 
+import eventlet
 import logging as std_logging
 from oslo.config import cfg
 
@@ -29,6 +30,7 @@ CONF = cfg.CONF
 def main():
     config.parse_args(sys.argv[1:])
     log.setup('sentry')
+    eventlet.monkey_patch(os=False)
 
     mgr = manager.Manager()
     # After manager instantiated, some handler will be imported

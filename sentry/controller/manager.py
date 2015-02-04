@@ -1,6 +1,7 @@
 
 import functools
 import eventlet
+from eventlet import greenpool
 from kombu import entity
 from oslo.config import cfg
 
@@ -20,7 +21,9 @@ from sentry.openstack.common.rpc import impl_kombu
 """
 
 
-manager_configs = [
+manager_opts = [
+    cfg.IntOpt("pipeline_pool_size", default=3000,
+               help="The max greenthread to process messages."),
     cfg.BoolOpt("ack_on_error", default=False,
                 help="Whether to ack the message if process failed, "
                 "default is False."),
@@ -63,7 +66,7 @@ manager_configs = [
                 help="neutron notification durable"),
 ]
 
-handlers = [
+handler_opts = [
     cfg.ListOpt('nova_event_handlers',
                 default=['alarm', 'nova', 'notifier'],
                 help="Nova event handlers"),
@@ -79,51 +82,45 @@ handlers = [
 ]
 
 CONF = cfg.CONF
-CONF.register_opts(manager_configs)
-CONF.register_opts(handlers)
+CONF.register_opts(manager_opts)
+CONF.register_opts(handler_opts)
 LOG = log.getLogger(__name__)
 
 
 class Pipeline(object):
-    def __init__(self, handlers):
+    """When receive a message, Pipeline will pick a greenthread from pool
+    to process the message. Each message will flow from the start handler
+    to the end, which means the former may block the latter handlers.
+    """
+
+    def __init__(self, pool, handlers):
+        """Each handler should define a method `handler_message`, which
+        receive one argument to passin the message body.
+        """
+        self.pool = pool
         self.handlers = handlers
 
-    def process(self, message):
+    def sanity_message(self, message):
         if isinstance(message, basestring):
             message = jsonutils.loads(message)
         if not isinstance(message, dict):
             LOG.warn("Message is not a dict object: %s" % message)
 
-        LOG.debug("Processing message: %s" % message['event_type'])
+        return message
+
+    def process(self, message):
+        message = self.sanity_message(message)
+
+        LOG.debug("Processing message: %s" % message.get('event_type'))
+
         for handler in self.handlers:
             try:
                 handler.handle_message(message)
             except Exception:
                 LOG.exception("%s process message error, skip it." % handler)
 
-
-class Manager(object):
-
-    def __init__(self):
-        self.thread = None
-        # faild early
-        self.nova_handlers = self.registry_handlers(
-            CONF.nova_event_handlers)
-        self.nova_pipeline = Pipeline(self.nova_handlers)
-
-        self.cinder_handlers = self.registry_handlers(
-            CONF.cinder_event_handlers)
-        self.cinder_pipeline = Pipeline(self.cinder_handlers)
-
-        self.neutron_handlers = self.registry_handlers(
-            CONF.neutron_event_handlers)
-        self.neutron_pipeline = Pipeline(self.neutron_handlers)
-
-        self.glance_handlers = self.registry_handlers(
-            CONF.glance_event_handlers)
-        self.glance_pipeline = Pipeline(self.glance_handlers)
-
-    def registry_handlers(self, handler_names):
+    @classmethod
+    def create(cls, pool, handler_names):
         prefix = "sentry.controller.handlers"
         class_name = "Handler"
         real_handlers = []
@@ -135,24 +132,39 @@ class Manager(object):
             except ImportError:
                 LOG.exception("import %(path)s error, ignore this handler" %
                               {'path': path})
-        return real_handlers
+
+        return cls(pool, real_handlers)
+
+    def __call__(self, message):
+        self.pool.spawn_n(self.process, message)
+
+
+class Manager(object):
+    """Contains a greenthread pool which fire to process incoming messags."""
+
+    def __init__(self):
+        self.pool = greenpool.GreenPool(CONF.pipeline_pool_size)
+
+        self.nova_pipeline = Pipeline.create(self.pool,
+                                             CONF.nova_event_handlers)
+        self.cinder_pipeline = Pipeline.create(self.pool,
+                                               CONF.cinder_event_handlers)
+        self.neutron_pipeline = Pipeline.create(self.pool,
+                                                CONF.neutron_event_handlers)
+        self.glance_pipeline = Pipeline.create(self.pool,
+                                               CONF.glance_event_handlers)
 
     def serve(self):
-        """
-        The default notification topic is:
-            "topic = '%s.%s' % (topic, priority)"
+        """Declare queues and binding pipeline to each queue."""
 
-        Example:
-            "notifications.info"
-        """
         LOG.info('Start sentry service.')
-        self.conn = rpc.create_connection(new=True)
+        self.conn = rpc.create_connection()
 
         # Nova
         self._declare_queue_consumer(
             CONF.nova_mq_level_list,
             CONF.nova_sentry_mq_topic,
-            self.nova_pipeline.process,
+            self.nova_pipeline,
             'nova-sentry',
             durable=CONF.nova_durable,
         )
@@ -161,7 +173,7 @@ class Manager(object):
         self._declare_queue_consumer(
             CONF.neutron_mq_level_list,
             CONF.neutron_sentry_mq_topic,
-            self.neutron_pipeline.process,
+            self.neutron_pipeline,
             'neutron-sentry',
             durable=CONF.neutron_durable,
         )
@@ -170,7 +182,7 @@ class Manager(object):
         self._declare_queue_consumer(
             CONF.glance_mq_level_list,
             CONF.glance_sentry_mq_topic,
-            self.glance_pipeline.process,
+            self.glance_pipeline,
             'glance-sentry',
             durable=CONF.glance_durable,
         )
@@ -179,7 +191,7 @@ class Manager(object):
         self._declare_queue_consumer(
             CONF.cinder_mq_level_list,
             CONF.cinder_sentry_mq_topic,
-            self.cinder_pipeline.process,
+            self.cinder_pipeline,
             'cinder-sentry',
             durable=CONF.cinder_durable,
         )
@@ -195,6 +207,24 @@ class Manager(object):
         except Exception as ex:
             LOG.warn("Cleanup exchange failed. %s" % ex)
 
+    def _declare_queue(self, queue, topic, handler, exchange, durable=False,
+                       auto_delete=False, exclusive=False, ha_queue=False):
+        kwargs = dict(
+            name=queue,
+            ack_on_error=CONF.ack_on_error,
+            exchange_name=exchange,
+            durable=durable,
+            auto_delete=auto_delete,
+            exclusive=exclusive,
+        )
+
+        if ha_queue:
+            kwargs['queue_arguments'] = {'x-ha-policy': 'all'}
+
+        self.conn.declare_consumer(
+            functools.partial(impl_kombu.TopicConsumer, **kwargs),
+            topic, handler)
+
     def _declare_queue_consumer(self, levels, topic, handler, exchange,
                         durable=False, auto_delete=False, exclusive=False,
                         ha_queue=False):
@@ -203,37 +233,23 @@ class Manager(object):
 
         for level in levels:
             queue = '%s.%s' % (topic, level)
+            self._declare_queue(queue, topic, handler, exchange, durable,
+                                auto_delete, exclusive, ha_queue)
 
-            kwargs = dict(
-                name=queue,
-                ack_on_error=CONF.ack_on_error,
-                exchange_name=exchange,
-                durable=durable,
-                auto_delete=auto_delete,
-                exclusive=exclusive,
-            )
-
-            if ha_queue:
-                kwargs['queue_arguments'] = {'x-ha-policy': 'all'}
-
-            self.conn.declare_consumer(
-                functools.partial(impl_kombu.TopicConsumer, **kwargs),
-                topic, handler)
             LOG.debug("Declare queue name: %(queue)s, topic: %(topic)s" %
                       {"queue": queue, "topic": topic})
 
     def run_server(self):
-        self.thread = eventlet.spawn(self.serve)
+        self.pool.spawn(self.serve)
+
+    def _loop(self):
+        """A infinite loop to block the thread not exit."""
+        while True:
+            eventlet.sleep(0)
 
     def wait(self):
-        if self.thread is None:
-            raise Exception('Must calling run_server() before wait().')
-
         try:
-            self.thread.wait()
+            self.pool.spawn(self._loop)
+            self.pool.waitall()
         except KeyboardInterrupt:
             LOG.info("KeyboardInterrupt received, Exit.")
-
-    def cleanup(self):
-        LOG.info('Cleanup sentry')
-        rpc.cleanup()

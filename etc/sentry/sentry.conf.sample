@@ -113,6 +113,9 @@
 # glance event handlers (list value)
 #glance_event_handlers=glance
 
+# The max greenthread to process messages. (integer value)
+#pipeline_pool_size=3000
+
 # Whether to ack the message if process failed, default is
 # False. (boolean value)
 #ack_on_error=false
