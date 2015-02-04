@@ -43,7 +43,14 @@ class RabbitClient(object):
     def _put_connection(self, conn):
         self.pool.put(conn)
 
-    def fanout(self, exchange_name, msg, durable=False):
+    def fanout(self, exchange_name, msg, durable=False, ttl=None):
+        """
+        :param exchange_name: string, represent the exchange name, the
+                              exchange type will be `fanout`.
+        :param msg: dict, the content of message
+        :param durable: boolean, whether make a durable message.
+        :param ttl: int, expiration of message in milliseconds.
+        """
         conn = self._acquire_connection()
 
         while True:
@@ -53,8 +60,27 @@ class RabbitClient(object):
                                         channel=channel, durable=durable)
                 exchange.declare()
 
+                # RabbitMQ support below properites:
+                #
+                #   content_type
+                #   content_encoding
+                #   priority
+                #   correlation_id
+                #   reply_to
+                #   expiration
+                #   message_id
+                #   timestamp
+                #   type
+                #   user_id
+                #   app_id
+                #   cluster_id
+                properties = {}
+
+                if ttl:
+                    properties['expiration'] = str(ttl)
+
                 producer = kombu.Producer(channel, exchange=exchange)
-                producer.publish(msg)
+                producer.publish(msg, **properties)
 
                 break
             except Exception:

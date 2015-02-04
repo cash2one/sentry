@@ -25,7 +25,10 @@ handler_configs = [
     cfg.StrOpt("notifier_rabbit_virtual_host", default='$rabbit_virtual_host',
                help='The RabbitMQ virtual host to notify'),
     cfg.StrOpt("notifier_exchange", default="nvs_fanout",
-               help='The exchange name of nvs notifier.')
+               help='The exchange name of nvs notifier.'),
+    cfg.IntOpt("notifier_ttl", default=86400,
+               help="The expiration of message in seconds, The default is "
+               "24 hours"),
 ]
 
 
@@ -66,4 +69,7 @@ class Handler(object):
                 message.pop(key)
 
         LOG.debug("Notifier msg %s" % message)
-        self.rabbit.fanout(CONF.notifier_exchange, message)
+
+        exchange = CONF.notifier_exchange
+        ttl = 1000 * CONF.notifier_ttl
+        self.rabbit.fanout(exchange, message, ttl=ttl)

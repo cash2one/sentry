@@ -68,6 +68,10 @@
 # The exchange name of nvs notifier. (string value)
 #notifier_exchange=nvs_fanout
 
+# The expiration of message in seconds, The default is 24
+# hours (integer value)
+#notifier_ttl=86400
+
 
 #
 # Options defined in sentry.controller.helper
