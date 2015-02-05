@@ -91,13 +91,14 @@ def _validate_sort_keys(model, sort_keys):
     return sorts_criterion
 
 
-def _get_count(session, model):
+def _get_count(query):
     """Sqlalchemy count using subquery which is slow.
 
     :param model: should contains `id` field.
     """
-    query = session.query(func.count(model.id))
-    return query.first()[0]
+    count_q = query.statement.with_only_columns([func.count()])
+    count = query.session.execute(count_q).scalar()
+    return count
 
 
 def event_get_all(search_dict={}, sorts=[]):
@@ -117,7 +118,7 @@ def event_get_all(search_dict={}, sorts=[]):
     for sort in sorts_criterion:
         query = query.order_by(sort)
 
-    count = _get_count(se, models.Event)
+    count = _get_count(query)
     return count, query
 
 

@@ -142,7 +142,7 @@ class DBAPITests(test.DBTestCase):
         count, result = api.event_get_all({'user_name': '0'},
                                           sorts=['request_id'])
 
-        self.assertEqual(2, result.count())
+        self.assertEqual(2, count)
         self.assertEqual(event1.request_id, result[0].request_id)
         self.assertEqual(event2.request_id, result[1].request_id)
 
@@ -151,11 +151,11 @@ class DBAPITests(test.DBTestCase):
         event2 = self._insert_event(request_id='2', user_name='0')
 
         count, result = api.event_get_all({'user_name': '2'})
-        self.assertEqual(0, result.count())
+        self.assertEqual(0, count)
 
     def test_event_get_all_search_one_result(self):
         event1 = self._insert_event(request_id='1', user_name='0')
         event2 = self._insert_event(request_id='2', user_name='0')
 
         count, result = api.event_get_all({'request_id': '1'})
-        self.assertEqual(1, result.count())
+        self.assertEqual(1, count)
