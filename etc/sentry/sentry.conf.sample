@@ -570,7 +570,8 @@
 # sentry-api listen on the host. (string value)
 #listen_host=0.0.0.0
 
-# Whether enable builtin api debug mode. (boolean value)
+# API debug mode will using `wsgiref` to run wsgi, which make
+# life easier for debuging. (boolean value)
 #api_debug=false
 
 # The number of forked works (integer value)

@@ -19,7 +19,8 @@ api_configs = [
                help="sentry-api listen on the host."),
     cfg.BoolOpt("api_debug",
                 default=False,
-                help="Whether enable builtin api debug mode."),
+                help="API debug mode will using `wsgiref` to run wsgi, "
+                "which make life easier for debuging."),
     cfg.IntOpt("workers",
                default=1,
                help="The number of forked works"),
@@ -121,12 +122,19 @@ def run():
     # parse sys.argv, so delete it.
     del sys.argv[1:]
 
-    bottle.run(root_app,
-               server='gunicorn',
-               worker_class='eventlet',
-               logger_class=Logging,
-               workers=CONF.api.workers,
-               debug=CONF.api.api_debug,
-               port=CONF.api.listen_port,
-               host=CONF.api.listen_host,
-               quiet=True)
+    if CONF.api.api_debug:
+        LOG.info("API debug mode, running with wsgiref.")
+        bottle.run(root_app,
+                   server='wsgiref',
+                   port=CONF.api.listen_port,
+                   host=CONF.api.listen_host)
+    else:
+        bottle.run(root_app,
+                   server='gunicorn',
+                   worker_class='eventlet',
+                   logger_class=Logging,
+                   workers=CONF.api.workers,
+                   debug=CONF.api.api_debug,
+                   port=CONF.api.listen_port,
+                   host=CONF.api.listen_host,
+                   quiet=True)
