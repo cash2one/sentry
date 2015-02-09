@@ -7,6 +7,7 @@
 import datetime
 import os
 import time
+import uuid
 
 from dateutil import tz
 
@@ -18,6 +19,10 @@ LOG = logging.getLogger(__name__)
 
 ALARM_LEVEL = ['INFO', 'WARN', 'ERROR', 'FATAL']
 PERFECT_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
+
+
+def get_uuid():
+    return str(uuid.uuid4())
 
 
 def get_alarm_level(level):

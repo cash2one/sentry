@@ -1,11 +1,15 @@
 import sys
 
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import desc, asc
 
-from sentry.db.sqlalchemy import session
+from sentry.common import utils
+from sentry.db.sqlalchemy import session as db_session
 from sentry.db.sqlalchemy import models
 from sentry.openstack.common import jsonutils
+
+get_session = db_session.get_session
 
 
 def get_backend():
@@ -13,7 +17,7 @@ def get_backend():
 
 
 def event_create(event):
-    se = session.get_session()
+    se = get_session()
 
     with se.begin():
         raw_json = jsonutils.dumps(event.raw_json)
@@ -100,16 +104,16 @@ def _get_count(query):
     return count
 
 
-def event_get_all(search_dict={}, sorts=[], start=None, end=None):
-    se = session.get_session()
+def _model_complict_query(model_object, search_dict={}, sorts=[]):
+    se = get_session()
 
     # failed fast
     if search_dict:
-        _validate_search_dict(models.Event, search_dict)
+        _validate_search_dict(model_object, search_dict)
 
-    sorts_criterion = _validate_sort_keys(models.Event, sorts)
+    sorts_criterion = _validate_sort_keys(model_object, sorts)
 
-    query = se.query(models.Event)
+    query = se.query(model_object)
 
     if search_dict:
         query = query.filter_by(**search_dict)
@@ -117,6 +121,11 @@ def event_get_all(search_dict={}, sorts=[], start=None, end=None):
     for sort in sorts_criterion:
         query = query.order_by(sort)
 
+    return query
+
+
+def event_get_all(search_dict={}, sorts=[], start=None, end=None):
+    query = _model_complict_query(models.Event, search_dict, sorts)
     if start:
         query = query.filter(models.Event.timestamp >= start)
 
@@ -131,3 +140,96 @@ def event_schema():
     sortables = models.Event.get_sortable()
     searchable = models.Event.get_searchable()
     return fields, sortables, searchable
+
+# ---------------------------
+# error logs
+# --------------------------
+
+
+def _refresh_error_log_stats_count(error_stats_id):
+    """In case of race condition, not increase the number of error log count.
+    """
+    session = get_session()
+    with session.begin():
+        stats = session.query(models.ErrorLogStats). \
+                    filter(models.ErrorLogStats.id == error_stats_id). \
+                    first()
+        count = session.query(models.ErrorLog). \
+                    filter(models.ErrorLog.stats_id == error_stats_id). \
+                    count()
+        stats.count = count
+        session.add(stats)
+
+
+def error_log_stats_get(title, level, session=None):
+    """Searched by title and log_level"""
+    if session is None:
+        session = get_session()
+
+    query = session.query(models.ErrorLogStats). \
+                filter(models.ErrorLogStats.title == title). \
+                filter(models.ErrorLogStats.log_level == level)
+    return query.first()
+
+
+def error_log_stats_get_all(search_dict={}, sorts=[]):
+    return _model_complict_query(models.ErrorLogStats, search_dict, sorts)
+
+
+def error_log_stats_schema():
+    fields = models.ErrorLogStats.get_fields()
+    sortables = models.ErrorLogStats.get_sortable()
+    searchable = models.ErrorLogStats.get_searchable()
+    return fields, sortables, searchable
+
+
+def error_log_get_by_uuid_and_number(uuid, number=1):
+    session = get_session()
+
+    stats = session.query(models.ErrorLogStats). \
+                filter(models.ErrorLogStats.uuid == uuid). \
+                options(joinedload(models.ErrorLogStats.errors)). \
+                first()
+
+    if not stats:
+        return None
+
+    try:
+        return stats.errors[number - 1]
+    except IndexError:
+        return None
+
+
+def error_log_create(errorlog):
+    session = get_session()
+
+    with session.begin(subtransactions=True):
+        #FIXME: Race condiction here. If two error log arrive at the same time.
+        #The result will be two error stats with the same log_level and title.
+        stats = error_log_stats_get(errorlog.title,
+                                    errorlog.log_level,
+                                    session)
+        if not stats:
+            # The first time to create error_log_stats
+            stats = models.ErrorLogStats(uuid=utils.get_uuid(),
+                                         title=errorlog.title,
+                                         log_level=errorlog.log_level,
+                                         datetime=errorlog.datetime,
+                                         count=0,
+                                         on_process=False)
+
+        error_log = models.ErrorLog(datetime=errorlog.datetime,
+                                    hostname=errorlog.hostname,
+                                    payload=errorlog.payload)
+
+        # NOTE(gtt): Why setting error_log.stats_id does not work?
+        error_log.error_stats = stats
+        session.add(error_log)
+
+        stats.datetime = error_log.datetime
+        session.add(stats)
+        session.flush()
+
+    _refresh_error_log_stats_count(stats.id)
+
+    return stats, error_log

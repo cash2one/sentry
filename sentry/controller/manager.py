@@ -264,6 +264,7 @@ class Manager(object):
         self.glance_collector = MessageCollector('glance', self.pool)
         self.neutron_collector = MessageCollector('neutron', self.pool)
         self.cinder_collector = MessageCollector('cinder', self.pool)
+        self.log_error_pipeline = Pipeline.create(self.pool, ['log_error'])
 
     def serve(self):
         """Declare queues and binding pipeline to each queue."""
@@ -276,6 +277,8 @@ class Manager(object):
                                              self.nova_pipeline)
         self.nova_collector.declare_consumer('notifications.error',
                                              self.nova_pipeline)
+        self.nova_collector.declare_consumer('notifications.critical',
+                                             self.log_error_pipeline)
 
         LOG.info("Declare glance consumers")
         self.glance_pipeline = Pipeline.create(self.pool,

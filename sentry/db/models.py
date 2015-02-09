@@ -1,6 +1,11 @@
+class BaseModel(object):
+    def to_dict(self):
+        return dict((name, getattr(self, name)) for name in dir(self)
+                    if not name.startswith('__') and
+                    not callable(getattr(self, name)))
 
 
-class Event(object):
+class Event(BaseModel):
     """A normalization event object"""
     # instance uuid, network uuid, volume uuid...
     object_id = str()
@@ -29,7 +34,11 @@ class Event(object):
     binary = str()
     hostname = str()
 
-    def to_dict(self):
-        return dict((name, getattr(self, name)) for name in dir(self)
-                    if not name.startswith('__') and
-                    not callable(getattr(self, name)))
+
+class ErrorLog(BaseModel):
+
+    title = str()
+    log_level = str()
+    datetime = str()
+    hostname = str()
+    payload = dict()

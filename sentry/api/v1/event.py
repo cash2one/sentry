@@ -5,17 +5,11 @@ from sentry.api.bottle import request
 from sentry.db import api as dbapi
 from sentry.openstack.common import timeutils
 
-route = app.app.route
+route = app.route
 
 
 def event_viewer(page):
-    ret = {
-        'pagination': {
-            "total_page": page.total_page,
-            "current_page": page.page_num,
-            "limit": page.per_page,
-        }
-    }
+    ret = page.to_dict()
 
     events = []
     for event in page.object_list:

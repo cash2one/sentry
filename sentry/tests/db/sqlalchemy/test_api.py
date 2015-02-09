@@ -187,3 +187,99 @@ class DBAPITests(test.DBTestCase):
                                     timestamp='2013-01-01 00:00:00')
         result = api.event_get_all(start='2013-x1-x1 00:00:00')
         self.assertEqual(0, result.count())
+
+
+class ErrorLogDBAPITests(test.DBTestCase):
+
+    def _insert_error_log(self, title=None, log_level=None):
+        errorlog = base_models.ErrorLog()
+        errorlog.title = title or 'test-title'
+        errorlog.log_level = log_level or 'error'
+        errorlog.hostname = '10-120-120-11'
+        errorlog.datetime = timeutils.parse_strtime('2013-01-21 08:51:29',
+                                                    '%Y-%m-%d %H:%M:%S')
+        errorlog.payload = {}
+
+        return api.error_log_create(errorlog)
+
+    def test_create_one_error_log(self):
+        title = 'title1'
+        level = 'error'
+        self._insert_error_log(title, level)
+        stats = api.error_log_stats_get(title, level)
+
+        self.assertEqual(stats.count, 1)
+        self.assertEqual(stats.title, title)
+        self.assertEqual(stats.log_level, level)
+        self.assertEqual(stats.on_process, False)
+
+    def test_create_more_error_log(self):
+        title = 'title2'
+        self._insert_error_log(title)
+        self._insert_error_log(title)
+
+        result = api.error_log_stats_get_all({'title': 'title2'})
+        self.assertEqual(result.count(), 1)
+        self.assertEqual(result[0].count, 2)
+
+        self._insert_error_log(title)
+        result = api.error_log_stats_get_all({'title': 'title2'})
+        self.assertEqual(result[0].count, 3)
+
+    def test_error_log_stats_schema(self):
+        fields, sortable, searchable = api.error_log_stats_schema()
+        self.assertEqual(fields, ['id', 'uuid', 'title', 'log_level',
+                                  'datetime', 'count', 'on_process'])
+        self.assertEqual(sortable, ['title', 'log_level', 'datetime',
+                                    'count', 'on_process'])
+        self.assertEqual(searchable, ['uuid', 'title', 'log_level',
+                                      'on_process'])
+
+    def test_error_log_stats_get_all(self):
+        self._insert_error_log('error1', 'error')
+        result = api.error_log_stats_get_all()
+        self.assertEqual(1, result.count(),
+                         'Should contains ONE error.')
+
+        self._insert_error_log('error2', 'error')
+        self.assertEqual(2, result.count(),
+                         'Should contains "error1", "error2"')
+
+    def test_error_log_stats_get_all_search(self):
+        self._insert_error_log('error1', 'error')
+        self._insert_error_log('error2', 'error')
+        self._insert_error_log('error3', 'critical')
+
+        search_0 = api.error_log_stats_get_all()
+        self.assertEqual(search_0.count(), 3,
+                         'Should contains all errors')
+
+        search_1 = api.error_log_stats_get_all({'title': 'error1'})
+        self.assertEqual(search_1.count(), 1,
+                         'Should contains "error1"')
+
+        search_2 = api.error_log_stats_get_all({'log_level': 'error'})
+        self.assertEqual(search_2.count(), 2,
+                         'Should contains "error1", "error2"')
+
+    def test_error_log_get_by_uuid_and_number_ok(self):
+        stats, error_log = self._insert_error_log('error1', 'error')
+        stats, error_log2 = self._insert_error_log('error1', 'error')
+        result = api.error_log_get_by_uuid_and_number(
+            stats.uuid, 1)
+        self.assertEqual(stats.title, result.title)
+
+        result = api.error_log_get_by_uuid_and_number(
+            stats.uuid, 2)
+        self.assertEqual(stats.title, result.title)
+
+    def test_error_log_get_by_uuid_and_number_non_existed_uuid(self):
+        self._insert_error_log('error1', 'error')
+        result = api.error_log_get_by_uuid_and_number('no-existed-uuid')
+        self.assertEqual(None, result)
+
+    def test_error_log_get_by_uuid_and_number_non_existed_number(self):
+        stats, error_log = self._insert_error_log('error1', 'error')
+        result = api.error_log_get_by_uuid_and_number(
+            stats.uuid, -1)
+        self.assertEqual(None, result)

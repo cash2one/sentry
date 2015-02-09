@@ -96,6 +96,20 @@ class Page(object):
         self.per_page = per_page
         self.total_count = total_count
 
+    def to_dict(self):
+        ret = {
+            'pagination': {
+                "total_page": self.total_page,
+                "current_page": self.page_num,
+                "limit": self.per_page,
+            }
+        }
+        return ret
+
+    def __iter__(self):
+        for obj in self.object_list:
+            yield obj
+
 
 class RequestQuery(object):
 
@@ -163,3 +177,9 @@ class RequestQuery(object):
         return a dict lik {"col1": "value1", "col2": "volue2"}
         """
         return self._search_dict
+
+    def search_get_int(self, key, default):
+        try:
+            return int(self.search_dict.get(key, default))
+        except ValueError:
+            return default
