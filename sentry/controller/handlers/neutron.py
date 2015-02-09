@@ -60,7 +60,7 @@ class Handler(handlers.MySQLHandler):
         # 'id' in first object in payload
         try:
             return payload[payload.keys()[0]]['id']
-        except KeyError as ex:
-            LOG.exception("missing object_id. exception: %(ex)\n"
+        except (KeyError, TypeError) as ex:
+            LOG.exception("Missing object_id. Exception: %(ex)s\n"
                           "%(msg)s" % {'ex': ex, 'msg': msg})
             return None
