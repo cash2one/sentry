@@ -21,6 +21,10 @@ api_configs = [
                 default=False,
                 help="API debug mode will using `wsgiref` to run wsgi, "
                 "which make life easier for debuging."),
+    cfg.IntOpt("worker_timeout",
+               default=30,
+               help="Workers silent for more than this many seconds are killed"
+               " and restarted."),
     cfg.IntOpt("workers",
                default=1,
                help="The number of forked works"),
@@ -137,4 +141,5 @@ def run():
                    debug=CONF.api.api_debug,
                    port=CONF.api.listen_port,
                    host=CONF.api.listen_host,
+                   timeout=CONF.api.worker_timeout,
                    quiet=True)
