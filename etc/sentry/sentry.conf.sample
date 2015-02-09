@@ -574,6 +574,10 @@
 # life easier for debuging. (boolean value)
 #api_debug=false
 
+# Workers silent for more than this many seconds are killed
+# and restarted. (integer value)
+#worker_timeout=30
+
 # The number of forked works (integer value)
 #workers=1
 
