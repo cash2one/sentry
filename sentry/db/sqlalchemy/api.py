@@ -118,8 +118,7 @@ def event_get_all(search_dict={}, sorts=[]):
     for sort in sorts_criterion:
         query = query.order_by(sort)
 
-    count = _get_count(query)
-    return count, query
+    return query
 
 
 def event_schema():

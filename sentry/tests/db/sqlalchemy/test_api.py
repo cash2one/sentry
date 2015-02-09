@@ -81,9 +81,9 @@ class DBAPITests(test.DBTestCase):
     def test_event_get_all_sort_by_user_name(self):
         event1 = self._insert_event(user_name='1')
         event2 = self._insert_event(user_name='2')
-        count, result = api.event_get_all(sorts=['user_name'])
+        result = api.event_get_all(sorts=['user_name'])
 
-        self.assertEqual(2, count)
+        self.assertEqual(2, result.count())
         self.assertEqual(event1.user_name, result.first().user_name)
         self.assertEqual(event2.user_name, result[1].user_name)
 
@@ -91,9 +91,9 @@ class DBAPITests(test.DBTestCase):
         event1 = self._insert_event(user_name='1')
         event2 = self._insert_event(user_name='2')
 
-        count, result = api.event_get_all(sorts=['-user_name'])
+        result = api.event_get_all(sorts=['-user_name'])
 
-        self.assertEqual(2, count)
+        self.assertEqual(2, result.count())
         self.assertEqual(event2.user_name, result[0].user_name,
                          "First result should be user_name2")
         self.assertEqual(event1.user_name, result[1].user_name,
@@ -106,7 +106,7 @@ class DBAPITests(test.DBTestCase):
         # sort by desc user_name first, since two event have different
         # user_name.
         # so the result will not take request_id into consideration.
-        count, result = api.event_get_all(sorts=['-user_name', 'request_id'])
+        result = api.event_get_all(sorts=['-user_name', 'request_id'])
 
         self.assertEqual(event1.user_name, result[0].user_name,
                          "First result should be user_name2")
@@ -120,15 +120,15 @@ class DBAPITests(test.DBTestCase):
         # sort by desc user_name first, since two event have the same user_name
         # id
         # so the result will be affected by request_id.
-        count, result = api.event_get_all(sorts=['-user_name', 'request_id'])
+        result = api.event_get_all(sorts=['-user_name', 'request_id'])
 
-        self.assertEqual(2, count)
+        self.assertEqual(2, result.count())
         self.assertEqual(event1.user_name, result[0].user_name,
                          "First result should be user_name2")
         self.assertEqual(event2.user_name, result[1].user_name,
                          "Second result should be user_name1")
 
-        count, result = api.event_get_all(sorts=['-user_name', '-request_id'])
+        result = api.event_get_all(sorts=['-user_name', '-request_id'])
 
         self.assertEqual(event1.user_name, result[1].user_name,
                          "First result should be user_name2")
@@ -139,10 +139,10 @@ class DBAPITests(test.DBTestCase):
         event1 = self._insert_event(request_id='1', user_name='0')
         event2 = self._insert_event(request_id='2', user_name='0')
 
-        count, result = api.event_get_all({'user_name': '0'},
+        result = api.event_get_all({'user_name': '0'},
                                           sorts=['request_id'])
 
-        self.assertEqual(2, count)
+        self.assertEqual(2, result.count())
         self.assertEqual(event1.request_id, result[0].request_id)
         self.assertEqual(event2.request_id, result[1].request_id)
 
@@ -150,12 +150,12 @@ class DBAPITests(test.DBTestCase):
         event1 = self._insert_event(request_id='1', user_name='0')
         event2 = self._insert_event(request_id='2', user_name='0')
 
-        count, result = api.event_get_all({'user_name': '2'})
-        self.assertEqual(0, count)
+        result = api.event_get_all({'user_name': '2'})
+        self.assertEqual(0, result.count())
 
     def test_event_get_all_search_one_result(self):
         event1 = self._insert_event(request_id='1', user_name='0')
         event2 = self._insert_event(request_id='2', user_name='0')
 
-        count, result = api.event_get_all({'request_id': '1'})
-        self.assertEqual(1, count)
+        result = api.event_get_all({'request_id': '1'})
+        self.assertEqual(1, result.count())

@@ -35,10 +35,9 @@ def index():
     try:
         query = utils.RequestQuery(request)
 
-        count, event_query = \
-                dbapi.event_get_all(query.search_dict, query.sort)
+        event_query = dbapi.event_get_all(query.search_dict, query.sort)
 
-        paginator = utils.Paginator(event_query, query.limit, count)
+        paginator = utils.Paginator(event_query, query.limit)
         page = paginator.page(query.page_num)
     except ValueError as ex:
         msg = str(ex)

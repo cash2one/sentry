@@ -6,6 +6,8 @@ from sentry.api import bottle
 from sentry.openstack.common import jsonutils
 
 CONF = cfg.CONF
+# 100 pages with 20 items per page.
+MAX_COUNT = 20 * 100
 
 
 def create_bottle_app(autojson=False, catchall=False):
@@ -16,23 +18,26 @@ def create_bottle_app(autojson=False, catchall=False):
 
 
 class Paginator(object):
-    def __init__(self, object_list, per_page, count=None):
+    def __init__(self, object_list, per_page, max_count=MAX_COUNT):
         """
         :para object_list: should be a list or QuerySet.
         """
         self.object_list = object_list
         self.per_page = per_page
-        if count:
-            self._count = count
-        else:
-            self._count = None
+        self.max_count = max_count
+
+        self._count = None
         self._total_page_number = None
 
     @property
     def count(self):
         if self._count is None:
             try:
-                self._count = self.object_list.count()
+                # NOTE(gtt): Accounting all row is very slow.
+                # Like jd.com and taobao.com only return max to 100 pages.
+                # Here we do the same. If 100 pages doesn't contain expected
+                # information, you should use more filters.
+                self._count = self.object_list.limit(self.max_count).count()
             except (AttributeError, TypeError):
                 self._count = len(self.object_list)
         return self._count
