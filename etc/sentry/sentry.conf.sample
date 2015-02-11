@@ -101,63 +101,104 @@
 # Options defined in sentry.controller.manager
 #
 
-# Nova event handlers (list value)
-#nova_event_handlers=alarm,nova,notifier
+# Cinder rabbit broker hosts. (list value)
+#cinder_rabbit_hosts=localhost:5672
 
-# cinder event handlers (list value)
+# Cinder rabbit exchange name. (string value)
+#cinder_exchange=openstack
+
+# Cinder rabbit userid. (string value)
+#cinder_rabbit_userid=$rabbit_userid
+
+# Cinder rabbit password. (string value)
+#cinder_rabbit_password=$rabbit_password
+
+# Cinder rabbit virtual host. (string value)
+#cinder_rabbit_virtual_host=$rabbit_virtual_host
+
+# Cinder rabbit durable (boolean value)
+#cinder_rabbit_durable=false
+
+# Cinder HA queues (boolean value)
+#cinder_ha_queue=false
+
+# Cinder event handlers (list value)
 #cinder_event_handlers=cinder
 
-# neutron event handlers (list value)
-#neutron_event_handlers=neutron
+# Glance rabbit broker hosts. (list value)
+#glance_rabbit_hosts=localhost:5672
 
-# glance event handlers (list value)
+# Glance rabbit exchange name. (string value)
+#glance_exchange=glance
+
+# Glance rabbit userid. (string value)
+#glance_rabbit_userid=$rabbit_userid
+
+# Glance rabbit password. (string value)
+#glance_rabbit_password=$rabbit_password
+
+# Glance rabbit virtual host. (string value)
+#glance_rabbit_virtual_host=$rabbit_virtual_host
+
+# Glance rabbit durable (boolean value)
+#glance_rabbit_durable=false
+
+# Glance HA queues (boolean value)
+#glance_ha_queue=false
+
+# Glance event handlers (list value)
 #glance_event_handlers=glance
 
 # The max greenthread to process messages. (integer value)
 #pipeline_pool_size=3000
 
-# Whether to ack the message if process failed, default is
-# False. (boolean value)
-#ack_on_error=false
+# Neutron rabbit broker hosts. (list value)
+#neutron_rabbit_hosts=localhost:5672
 
-# Name of nova notifications topic (string value)
-#nova_sentry_mq_topic=notifications
+# Neutron rabbit exchange name. (string value)
+#neutron_exchange=neutron
 
-# Name of glance notifications topic (string value)
-#glance_sentry_mq_topic=glance_notifications
+# Neutron rabbit userid. (string value)
+#neutron_rabbit_userid=$rabbit_userid
 
-# Name of neutron notifications topic (string value)
-#neutron_sentry_mq_topic=neutron_notifications
+# Neutron rabbit password. (string value)
+#neutron_rabbit_password=$rabbit_password
 
-# Name of neutron notifications topic (string value)
-#cinder_sentry_mq_topic=cinder_notifications
+# Neutron rabbit virtual host. (string value)
+#neutron_rabbit_virtual_host=$rabbit_virtual_host
 
-# notifications levels for message queue of nova (list value)
-#nova_mq_level_list=error,info
+# Neutron rabbit durable (boolean value)
+#neutron_rabbit_durable=false
 
-# notifications levels for message queue of glance (list
-# value)
-#glance_mq_level_list=error,info
+# Neutron HA queues (boolean value)
+#neutron_ha_queue=false
 
-# notifications levels for message queue of neutron (list
-# value)
-#neutron_mq_level_list=error,info
+# Neutron event handlers (list value)
+#neutron_event_handlers=neutron
 
-# notifications levels for message queue of neutron (list
-# value)
-#cinder_mq_level_list=error,info
+# Nova rabbit broker hosts. (list value)
+#nova_rabbit_hosts=localhost:5672
 
-# cinder notification durable (boolean value)
-#cinder_durable=false
+# Nova rabbit exchange name. (string value)
+#nova_exchange=nova
 
-# nova notification durable (boolean value)
-#nova_durable=false
+# Nova rabbit userid. (string value)
+#nova_rabbit_userid=$rabbit_userid
 
-# neutron notification durable (boolean value)
-#neutron_durable=false
+# Nova rabbit password. (string value)
+#nova_rabbit_password=$rabbit_password
 
-# neutron notification durable (boolean value)
-#glance_durable=false
+# Nova rabbit virtual host. (string value)
+#nova_rabbit_virtual_host=$rabbit_virtual_host
+
+# nova rabbit durable (boolean value)
+#nova_rabbit_durable=false
+
+# nova HA queues (boolean value)
+#nova_ha_queue=false
+
+# Nova event handlers (list value)
+#nova_event_handlers=alarm,nova,notifier
 
 
 #
