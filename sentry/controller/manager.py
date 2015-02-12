@@ -272,11 +272,11 @@ class Manager(object):
         self.glance_pipeline = Pipeline.create(self.pool,
                                                CONF.glance_event_handlers)
         self.glance_collector.connect()
-        self.glance_collector.declare_consumer('glance_notification.info',
+        self.glance_collector.declare_consumer('glance_notifications.info',
                                                self.glance_pipeline)
-        self.glance_collector.declare_consumer('glance_notification.error',
+        self.glance_collector.declare_consumer('glance_notifications.error',
                                                self.glance_pipeline)
-        self.glance_collector.declare_consumer('glance_notification.warn',
+        self.glance_collector.declare_consumer('glance_notifications.warn',
                                                self.glance_pipeline)
 
         LOG.info("Declare neutron consumers")
@@ -291,6 +291,8 @@ class Manager(object):
                                                CONF.cinder_event_handlers)
         self.cinder_collector.connect()
         self.cinder_collector.declare_consumer('cinder_notifications.info',
+                                               self.cinder_pipeline)
+        self.cinder_collector.declare_consumer('cinder_notifications.error',
                                                self.cinder_pipeline)
 
     def run_server(self):
