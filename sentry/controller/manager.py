@@ -1,15 +1,12 @@
 
-import functools
 import eventlet
 from eventlet import greenpool
-from kombu import entity
 from oslo.config import cfg
 
+from sentry import messaging
 from sentry.openstack.common import log
-from sentry.openstack.common import rpc
 from sentry.openstack.common import importutils
 from sentry.openstack.common import jsonutils
-from sentry.openstack.common.rpc import impl_kombu
 
 """
     Sentry listenning on rabbitmq and receive notification
@@ -20,70 +17,138 @@ from sentry.openstack.common.rpc import impl_kombu
     is alarm level.
 """
 
+CONF = cfg.CONF
+
+CONF.import_opt('rabbit_hosts', 'sentry.openstack.common.rpc.impl_kombu')
+CONF.import_opt('rabbit_userid', 'sentry.openstack.common.rpc.impl_kombu')
+CONF.import_opt('rabbit_password', 'sentry.openstack.common.rpc.impl_kombu')
+CONF.import_opt('rabbit_virtual_host',
+                'sentry.openstack.common.rpc.impl_kombu')
+
+nova_opts = [
+    cfg.ListOpt('nova_rabbit_hosts',
+                default=CONF.rabbit_hosts,
+                help="Nova rabbit broker hosts."),
+    cfg.StrOpt('nova_exchange',
+               default='nova',
+               help="Nova rabbit exchange name."),
+    cfg.StrOpt('nova_rabbit_userid',
+               default='$rabbit_userid',
+               help="Nova rabbit userid."),
+    cfg.StrOpt('nova_rabbit_password',
+               default='$rabbit_password',
+               secret=True,
+               help="Nova rabbit password."),
+    cfg.StrOpt('nova_rabbit_virtual_host',
+               default='$rabbit_virtual_host',
+               help="Nova rabbit virtual host."),
+    cfg.BoolOpt('nova_rabbit_durable',
+                default=False,
+                help="nova rabbit durable"),
+    cfg.BoolOpt('nova_ha_queue',
+                default=False,
+                help="nova HA queues"),
+    cfg.ListOpt('nova_event_handlers',
+                default=['alarm', 'nova', 'notifier'],
+                help="Nova event handlers"),
+]
+
+glance_opts = [
+    cfg.ListOpt('glance_rabbit_hosts',
+                default=CONF.rabbit_hosts,
+                help="Glance rabbit broker hosts."),
+    cfg.StrOpt('glance_exchange',
+               default='glance',
+               help="Glance rabbit exchange name."),
+    cfg.StrOpt('glance_rabbit_userid',
+               default='$rabbit_userid',
+               help="Glance rabbit userid."),
+    cfg.StrOpt('glance_rabbit_password',
+               default='$rabbit_password',
+               secret=True,
+               help="Glance rabbit password."),
+    cfg.StrOpt('glance_rabbit_virtual_host',
+               default='$rabbit_virtual_host',
+               help="Glance rabbit virtual host."),
+    cfg.BoolOpt('glance_rabbit_durable',
+                default=False,
+                help="Glance rabbit durable"),
+    cfg.BoolOpt('glance_ha_queue',
+                default=False,
+                help="Glance HA queues"),
+    cfg.ListOpt('glance_event_handlers',
+                default=['glance'],
+                help="Glance event handlers"),
+]
+
+cinder_opts = [
+    cfg.ListOpt('cinder_rabbit_hosts',
+                default=CONF.rabbit_hosts,
+                help="Cinder rabbit broker hosts."),
+    cfg.StrOpt('cinder_exchange',
+               default='openstack',
+               help="Cinder rabbit exchange name."),
+    cfg.StrOpt('cinder_rabbit_userid',
+               default='$rabbit_userid',
+               help="Cinder rabbit userid."),
+    cfg.StrOpt('cinder_rabbit_password',
+               default='$rabbit_password',
+               secret=True,
+               help="Cinder rabbit password."),
+    cfg.StrOpt('cinder_rabbit_virtual_host',
+               default='$rabbit_virtual_host',
+               help="Cinder rabbit virtual host."),
+    cfg.BoolOpt('cinder_rabbit_durable',
+                default=False,
+                help="Cinder rabbit durable"),
+    cfg.BoolOpt('cinder_ha_queue',
+                default=False,
+                help="Cinder HA queues"),
+    cfg.ListOpt('cinder_event_handlers',
+                default=['cinder'],
+                help="Cinder event handlers"),
+]
+
+neutron_opts = [
+    cfg.ListOpt('neutron_rabbit_hosts',
+                default=CONF.rabbit_hosts,
+                help="Neutron rabbit broker hosts."),
+    cfg.StrOpt('neutron_exchange',
+               default='neutron',
+               help="Neutron rabbit exchange name."),
+    cfg.StrOpt('neutron_rabbit_userid',
+               default='$rabbit_userid',
+               help="Neutron rabbit userid."),
+    cfg.StrOpt('neutron_rabbit_password',
+               default='$rabbit_password',
+               secret=True,
+               help="Neutron rabbit password."),
+    cfg.StrOpt('neutron_rabbit_virtual_host',
+               default='$rabbit_virtual_host',
+               help="Neutron rabbit virtual host."),
+    cfg.BoolOpt('neutron_rabbit_durable',
+                default=False,
+                help="Neutron rabbit durable"),
+    cfg.BoolOpt('neutron_ha_queue',
+                default=False,
+                help="Neutron HA queues"),
+    cfg.ListOpt('neutron_event_handlers',
+                default=['neutron'],
+                help="Neutron event handlers"),
+]
 
 manager_opts = [
     cfg.IntOpt("pipeline_pool_size", default=3000,
                help="The max greenthread to process messages."),
-    cfg.BoolOpt("ack_on_error", default=False,
-                help="Whether to ack the message if process failed, "
-                "default is False."),
-    cfg.StrOpt('nova_sentry_mq_topic',
-               default='notifications',
-               help='Name of nova notifications topic'),
-    cfg.StrOpt('glance_sentry_mq_topic',
-               default='glance_notifications',
-               help='Name of glance notifications topic'),
-    cfg.StrOpt('neutron_sentry_mq_topic',
-               default='neutron_notifications',
-               help='Name of neutron notifications topic'),
-    cfg.StrOpt('cinder_sentry_mq_topic',
-               default='cinder_notifications',
-               help='Name of neutron notifications topic'),
-    cfg.ListOpt('nova_mq_level_list',
-                default=['error', 'info'],
-                help='notifications levels for message queue of nova'),
-    cfg.ListOpt('glance_mq_level_list',
-                default=['error', 'info'],
-                help='notifications levels for message queue of glance'),
-    cfg.ListOpt('neutron_mq_level_list',
-                default=['error', 'info'],
-                help='notifications levels for message queue of neutron'),
-    cfg.ListOpt('cinder_mq_level_list',
-                default=['error', 'info'],
-                help='notifications levels for message queue of neutron'),
-
-    cfg.BoolOpt('cinder_durable',
-                default=False,
-                help="cinder notification durable"),
-    cfg.BoolOpt('nova_durable',
-                default=False,
-                help="nova notification durable"),
-    cfg.BoolOpt('neutron_durable',
-                default=False,
-                help="neutron notification durable"),
-    cfg.BoolOpt('glance_durable',
-                default=False,
-                help="neutron notification durable"),
 ]
 
-handler_opts = [
-    cfg.ListOpt('nova_event_handlers',
-                default=['alarm', 'nova', 'notifier'],
-                help="Nova event handlers"),
-    cfg.ListOpt('cinder_event_handlers',
-                default=['cinder'],
-                help="cinder event handlers"),
-    cfg.ListOpt('neutron_event_handlers',
-                default=['neutron'],
-                help="neutron event handlers"),
-    cfg.ListOpt('glance_event_handlers',
-                default=['glance'],
-                help="glance event handlers"),
-]
-
-CONF = cfg.CONF
 CONF.register_opts(manager_opts)
-CONF.register_opts(handler_opts)
+CONF.register_opts(nova_opts)
+CONF.register_opts(cinder_opts)
+CONF.register_opts(glance_opts)
+CONF.register_opts(neutron_opts)
+
+
 LOG = log.getLogger(__name__)
 
 
@@ -139,108 +204,97 @@ class Pipeline(object):
         self.pool.spawn_n(self.process, message)
 
 
+class MessageCollector(object):
+
+    def __init__(self, name, pool):
+        self.name = name
+        self.pool = pool
+        self.rabbit_config = messaging.RabbitConfig.set_defaults(
+            rabbit_hosts=self.get_config('rabbit_hosts'),
+            rabbit_userid=self.get_config('rabbit_userid'),
+            rabbit_password=self.get_config('rabbit_password'),
+            rabbit_virtual_host=self.get_config('rabbit_virtual_host'),
+            exchange=self.get_config('exchange'),
+            durable=self.get_config('rabbit_durable'),
+            #auto_delete not used.
+            ha_queue=self.get_config('ha_queue'),
+        )
+
+    def connect(self):
+        self.rabbit = messaging.RabbitEngine(self.rabbit_config)
+
+    def get_config(self, key):
+        """Retrieve correct config item from CONF."""
+        full_key = '%s_%s' % (self.name, key)
+        return getattr(CONF, full_key)
+
+    def declare_consumer(self, routing_key, handler):
+        if not hasattr(self, 'rabbit'):
+            raise ValueError("Please call connect() first.")
+
+        LOG.debug("Consuming on exchange: %s, routing_key: %s" %
+                  (self.rabbit.exchange, routing_key))
+        self.rabbit.create_topic_consumer(routing_key, handler)
+
+    def consume_in_thread(self):
+        if not hasattr(self, 'rabbit'):
+            raise ValueError("Please call connect() first.")
+
+        LOG.debug("Start consuming for %s" % self.name)
+        self.rabbit.consume_in_thread()
+
+
 class Manager(object):
     """Contains a greenthread pool which fire to process incoming messags."""
 
     def __init__(self):
+        LOG.info("Sentry collector start running.")
         self.pool = greenpool.GreenPool(CONF.pipeline_pool_size)
 
-        self.nova_pipeline = Pipeline.create(self.pool,
-                                             CONF.nova_event_handlers)
-        self.cinder_pipeline = Pipeline.create(self.pool,
-                                               CONF.cinder_event_handlers)
-        self.neutron_pipeline = Pipeline.create(self.pool,
-                                                CONF.neutron_event_handlers)
-        self.glance_pipeline = Pipeline.create(self.pool,
-                                               CONF.glance_event_handlers)
+        self.nova_collector = MessageCollector('nova', self.pool)
+        self.glance_collector = MessageCollector('glance', self.pool)
+        self.neutron_collector = MessageCollector('neutron', self.pool)
+        self.cinder_collector = MessageCollector('cinder', self.pool)
 
     def serve(self):
         """Declare queues and binding pipeline to each queue."""
 
-        LOG.info('Start sentry service.')
-        self.conn = rpc.create_connection()
+        LOG.info("Declare nova consumers.")
+        self.nova_pipeline = Pipeline.create(self.pool,
+                                             CONF.nova_event_handlers)
+        self.nova_collector.connect()
+        self.nova_collector.declare_consumer('notifications.info',
+                                             self.nova_pipeline)
+        self.nova_collector.declare_consumer('notifications.error',
+                                             self.nova_pipeline)
 
-        # Nova
-        self._declare_queue_consumer(
-            CONF.nova_mq_level_list,
-            CONF.nova_sentry_mq_topic,
-            self.nova_pipeline,
-            'nova-sentry',
-            durable=CONF.nova_durable,
-        )
+        LOG.info("Declare glance consumers")
+        self.glance_pipeline = Pipeline.create(self.pool,
+                                               CONF.glance_event_handlers)
+        self.glance_collector.connect()
+        self.glance_collector.declare_consumer('glance_notification.info',
+                                               self.glance_pipeline)
+        self.glance_collector.declare_consumer('glance_notification.error',
+                                               self.glance_pipeline)
+        self.glance_collector.declare_consumer('glance_notification.warn',
+                                               self.glance_pipeline)
 
-        # neutron
-        self._declare_queue_consumer(
-            CONF.neutron_mq_level_list,
-            CONF.neutron_sentry_mq_topic,
-            self.neutron_pipeline,
-            'neutron-sentry',
-            durable=CONF.neutron_durable,
-        )
+        LOG.info("Declare neutron consumers")
+        self.neutron_pipeline = Pipeline.create(self.pool,
+                                                CONF.neutron_event_handlers)
+        self.neutron_collector.connect()
+        self.neutron_collector.declare_consumer('neutron_notifications.info',
+                                                self.neutron_pipeline)
 
-        # glance
-        self._declare_queue_consumer(
-            CONF.glance_mq_level_list,
-            CONF.glance_sentry_mq_topic,
-            self.glance_pipeline,
-            'glance-sentry',
-            durable=CONF.glance_durable,
-        )
-
-        # cinder
-        self._declare_queue_consumer(
-            CONF.cinder_mq_level_list,
-            CONF.cinder_sentry_mq_topic,
-            self.cinder_pipeline,
-            'cinder-sentry',
-            durable=CONF.cinder_durable,
-        )
-
-        self.conn.consume_in_thread()
-        LOG.info('Start consuming notifications.')
-
-    def _clean_exchange(self, name):
-        LOG.debug("cleanup exchange %s" % name)
-        ex = entity.Exchange(name=name, channel=self.conn.get_channel())
-        try:
-            ex.delete()
-        except Exception as ex:
-            LOG.warn("Cleanup exchange failed. %s" % ex)
-
-    def _declare_queue(self, queue, topic, handler, exchange, durable=False,
-                       auto_delete=False, exclusive=False, ha_queue=False):
-        kwargs = dict(
-            name=queue,
-            ack_on_error=CONF.ack_on_error,
-            exchange_name=exchange,
-            durable=durable,
-            auto_delete=auto_delete,
-            exclusive=exclusive,
-        )
-
-        if ha_queue:
-            kwargs['queue_arguments'] = {'x-ha-policy': 'all'}
-
-        self.conn.declare_consumer(
-            functools.partial(impl_kombu.TopicConsumer, **kwargs),
-            topic, handler)
-
-    def _declare_queue_consumer(self, levels, topic, handler, exchange,
-                        durable=False, auto_delete=False, exclusive=False,
-                        ha_queue=False):
-
-        self._clean_exchange(exchange)
-
-        for level in levels:
-            queue = '%s.%s' % (topic, level)
-            self._declare_queue(queue, topic, handler, exchange, durable,
-                                auto_delete, exclusive, ha_queue)
-
-            LOG.debug("Declare queue name: %(queue)s, topic: %(topic)s" %
-                      {"queue": queue, "topic": topic})
+        LOG.info("Declare cinder consumers")
+        self.cinder_pipeline = Pipeline.create(self.pool,
+                                               CONF.cinder_event_handlers)
+        self.cinder_collector.connect()
+        self.cinder_collector.declare_consumer('cinder_notifications.info',
+                                               self.cinder_pipeline)
 
     def run_server(self):
-        self.pool.spawn(self.serve)
+        self.serve()
 
     def _loop(self):
         """A infinite loop to block the thread not exit."""
@@ -248,6 +302,11 @@ class Manager(object):
             eventlet.sleep(0)
 
     def wait(self):
+        self.nova_collector.consume_in_thread()
+        self.glance_collector.consume_in_thread()
+        self.cinder_collector.consume_in_thread()
+        self.neutron_collector.consume_in_thread()
+        LOG.info("Sentry start waiting.")
         try:
             self.pool.spawn(self._loop)
             self.pool.waitall()

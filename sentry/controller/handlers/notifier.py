@@ -4,7 +4,7 @@ Notifier other servsers to know NVS's actions.
 import copy
 from oslo.config import cfg
 
-from sentry import rabbitmq
+from sentry import messaging
 from sentry.openstack.common import log as logging
 
 
@@ -40,13 +40,15 @@ class Handler(object):
 
     def __init__(self):
         if CONF.enable_notifier:
-            self.rabbit = rabbitmq.RabbitClient(
-                CONF.notifier_rabbit_host,
-                CONF.notifier_rabbit_userid,
-                CONF.notifier_rabbit_password,
-                CONF.notifier_rabbit_virtual_host,
-                CONF.notifier_rabbit_port
+            url = '%s:%s' % (CONF.notifier_rabbit_host,
+                             CONF.notifier_rabbit_port)
+            conf = messaging.RabbitConfig.set_defaults(
+                rabbit_hosts=[url],
+                rabbit_userid=CONF.notifier_rabbit_userid,
+                rabbit_password=CONF.notifier_rabbit_password,
+                rabbit_virtual_host=CONF.notifier_rabbit_virtual_host,
             )
+            self.rabbit = messaging.RabbitEngine(conf)
         else:
             self.rabbit = None
 
@@ -68,8 +70,11 @@ class Handler(object):
             if key.startswith('_context'):
                 message.pop(key)
 
-        LOG.debug("Notifier msg %s" % message)
+        LOG.debug("Notifying message: %s" % message)
 
-        exchange = CONF.notifier_exchange
-        ttl = 1000 * CONF.notifier_ttl
+        # underline messaging system will append '_fanout' to exchange name.
+        exchange = CONF.notifier_exchange.replace('_fanout', '')
+        ttl = CONF.notifier_ttl
+
+        # will make sure success
         self.rabbit.fanout(exchange, message, ttl=ttl)
