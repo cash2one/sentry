@@ -56,14 +56,10 @@ def get_engine():
 
 
 def enable_sql_debug():
-    engine = get_engine()
-    engine.echo = True
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 
 def disable_sql_debug():
-    engine = get_engine()
-    engine.echo = False
     logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
 
 

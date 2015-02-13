@@ -35,9 +35,9 @@ class DBTestCase(TestCase):
     def setUp(self):
         super(DBTestCase, self).setUp()
         self.flags(sql_connection='sqlite://')
-        self.engine = session.get_engine()
-        models.BASE.metadata.create_all(self.engine)
+        self._engine = session.get_engine()
+        models.BASE.metadata.create_all(self._engine)
 
     def tearDown(self):
-        models.BASE.metadata.drop_all(self.engine)
+        models.BASE.metadata.drop_all(self._engine)
         super(DBTestCase, self).tearDown()

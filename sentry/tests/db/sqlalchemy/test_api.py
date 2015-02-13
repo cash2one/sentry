@@ -263,15 +263,15 @@ class ErrorLogDBAPITests(test.DBTestCase):
                          'Should contains "error1", "error2"')
 
     def test_error_log_get_by_uuid_and_number_ok(self):
-        stats, error_log = self._insert_error_log('error1', 'error')
-        stats, error_log2 = self._insert_error_log('error1', 'error')
+        error_log = self._insert_error_log('error1', 'error')
+        error_log2 = self._insert_error_log('error1', 'error')
         result = api.error_log_get_by_uuid_and_number(
-            stats.uuid, 1)
-        self.assertEqual(stats.title, result.title)
+            error_log.stats_uuid, 1)
+        self.assertEqual(error_log.title, result.title)
 
         result = api.error_log_get_by_uuid_and_number(
-            stats.uuid, 2)
-        self.assertEqual(stats.title, result.title)
+            error_log2.stats_uuid, 2)
+        self.assertEqual(error_log2.title, result.title)
 
     def test_error_log_get_by_uuid_and_number_non_existed_uuid(self):
         self._insert_error_log('error1', 'error')
@@ -279,7 +279,14 @@ class ErrorLogDBAPITests(test.DBTestCase):
         self.assertEqual(None, result)
 
     def test_error_log_get_by_uuid_and_number_non_existed_number(self):
-        stats, error_log = self._insert_error_log('error1', 'error')
+        error_log = self._insert_error_log('error1', 'error')
         result = api.error_log_get_by_uuid_and_number(
-            stats.uuid, -1)
+            error_log.stats_uuid, -1)
         self.assertEqual(None, result)
+
+    def test_error_log_get_by_id(self):
+        error_log = self._insert_error_log('error1', 'error')
+        result = api.error_log_get_by_id(error_log.id)
+
+        self.assertEqual(result.title, 'error1')
+        self.assertEqual(result.id, error_log.id)

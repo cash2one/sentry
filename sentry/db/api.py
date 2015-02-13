@@ -29,5 +29,25 @@ def error_log_stats_schema(*args, **kwargs):
     return IMPL.error_log_stats_schema(*args, **kwargs)
 
 
+def error_log_stats_update_on_process(*args, **kwargs):
+    return IMPL.error_log_stats_update_on_process(*args, **kwargs)
+
+
 def error_log_get_by_uuid_and_number(*args, **kwargs):
     return IMPL.error_log_get_by_uuid_and_number(*args, **kwargs)
+
+
+def error_log_get_by_id(*args, **kwargs):
+    return IMPL.error_log_get_by_id(*args, **kwargs)
+
+
+def config_get_by_key(*args, **kwargs):
+    return IMPL.config_get_by_key(*args, **kwargs)
+
+
+def config_set(*args, **kwargs):
+    return IMPL.config_set(*args, **kwargs)
+
+
+def config_get_all(*args, **kwargs):
+    return IMPL.config_get_all(*args, **kwargs)

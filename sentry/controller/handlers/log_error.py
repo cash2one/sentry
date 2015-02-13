@@ -2,6 +2,7 @@ from oslo.config import cfg
 
 from sentry.db import models
 from sentry.db import api as dbapi
+from sentry.alarm import api as alarmapi
 from sentry.openstack.common import log as logging
 
 
@@ -95,6 +96,9 @@ The example of sentry.log.error message:
 
 class Handler(object):
 
+    def __init__(self):
+        self.alarm = alarmapi.AlarmAPI()
+
     def can_handle(self, message):
         msg_type = message.get('event_type')
 
@@ -122,6 +126,6 @@ class Handler(object):
 
         LOG.info("Receive an error: %(title)s from %(hostname)s" %
                  {'title': errorlog.title, 'hostname': errorlog.hostname})
-        dbapi.error_log_create(errorlog)
+        db_error_log = dbapi.error_log_create(errorlog)
 
-        #TODO: alarm
+        self.alarm.alarm_error_log(db_error_log)

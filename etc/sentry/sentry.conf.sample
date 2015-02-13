@@ -1,6 +1,18 @@
 [DEFAULT]
 
 #
+# Options defined in sentry.alarm.api
+#
+
+# A list contains the class of alarm driver. (list value)
+#alarm_driver_classes=sentry.alarm.driver.base.LogAlarmDriver
+
+# In quiet seconds the same alarm does not set off. (integer
+# value)
+#alarm_quiet_seconds=60
+
+
+#
 # Options defined in sentry.common.http_communication
 #
 

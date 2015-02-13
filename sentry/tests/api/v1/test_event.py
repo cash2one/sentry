@@ -1,18 +1,12 @@
 # -*-coding: utf8 -*-
 
-import webtest
-
-from sentry.api.v1.app import app as v1app
+from sentry.tests.api.v1 import base
 from sentry.db import api as db_api
 from sentry.db import models as base_models
 from sentry.openstack.common import timeutils
-from sentry.tests import test
 
 
-class EventAPITests(test.DBTestCase):
-    def setUp(self):
-        super(EventAPITests, self).setUp()
-        self.app = webtest.TestApp(v1app)
+class EventAPITests(base.V1AppTest):
 
     def _insert_event(self, **kwargs):
         event = base_models.Event()

@@ -6,6 +6,7 @@ from sqlalchemy import Column, ForeignKey, DateTime, Boolean, Text, Index
 from sqlalchemy import String, Integer, PickleType, LargeBinary
 
 from sentry.openstack.common import jsonutils
+from sentry.openstack.common import timeutils
 
 BASE = declarative_base()
 
@@ -245,3 +246,22 @@ class ErrorLogStats(BASE, BaseModel):
         return ('<ErrorLogStats> %(title)s at %(level)s, count: %(count)s' %
                 {'title': self.title, 'level': self.log_level,
                  'count': self.count})
+
+
+class Config(BASE, BaseModel):
+
+    __tablename__ = 'configs'
+    __table_args__ = (
+        Index('id_x_key',
+              'id', 'key'),
+        Index('created_at_x_updated_at',
+              'created_at', 'updated_at'),
+    )
+
+    key = Column(String(255))
+    value = Column(PickleType(), default=None)
+    created_at = Column(DateTime(), default=timeutils.utcnow)
+    updated_at = Column(DateTime(), default=timeutils.utcnow)
+
+    def __repr__(self):
+        return '<Config %s = %s>' % (self.key, self.value)

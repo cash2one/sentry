@@ -101,3 +101,14 @@ def detail(uuid):
     if error is None:
         raise http_exception.HTTPNotFound()
     return format_error(error)
+
+
+@route('/exceptions/web/<uuid>', method='GET')
+def detail_html(uuid):
+    query = utils.RequestQuery(request)
+    number = query.search_get_int('number', 1)
+    error = dbapi.error_log_get_by_uuid_and_number(uuid, number)
+    if error is None:
+        raise http_exception.HTTPNotFound()
+    from sentry.alarm import render
+    return render.render_error_log(error)

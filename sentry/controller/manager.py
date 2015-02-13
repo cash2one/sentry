@@ -183,15 +183,19 @@ class Pipeline(object):
         return message
 
     def process(self, message):
-        message = self.sanity_message(message)
+        try:
+            message = self.sanity_message(message)
 
-        LOG.debug("Processing message: %s" % message.get('event_type'))
+            LOG.debug("Processing message: %s" % message.get('event_type'))
 
-        for handler in self.handlers:
-            try:
-                handler.handle_message(message)
-            except Exception:
-                LOG.exception("%s process message error, skip it." % handler)
+            for handler in self.handlers:
+                try:
+                    handler.handle_message(message)
+                except Exception:
+                    LOG.exception("%s process message error, skip it." %
+                                  handler)
+        except Exception:
+            LOG.exception("processing message error.")
 
     @classmethod
     def create(cls, pool, handler_names):
@@ -200,12 +204,8 @@ class Pipeline(object):
         real_handlers = []
         for name in handler_names:
             path = "%s.%s.%s" % (prefix, name, class_name)
-            try:
-                obj = importutils.import_object(path)
-                real_handlers.append(obj)
-            except ImportError:
-                LOG.exception("import %(path)s error, ignore this handler" %
-                              {'path': path})
+            obj = importutils.import_object(path)
+            real_handlers.append(obj)
 
         return cls(pool, real_handlers)
 

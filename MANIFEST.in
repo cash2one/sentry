@@ -8,6 +8,7 @@ include sentry/db/sqlalchemy/alembic/script.py.mako
 include sentry/db/sqlalchemy/alembic/env.py
 include sentry/db/sqlalchemy/alembic/versions/*.sql
 include sentry/db/sqlalchemy/alembic/versions/*.py
+include sentry/alarm/templates/*.html
 
 exclude .gitignore
 exclude .gitreview

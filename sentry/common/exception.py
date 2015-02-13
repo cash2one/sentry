@@ -251,3 +251,11 @@ class PasteAppNotFound(SentryException):
 
 class NovaclientHelperException(SentryException):
     message = _("Novaclient helper exception occured: %(reason)s")
+
+
+class ConfigNotFound(SentryException):
+    message = _("Config: %(name)s not registered.")
+
+
+class ConfigDuplicated(SentryException):
+    message = _("Config: %(name)s is already registered.")

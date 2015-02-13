@@ -8,6 +8,7 @@ from sentry.common import utils
 from sentry.db.sqlalchemy import session as db_session
 from sentry.db.sqlalchemy import models
 from sentry.openstack.common import jsonutils
+from sentry.openstack.common import timeutils
 
 get_session = db_session.get_session
 
@@ -176,6 +177,17 @@ def error_log_stats_get_all(search_dict={}, sorts=[]):
     return _model_complict_query(models.ErrorLogStats, search_dict, sorts)
 
 
+def error_log_stats_update_on_process(uuid, on_process):
+    session = get_session()
+    with session.begin():
+        stats = session.query(models.ErrorLogStats). \
+                    filter(models.ErrorLogStats.uuid == uuid). \
+                    first()
+        stats.on_process = on_process
+        session.add(stats)
+    return stats
+
+
 def error_log_stats_schema():
     fields = models.ErrorLogStats.get_fields()
     sortables = models.ErrorLogStats.get_sortable()
@@ -188,9 +200,8 @@ def error_log_get_by_uuid_and_number(uuid, number=1):
 
     stats = session.query(models.ErrorLogStats). \
                 filter(models.ErrorLogStats.uuid == uuid). \
-                options(joinedload(models.ErrorLogStats.errors)). \
+                options(joinedload('errors')). \
                 first()
-
     if not stats:
         return None
 
@@ -198,6 +209,15 @@ def error_log_get_by_uuid_and_number(uuid, number=1):
         return stats.errors[number - 1]
     except IndexError:
         return None
+
+
+def error_log_get_by_id(id_):
+    session = get_session()
+    error_log = session.query(models.ErrorLog). \
+                    filter(models.ErrorLog.id == id_). \
+                    options(joinedload('error_stats')). \
+                    first()
+    return error_log
 
 
 def error_log_create(errorlog):
@@ -232,4 +252,45 @@ def error_log_create(errorlog):
 
     _refresh_error_log_stats_count(stats.id)
 
-    return stats, error_log
+    # return the persistented error_log
+    return error_log_get_by_id(error_log.id)
+
+
+# --------------------------------------------------------
+# config database api
+# --------------------------------------------------------
+
+
+def config_get_by_key(key):
+    se = get_session()
+
+    obj = se.query(models.Config). \
+            filter(models.Config.key == key). \
+            with_lockmode('update'). \
+            first()
+    se.close()
+    return obj
+
+
+def config_set(key, value):
+    se = get_session()
+
+    obj = config_get_by_key(key)
+
+    if obj is None:
+        # creating
+        with se.begin():
+            obj = models.Config(key=key, value=value)
+            se.add(obj)
+    else:
+        with se.begin():
+            obj.value = value
+            obj.updated_at = timeutils.utcnow()
+            se.add(obj)
+
+    return obj
+
+
+def config_get_all():
+    session = get_session()
+    return session.query(models.Config).all()
