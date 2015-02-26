@@ -41,6 +41,18 @@ def get_engine():
     return ENGINE
 
 
+def enable_sql_debug():
+    engine = get_engine()
+    engine.echo = True
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
+
+def disable_sql_debug():
+    engine = get_engine()
+    engine.echo = False
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
+
+
 def get_session():
     global MAKER
     if not MAKER:
