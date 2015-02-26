@@ -22,7 +22,7 @@ api_configs = [
                 help="API debug mode will using `wsgiref` to run wsgi, "
                 "which make life easier for debuging."),
     cfg.IntOpt("worker_timeout",
-               default=30,
+               default=180,
                help="Workers silent for more than this many seconds are killed"
                " and restarted."),
     cfg.IntOpt("workers",

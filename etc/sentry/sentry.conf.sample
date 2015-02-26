@@ -617,7 +617,7 @@
 
 # Workers silent for more than this many seconds are killed
 # and restarted. (integer value)
-#worker_timeout=30
+#worker_timeout=180
 
 # The number of forked works (integer value)
 #workers=1
