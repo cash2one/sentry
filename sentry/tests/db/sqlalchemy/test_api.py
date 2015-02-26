@@ -34,17 +34,18 @@ class DBAPICommonTestCase(test.TestCase):
 
     def test_validate_sort_key_passin_correctly(self):
         self.assertEqual(
-            1, len(api._validate_sort_keys(models.Event, ['id']))
+            1, len(api._validate_sort_keys(models.Event, ['timestamp']))
         )
 
         self.assertEqual(
             2,
-            len(api._validate_sort_keys(models.Event, ['id', 'project_name']))
+            len(api._validate_sort_keys(models.Event,
+                                        ['timestamp', 'user_name']))
         )
 
     def test_validate_sort_key_passin_negtive(self):
         sort_cris = api._validate_sort_keys(
-            models.Event, ['-id', 'project_name'])
+            models.Event, ['-timestamp', 'user_name'])
 
         self.assertTrue(
             str(sort_cris[0]).endswith('DESC')

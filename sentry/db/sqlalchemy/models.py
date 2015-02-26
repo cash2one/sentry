@@ -21,23 +21,38 @@ class BaseModel(object):
     # Each model should have field `id`
     id = Column(Integer, primary_key=True)
 
-    @classmethod
-    def get_fields(cls):
-        return cls.metadata.tables[cls.__tablename__].columns.keys()
-
     @property
     def fields(self):
         return dict(object_mapper(self).columns).keys()
 
     @classmethod
+    def get_fields(cls):
+        return cls.metadata.tables[cls.__tablename__].columns.keys()
+
+    @classmethod
+    def _validate_field(cls, fields):
+        all_fields = cls.get_fields()
+        for f in fields:
+            if f not in all_fields:
+                raise ValueError('%s not field in %s' % (f, cls))
+
+    @classmethod
     def get_sortable(cls):
-        excludes = getattr(cls, '_sortable_excludes', [])
-        return set(cls.get_fields()) - set(excludes)
+        if hasattr(cls, '_sortable'):
+            cls._validate_field(cls._sortable)
+            return getattr(cls, '_sortable')
+        else:
+            excludes = getattr(cls, '_sortable_excludes', [])
+            return set(cls.get_fields()) - set(excludes)
 
     @classmethod
     def get_searchable(cls):
-        excludes = getattr(cls, '_searchable_excludes', [])
-        return set(cls.get_fields()) - set(excludes)
+        if hasattr(cls, '_searchable'):
+            cls._validate_field(cls._searchable)
+            return getattr(cls, '_searchable')
+        else:
+            excludes = getattr(cls, '_searchable_excludes', [])
+            return set(cls.get_fields()) - set(excludes)
 
     def to_dict(self):
         json_fields = self._json_fields
@@ -70,12 +85,15 @@ class Event(BASE, BaseModel):
               'binary', 'service'),
     )
 
-    _sortable_excludes = ['raw_message', 'raw_message_id',
-                          'payload', 'roles']
-    # NOTE(gtt): When these fields changed, please notify
-    # `hzshaochunfei@corp.netease.com`, they need to change their codes.
-    _searchable_excludes = ['raw_message', 'raw_message_id',
-                            'payload', 'roles', 'token', 'id', 'message_id']
+    _sortable = ['timestamp', 'user_name', 'request_id']
+
+    _searchable = ['timestamp',
+                   'object_id',
+                   'user_name',
+                   'user_id',
+                   'service',
+                   'hostname',
+                   'request_id']
     _json_fields = ['roles', 'payload']
 
     object_id = Column(String(100))
