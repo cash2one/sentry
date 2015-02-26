@@ -28,6 +28,7 @@ CONF.import_opt('rabbit_virtual_host',
 nova_opts = [
     cfg.ListOpt('nova_rabbit_hosts',
                 default=CONF.rabbit_hosts,
+                deprecated_name='rabbit_hosts',
                 help="Nova rabbit broker hosts."),
     cfg.StrOpt('nova_exchange',
                default='nova',
@@ -56,6 +57,7 @@ nova_opts = [
 glance_opts = [
     cfg.ListOpt('glance_rabbit_hosts',
                 default=CONF.rabbit_hosts,
+                deprecated_name='rabbit_hosts',
                 help="Glance rabbit broker hosts."),
     cfg.StrOpt('glance_exchange',
                default='glance',
@@ -84,6 +86,7 @@ glance_opts = [
 cinder_opts = [
     cfg.ListOpt('cinder_rabbit_hosts',
                 default=CONF.rabbit_hosts,
+                deprecated_name='rabbit_hosts',
                 help="Cinder rabbit broker hosts."),
     cfg.StrOpt('cinder_exchange',
                default='openstack',
@@ -112,6 +115,7 @@ cinder_opts = [
 neutron_opts = [
     cfg.ListOpt('neutron_rabbit_hosts',
                 default=CONF.rabbit_hosts,
+                deprecated_name='rabbit_hosts',
                 help="Neutron rabbit broker hosts."),
     cfg.StrOpt('neutron_exchange',
                default='neutron',

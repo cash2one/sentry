@@ -102,6 +102,7 @@
 #
 
 # Cinder rabbit broker hosts. (list value)
+# Deprecated group/name - [DEFAULT]/rabbit_hosts
 #cinder_rabbit_hosts=localhost:5672
 
 # Cinder rabbit exchange name. (string value)
@@ -126,6 +127,7 @@
 #cinder_event_handlers=cinder
 
 # Glance rabbit broker hosts. (list value)
+# Deprecated group/name - [DEFAULT]/rabbit_hosts
 #glance_rabbit_hosts=localhost:5672
 
 # Glance rabbit exchange name. (string value)
@@ -153,6 +155,7 @@
 #pipeline_pool_size=3000
 
 # Neutron rabbit broker hosts. (list value)
+# Deprecated group/name - [DEFAULT]/rabbit_hosts
 #neutron_rabbit_hosts=localhost:5672
 
 # Neutron rabbit exchange name. (string value)
@@ -177,6 +180,7 @@
 #neutron_event_handlers=neutron
 
 # Nova rabbit broker hosts. (list value)
+# Deprecated group/name - [DEFAULT]/rabbit_hosts
 #nova_rabbit_hosts=localhost:5672
 
 # Nova rabbit exchange name. (string value)
