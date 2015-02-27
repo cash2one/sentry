@@ -310,7 +310,7 @@ class Manager(object):
     def _loop(self):
         """A infinite loop to block the thread not exit."""
         while True:
-            eventlet.sleep(0)
+            eventlet.sleep(0.1)
 
     def wait(self):
         self.nova_collector.consume_in_thread()
