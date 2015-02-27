@@ -72,27 +72,19 @@ class Event(BASE, BaseModel):
 
     __tablename__ = 'events'
     __table_args__ = (
-        Index('timestamp_x_event_message_id',
-              'timestamp', 'message_id'),
-        Index('timestamp_x_project_name_x_user_name_idx',
-              'timestamp', 'project_name', 'user_name'),
-        Index('timestamp_x_project_id_x_user_id_idx',
-              'timestamp', 'project_id', 'user_id'),
-        Index('timestamp_x_request_id',
-              'timestamp', 'request_id'),
-        Index('timestamp_x_token_x_objectid_x_requestid_x_eventtype_x_b_x_s',
-              'timestamp', 'token', 'object_id', 'request_id', 'event_type',
-              'binary', 'service'),
+        Index('event_uname_obj_id_req_id_idx',
+              'user_name', 'object_id', 'request_id', 'timestamp'),
+        Index('event_obj_id_req_id',
+              'object_id', 'request_id', 'timestamp'),
+        Index('event_req_id',
+              'request_id', 'timestamp'),
     )
 
     _sortable = ['timestamp', 'user_name', 'request_id']
 
     _searchable = ['timestamp',
-                   'object_id',
                    'user_name',
-                   'user_id',
-                   'service',
-                   'hostname',
+                   'object_id',
                    'request_id']
     _json_fields = ['roles', 'payload']
 
