@@ -78,6 +78,8 @@ class Event(BASE, BaseModel):
               'object_id', 'request_id', 'timestamp'),
         Index('event_req_id',
               'request_id', 'timestamp'),
+        Index('event_timestamp_idx',
+              'timestamp'),
     )
 
     _sortable = ['timestamp', 'user_name', 'request_id']
