@@ -121,6 +121,7 @@
 #cinder_rabbit_durable=false
 
 # Cinder HA queues (boolean value)
+# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
 #cinder_ha_queue=false
 
 # Cinder event handlers (list value)
@@ -146,6 +147,7 @@
 #glance_rabbit_durable=false
 
 # Glance HA queues (boolean value)
+# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
 #glance_ha_queue=false
 
 # Glance event handlers (list value)
@@ -171,9 +173,11 @@
 #neutron_rabbit_virtual_host=$rabbit_virtual_host
 
 # Neutron rabbit durable (boolean value)
+# Deprecated group/name - [DEFAULT]/neutron_durable
 #neutron_rabbit_durable=false
 
 # Neutron HA queues (boolean value)
+# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
 #neutron_ha_queue=false
 
 # Neutron event handlers (list value)
@@ -199,6 +203,7 @@
 #nova_rabbit_durable=false
 
 # nova HA queues (boolean value)
+# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
 #nova_ha_queue=false
 
 # Nova event handlers (list value)
