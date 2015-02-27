@@ -35,7 +35,8 @@ def index():
     try:
         query = utils.RequestQuery(request)
 
-        event_query = dbapi.event_get_all(query.search_dict, query.sort)
+        event_query = dbapi.event_get_all(query.search_dict, query.sort,
+                                          query.start, query.end)
 
         paginator = utils.Paginator(event_query, query.limit)
         page = paginator.page(query.page_num)

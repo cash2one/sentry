@@ -101,7 +101,7 @@ def _get_count(query):
     return count
 
 
-def event_get_all(search_dict={}, sorts=[]):
+def event_get_all(search_dict={}, sorts=[], start=None, end=None):
     se = session.get_session()
 
     # failed fast
@@ -117,6 +117,12 @@ def event_get_all(search_dict={}, sorts=[]):
 
     for sort in sorts_criterion:
         query = query.order_by(sort)
+
+    if start:
+        query = query.filter(models.Event.timestamp >= start)
+
+    if end:
+        query = query.filter(models.Event.timestamp <= end)
 
     return query
 

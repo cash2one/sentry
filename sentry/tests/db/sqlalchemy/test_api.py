@@ -70,7 +70,8 @@ class DBAPITests(test.DBTestCase):
         for key, value in kwargs.iteritems():
             setattr(event, key, value)
 
-        event.timestamp = timeutils.parse_isotime('2013-01-21 08:51:29.179835')
+        timestr = kwargs.get('timestamp', '2013-01-21 08:51:29.179835')
+        event.timestamp = timeutils.parse_isotime(timestr)
         event.raw_json = '{}'
         api.event_create(event)
         return event
@@ -160,3 +161,29 @@ class DBAPITests(test.DBTestCase):
 
         result = api.event_get_all({'request_id': '1'})
         self.assertEqual(1, result.count())
+
+    def test_event_get_all_between_start_and_end(self):
+        self._insert_event(request_id='1', user_name='0',
+                           timestamp='2013-01-01 00:00:00')
+        self._insert_event(request_id='2', user_name='0',
+                           timestamp='2013-02-02 00:00:00')
+        result = api.event_get_all(start='2013-01-01 00:00:00')
+        self.assertEqual(2, result.count())
+
+        # plus 1 minute
+        result = api.event_get_all(start='2013-01-01 00:00:01')
+        self.assertEqual(1, result.count())
+
+        result = api.event_get_all(start='2013-01-01 00:00:00',
+                                   end='2013-01-02 00:00:00')
+        self.assertEqual(1, result.count())
+
+        result = api.event_get_all(start='2013-01-01 00:00:00',
+                                   end='2013-02-02 00:00:01')
+        self.assertEqual(2, result.count())
+
+    def test_event_get_all_between_invalid_start(self):
+        self._insert_event(request_id='1', user_name='0',
+                                    timestamp='2013-01-01 00:00:00')
+        result = api.event_get_all(start='2013-x1-x1 00:00:00')
+        self.assertEqual(0, result.count())

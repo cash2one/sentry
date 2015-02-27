@@ -3,7 +3,10 @@ from functools import partial
 from oslo.config import cfg
 
 from sentry.api import bottle
+from sentry.api import http_exception
 from sentry.openstack.common import jsonutils
+from sentry.openstack.common import timeutils
+
 
 CONF = cfg.CONF
 # 100 pages with 20 items per page.
@@ -111,7 +114,23 @@ class RequestQuery(object):
 
         self._page_num = int(query_dict.pop('page', 1))
         self._limit = int(query_dict.pop('limit', CONF.api.default_items))
+
+        self.start = query_dict.pop('start', None)
+        if self.start:
+            self._validate_timestr(self.start)
+
+        self.end = query_dict.pop('end', None)
+        if self.end:
+            self._validate_timestr(self.end)
+
         self._search_dict = query_dict
+
+    def _validate_timestr(self, timestr):
+        try:
+            timeutils.parse_isotime(timestr)
+        except ValueError:
+            msg = '%s not in valid iso8601 format' % timestr
+            raise http_exception.HTTPBadRequest(msg)
 
     @property
     def sort(self):

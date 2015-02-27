@@ -1,4 +1,5 @@
 from sentry.api import utils
+from sentry.api import http_exception
 from sentry.tests import test
 from sentry.tests.api import fake
 
@@ -145,3 +146,23 @@ class RequestQueryTestCase(test.TestCase):
         request = fake.fake_request('GET', '/a', 'sort=1&1=2&c=d')
         query = utils.RequestQuery(request)
         self.assertEqual(query.search_dict, {'1': '2', 'c': 'd'})
+
+    def test_valid_start(self):
+        req = fake.fake_request('GET', '/a', 'start=2014-01-01 01:01:01')
+        # no raises
+        utils.RequestQuery(req)
+
+    def test_invalid_start(self):
+        req = fake.fake_request('GET', '/a', 'start=2014x01x01 01:01:01')
+        self.assertRaises(http_exception.HTTPBadRequest,
+                          utils.RequestQuery, req)
+
+    def test_valid_end(self):
+        req = fake.fake_request('GET', '/a', 'end=2014-01-01 01:01:01')
+        # no raises
+        utils.RequestQuery(req)
+
+    def test_invalid_end(self):
+        req = fake.fake_request('GET', '/a', 'end=2014x01x01 01:01:01')
+        self.assertRaises(http_exception.HTTPBadRequest,
+                          utils.RequestQuery, req)
