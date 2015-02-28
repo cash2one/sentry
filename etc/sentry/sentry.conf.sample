@@ -221,6 +221,15 @@
 # Whether echo raw sql in log. (boolean value)
 #sql_debug=false
 
+# The SQLAlchemy max_overflow config (integer value)
+#sql_max_overflow=10
+
+# The SQLAlchemy pool_size config (integer value)
+#sql_pool_size=5
+
+# The SQLAlchemy pool_recycle config (integer value)
+#sql_pool_recycle=3600
+
 
 #
 # Options defined in sentry.file_cache.alarm_content
