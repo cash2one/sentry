@@ -75,8 +75,7 @@ def format_error(error):
     ret['count'] = error.count
     ret['meta'] = {
         'hostname': error.hostname,
-        #FIXME:
-        'service': 'unknown',
+        'service': error.sentry_payload.binary_name,
         'exception_name': error.title,
         'timestamp': error.datetime,
         "level": error.log_level,
