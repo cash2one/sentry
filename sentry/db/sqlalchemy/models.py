@@ -187,6 +187,7 @@ class SentryPayload(object):
         self.extra = payload_json.get('extra', {})
         self.func_name = payload_json['funcName']
         self.pathname = payload_json['pathname']
+        self.binary_name = payload_json.get('binary')
 
         self.exception = SentryException(payload_json['exception'])
 

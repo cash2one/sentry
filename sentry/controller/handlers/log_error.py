@@ -21,6 +21,7 @@ The example of sentry.log.error message:
     '_context_tenant': None,
     'payload': {
         'project': 'nova',
+        'binary': 'nova-api-os-compute',
         'exception': {
             'frames': [
                 {
