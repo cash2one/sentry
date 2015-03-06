@@ -171,7 +171,7 @@ class ErrorLog(BASE, BaseModel):
         return SentryPayload(self.payload)
 
     def __repr__(self):
-        return ('<ErrorLog> %(datetime)s at %(hostname)s' %
+        return ('<ErrorLog: %(datetime)s at %(hostname)s>' %
                 {'datetime': self.datetime, 'hostname': self.hostname})
 
 
@@ -203,6 +203,9 @@ class SentryException(object):
             self.exc_class = payload['exc_class']
             self.exc_value = payload['exc_value']
             self.frames = SentryFrame.hybird(payload['frames'])
+
+    def __nonzero__(self):
+        return not self.exc_class is None
 
 
 class SentryFrame(object):
@@ -243,7 +246,7 @@ class ErrorLogStats(BASE, BaseModel):
     errors = relationship("ErrorLog", backref="error_stats")
 
     def __repr__(self):
-        return ('<ErrorLogStats> %(title)s at %(level)s, count: %(count)s' %
+        return ('<ErrorLogStats: %(title)s at %(level)s, count: %(count)s>' %
                 {'title': self.title, 'level': self.log_level,
                  'count': self.count})
 

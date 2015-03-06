@@ -41,15 +41,17 @@ class AlarmAPI(object):
             func(*args, **kwargs)
 
     def should_fire(self, error_log):
+        # On process ?
         if error_log.on_process:
-            LOG.debug("Errorlog: %s is on processed, do not set off." %
-                      error_log)
+            LOG.debug("%s is on processed, do not set off." % error_log)
             return False
 
-        if error_log.log_level != 'critical':
-            LOG.debug("Not 'critical' level, not set off. %s" % error_log)
+        # contains TRACE ?
+        if not error_log.sentry_payload.exception:
+            LOG.debug("%s doesn't include exception, not set off." % error_log)
             return False
 
+        # too many alarms ?
         uuid = error_log.stats_uuid
 
         last_time = self.backlog.get(uuid)
