@@ -16,8 +16,8 @@ def exception_viewer(page):
         formatted_exc = {}
         formatted_exc['id'] = exc.uuid
         formatted_exc['count'] = exc.count
-        formatted_exc['exception_name'] = exc.title
-        formatted_exc['last_time'] = exc.datetime
+        formatted_exc['exception_name'] = exc.exc_class
+        formatted_exc['last_time'] = exc.last_time
         formatted_exc['on_process'] = exc.on_process
         excs.append(formatted_exc)
 
@@ -30,8 +30,7 @@ def exception_viewer(page):
 def index():
     try:
         query = utils.RequestQuery(request)
-        db_query = dbapi.error_log_stats_get_all(query.search_dict,
-                                                 query.sort)
+        db_query = dbapi.exc_info_get_all(query.search_dict, query.sort)
         paginator = utils.Paginator(db_query, query.limit)
         page = paginator.page(query.page_num)
     except ValueError as ex:
@@ -44,21 +43,20 @@ def index():
 @route('/exceptions/schema', method='GET')
 @route('/exceptions/schema/', method='GET')
 def schema():
-    fields, sortables, searchable = dbapi.error_log_stats_schema()
     ret = {
         "schema": {
             #FIXME: not return fields here
-            "searchable": searchable,
-            "sortable": sortables,
+            "searchable": [],
+            "sortable": [],
         }
     }
 
     return ret
 
 
-def format_frames(exc):
-    frames = []
-    for f in exc.frames:
+def format_frames(frames):
+    frame_result = []
+    for f in frames:
         x = {
             'function': f.name,
             'vars': f.local_vars,
@@ -66,8 +64,8 @@ def format_frames(exc):
             'context_line': f.context_line,
             'lineno': f.lineno,
         }
-        frames.append(x)
-    return frames
+        frame_result.append(x)
+    return frame_result
 
 
 def format_error(error):
@@ -75,20 +73,19 @@ def format_error(error):
     ret['count'] = error.count
     ret['meta'] = {
         'hostname': error.hostname,
-        'service': error.sentry_payload.binary_name,
-        'exception_name': error.title,
-        'timestamp': error.datetime,
-        "level": error.log_level,
-        "logger": error.sentry_payload.name
+        'service': error.binary,
+        'exception_name': error.exc_class,
+        'timestamp': error.created_at,
+        "level": error.spayload.levelname,
+        "logger": error.spayload.module
     }
-    ret['extra'] = error.sentry_payload.extra
+    ret['extra'] = error.spayload.extra
 
-    exc = error.sentry_payload.exception
     ret['exception'] = {
-        'type': exc.exc_class,
-        'value': exc.exc_value,
-        'Location': error.sentry_payload.pathname,
-        'frames': format_frames(exc)
+        'type': error.exc_class,
+        'value': error.exc_value,
+        'Location': error.spayload.pathname,
+        'frames': format_frames(error.frames)
     }
     return ret
 
@@ -97,7 +94,7 @@ def format_error(error):
 def detail(uuid):
     query = utils.RequestQuery(request)
     number = query.search_get_int('number', 1)
-    error = dbapi.error_log_get_by_uuid_and_number(uuid, number)
+    error = dbapi.exc_info_detail_get_by_uuid_and_number(uuid, number)
     if error is None:
         raise http_exception.HTTPNotFound()
     return format_error(error)
@@ -107,8 +104,8 @@ def detail(uuid):
 def detail_html(uuid):
     query = utils.RequestQuery(request)
     number = query.search_get_int('number', 1)
-    error = dbapi.error_log_get_by_uuid_and_number(uuid, number)
+    error = dbapi.exc_info_detail_get_by_uuid_and_number(uuid, number)
     if error is None:
         raise http_exception.HTTPNotFound()
     from sentry.alarm import render
-    return render.render_error_log(error)
+    return render.render_exception(error)

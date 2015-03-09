@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column, ForeignKey, DateTime, Boolean, Text, Index
 from sqlalchemy import String, Integer, PickleType, LargeBinary
 
+from sentry import exc_models
 from sentry.openstack.common import jsonutils
 from sentry.openstack.common import timeutils
 
@@ -133,122 +134,98 @@ class RawMessage(BASE, BaseModel):
     id = Column(Integer, primary_key=True)
     json = Column(Text, nullable=False)
 
+# -----------------------------
+# exception info tables
+# -----------------------------
 
-class ErrorLog(BASE, BaseModel):
 
-    __tablename__ = 'error_logs'
+class ExcInfo(BASE, BaseModel):
+
+    __tablename__ = 'exc_info'
     __table_args__ = (
-        Index('datetime_x_hostname', 'datetime', 'hostname'),
+        Index('exc_info_uuid_idx',
+              'uuid'),
+        Index('exc_info_count_idx',
+              'count'),
+        Index('exc_info_binary_idx',
+              'binary'),
+        Index('exc_info_idx',
+              'exc_class', 'file_path', 'func_name', 'lineno'),
     )
 
-    datetime = Column(DateTime())
+    last_time = Column(DateTime())
+    binary = Column(String(36))
+    count = Column(Integer)
+    on_process = Column(Boolean, default=False)
+    uuid = Column(String(36))
+    exc_class = Column(String(255))
+    file_path = Column(String(1024))
+    func_name = Column(String(255))
+    lineno = Column(Integer)
+
+    def __repr__(self):
+        return ('<ExcInfo: %(exc_cls)s, count: %(count)s>' %
+                {'exc_cls': self.exc_class, 'count': self.count})
+
+
+class ExcInfoDetail(BASE, BaseModel):
+
+    __tablename__ = 'exc_info_detail'
+    __table_args__ = (
+        Index('exc_info_created_at_hostname',
+              'created_at', 'hostname'),
+    )
+
+    created_at = Column(DateTime())
     hostname = Column(String(255))
+    exc_value = Column(String(1024))
     payload = Column(MediumPickleType(), default={})
-    stats_id = Column(Integer, ForeignKey('error_log_stats.id'))
+    exc_info_id = Column(Integer, ForeignKey('exc_info.id'))
+    exc_info = relationship('ExcInfo', backref='details')
 
     @property
     def count(self):
-        return self.error_stats.count
+        return self.exc_info.count
 
     @property
-    def title(self):
-        return self.error_stats.title
+    def exc_class(self):
+        return self.exc_info.exc_class
 
     @property
-    def log_level(self):
-        return self.error_stats.log_level
+    def binary(self):
+        return self.exc_info.binary
 
     @property
     def on_process(self):
-        return self.error_stats.on_process
+        return self.exc_info.on_process
 
     @property
-    def stats_uuid(self):
-        return self.error_stats.uuid
+    def uuid(self):
+        return self.exc_info.uuid
 
     @property
-    def sentry_payload(self):
-        return SentryPayload(self.payload)
+    def file_name(self):
+        return self.exc_info.file_name
+
+    @property
+    def func_name(self):
+        return self.exc_info.func_name
+
+    @property
+    def lineno(self):
+        return self.exc_info.lineno
+
+    @property
+    def spayload(self):
+        return exc_models.SentryPayload(self.payload)
+
+    @property
+    def frames(self):
+        return self.spayload.frames
 
     def __repr__(self):
-        return ('<ErrorLog: %(datetime)s at %(hostname)s>' %
-                {'datetime': self.datetime, 'hostname': self.hostname})
-
-
-class SentryPayload(object):
-    """For easier access payload"""
-    def __init__(self, payload_json):
-        self.version = payload_json['_version_']
-        self.datetime = payload_json['datetime']
-        self.levelno = payload_json['levelno']
-        self.levelname = payload_json['levelname']
-        self.name = payload_json['name']
-        self.thread = payload_json['thread']
-        self.process = payload_json['process']
-        self.extra = payload_json.get('extra', {})
-        self.func_name = payload_json['funcName']
-        self.pathname = payload_json['pathname']
-        self.binary_name = payload_json.get('binary')
-
-        self.exception = SentryException(payload_json['exception'])
-
-
-class SentryException(object):
-    def __init__(self, payload):
-        if not payload:
-            self.exc_class = None
-            self.exc_value = None
-            self.frames = []
-        else:
-            self.exc_class = payload['exc_class']
-            self.exc_value = payload['exc_value']
-            self.frames = SentryFrame.hybird(payload['frames'])
-
-    def __nonzero__(self):
-        return not self.exc_class is None
-
-
-class SentryFrame(object):
-    def __init__(self, payload):
-        self.context_line = payload['context_line']
-        self.filename = payload['filename']
-        self.lineno = payload['lineno']
-        self.local_vars = payload['local_vars']
-        self.name = payload['name']
-
-    @classmethod
-    def hybird(cls, frame_list_json):
-        objs = []
-        for frame in frame_list_json:
-            objs.append(cls(frame))
-        return objs
-
-
-class ErrorLogStats(BASE, BaseModel):
-
-    __tablename__ = 'error_log_stats'
-    __table_args__ = (
-        Index('title_x_loglevel_x_count_on_process',
-              'title', 'log_level', 'count', 'on_process'),
-        Index('id_x_uuid',
-              'uuid', 'id'),
-    )
-
-    _searchable = ['uuid', 'title', 'log_level', 'on_process']
-    _sortable = ['title', 'log_level', 'datetime', 'count', 'on_process']
-
-    uuid = Column(String(36))
-    title = Column(String(255))
-    log_level = Column(String(10))
-    datetime = Column(DateTime())
-    count = Column(Integer)
-    on_process = Column(Boolean, default=False)
-    errors = relationship("ErrorLog", backref="error_stats")
-
-    def __repr__(self):
-        return ('<ErrorLogStats: %(title)s at %(level)s, count: %(count)s>' %
-                {'title': self.title, 'level': self.log_level,
-                 'count': self.count})
+        return ('<ExcInfoDetail: %(datetime)s at %(hostname)s>' %
+                {'datetime': self.created_at, 'hostname': self.hostname})
 
 
 class Config(BASE, BaseModel):

@@ -15,7 +15,7 @@ def exception_alarm_viewer(page):
     alarms = []
     for error in page:
         obj = {}
-        obj['title'] = error.title
+        obj['title'] = error.exc_class
         obj['uuid'] = error.uuid
         obj['count'] = error.count
         obj['enabled'] = not error.on_process
@@ -28,10 +28,10 @@ def exception_alarm_viewer(page):
 @route('/alarms')
 def index():
     query = utils.RequestQuery(request)
-    type_ = query.search_dict.get('type', 'exception')
+    type_ = query.search_dict.pop('type', 'exception')
 
     if type_ == 'exception':
-        traces = dbapi.error_log_stats_get_all({'log_level': 'critical'})
+        traces = dbapi.exc_info_get_all(query.search_dict, query.sort)
         paginator = utils.Paginator(traces, query.limit)
         page = paginator.page(query.page_num)
         return exception_alarm_viewer(page)
@@ -57,12 +57,12 @@ def update():
 
         # failed early
         for uuid in alarm_uuids:
-            if not dbapi.error_log_stats_get_all({'uuid': uuid}).first():
+            if not dbapi.exc_info_get_all({'uuid': uuid}).first():
                 msg = "alarm %s not existed" % uuid
                 raise http_exception.HTTPBadRequest(msg)
 
         for uuid in alarm_uuids:
-            dbapi.error_log_stats_update_on_process(uuid, False)
+            dbapi.exc_info_update(uuid, {'on_process': False})
 
         return request.json
 
@@ -75,12 +75,12 @@ def update():
 
         # failed early
         for uuid in alarm_uuids:
-            if not dbapi.error_log_stats_get_all({'uuid': uuid}).first():
+            if not dbapi.exc_info_get_all({'uuid': uuid}).first():
                 msg = "alarm %s not existed" % uuid
                 raise http_exception.HTTPBadRequest(msg)
 
         for uuid in alarm_uuids:
-            dbapi.error_log_stats_update_on_process(uuid, True)
+            dbapi.exc_info_update(uuid, {'on_process': True})
 
         return request.json
     else:

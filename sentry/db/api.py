@@ -17,28 +17,20 @@ def event_schema(*args, **kwargs):
     return IMPL.event_schema(*args, **kwargs)
 
 
-def error_log_create(errorlog):
-    return IMPL.error_log_create(errorlog)
+def exc_info_get_all(*args, **kwargs):
+    return IMPL.exc_info_get_all(*args, **kwargs)
 
 
-def error_log_stats_get_all(*args, **kwargs):
-    return IMPL.error_log_stats_get_all(*args, **kwargs)
+def exc_info_update(*args, **kwargs):
+    return IMPL.exc_info_update(*args, **kwargs)
 
 
-def error_log_stats_schema(*args, **kwargs):
-    return IMPL.error_log_stats_schema(*args, **kwargs)
+def exc_info_detail_get_by_uuid_and_number(*args, **kwargs):
+    return IMPL.exc_info_detail_get_by_uuid_and_number(*args, **kwargs)
 
 
-def error_log_stats_update_on_process(*args, **kwargs):
-    return IMPL.error_log_stats_update_on_process(*args, **kwargs)
-
-
-def error_log_get_by_uuid_and_number(*args, **kwargs):
-    return IMPL.error_log_get_by_uuid_and_number(*args, **kwargs)
-
-
-def error_log_get_by_id(*args, **kwargs):
-    return IMPL.error_log_get_by_id(*args, **kwargs)
+def exc_info_detail_create(*args, **kwargs):
+    return IMPL.exc_info_detail_create(*args, **kwargs)
 
 
 def config_get_by_key(*args, **kwargs):

@@ -189,78 +189,7 @@ class DBAPITests(test.DBTestCase):
         self.assertEqual(0, result.count())
 
 
-class ErrorLogDBAPITests(test.DBTestCase):
-
-    def _insert_error_log(self, title=None, log_level=None):
-        errorlog = base_models.ErrorLog()
-        errorlog.title = title or 'test-title'
-        errorlog.log_level = log_level or 'error'
-        errorlog.hostname = '10-120-120-11'
-        errorlog.datetime = timeutils.parse_strtime('2013-01-21 08:51:29',
-                                                    '%Y-%m-%d %H:%M:%S')
-        errorlog.payload = {}
-
-        return api.error_log_create(errorlog)
-
-    def test_create_one_error_log(self):
-        title = 'title1'
-        level = 'error'
-        self._insert_error_log(title, level)
-        stats = api.error_log_stats_get(title, level)
-
-        self.assertEqual(stats.count, 1)
-        self.assertEqual(stats.title, title)
-        self.assertEqual(stats.log_level, level)
-        self.assertEqual(stats.on_process, False)
-
-    def test_create_more_error_log(self):
-        title = 'title2'
-        self._insert_error_log(title)
-        self._insert_error_log(title)
-
-        result = api.error_log_stats_get_all({'title': 'title2'})
-        self.assertEqual(result.count(), 1)
-        self.assertEqual(result[0].count, 2)
-
-        self._insert_error_log(title)
-        result = api.error_log_stats_get_all({'title': 'title2'})
-        self.assertEqual(result[0].count, 3)
-
-    def test_error_log_stats_schema(self):
-        fields, sortable, searchable = api.error_log_stats_schema()
-        self.assertEqual(fields, ['id', 'uuid', 'title', 'log_level',
-                                  'datetime', 'count', 'on_process'])
-        self.assertEqual(sortable, ['title', 'log_level', 'datetime',
-                                    'count', 'on_process'])
-        self.assertEqual(searchable, ['uuid', 'title', 'log_level',
-                                      'on_process'])
-
-    def test_error_log_stats_get_all(self):
-        self._insert_error_log('error1', 'error')
-        result = api.error_log_stats_get_all()
-        self.assertEqual(1, result.count(),
-                         'Should contains ONE error.')
-
-        self._insert_error_log('error2', 'error')
-        self.assertEqual(2, result.count(),
-                         'Should contains "error1", "error2"')
-
-    def test_error_log_stats_get_all_search(self):
-        self._insert_error_log('error1', 'error')
-        self._insert_error_log('error2', 'error')
-        self._insert_error_log('error3', 'critical')
-
-        search_0 = api.error_log_stats_get_all()
-        self.assertEqual(search_0.count(), 3,
-                         'Should contains all errors')
-
-        search_1 = api.error_log_stats_get_all({'title': 'error1'})
-        self.assertEqual(search_1.count(), 1,
-                         'Should contains "error1"')
-
-        search_2 = api.error_log_stats_get_all({'log_level': 'error'})
-        self.assertEqual(search_2.count(), 2,
-                         'Should contains "error1", "error2"')
+class _ExcInfoDBAPITests(test.DBTestCase):
 
     def test_error_log_get_by_uuid_and_number_ok(self):
         error_log = self._insert_error_log('error1', 'error')
@@ -290,3 +219,102 @@ class ErrorLogDBAPITests(test.DBTestCase):
 
         self.assertEqual(result.title, 'error1')
         self.assertEqual(result.id, error_log.id)
+
+
+class ExcInfoDBAPITests(test.DBTestCase):
+
+    def test_create_exc_info(self):
+        api.exc_info_detail_create(
+           'host1', {}, binary='nova-api', exc_class='ValueError',
+            exc_value='ValueError1', file_path='/usr/local/bin/test',
+            func_name='testmethod', lineno=100,
+            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
+                                               '%Y-%m-%d %H:%M:%S')
+        )
+
+        query = api.exc_info_get_all()
+
+        self.assertEqual(query.count(), 1)
+        self.assertEqual(query.first().count, 1)
+
+        # Create more
+        api.exc_info_detail_create(
+           'host1', {}, binary='nova-api', exc_class='ValueError',
+            exc_value='ValueError1', file_path='/usr/local/bin/test',
+            func_name='testmethod', lineno=100,
+            created_at=timeutils.parse_strtime("2013-03-03 01:03:05",
+                                               '%Y-%m-%d %H:%M:%S')
+        )
+
+        query = api.exc_info_get_all()
+
+        self.assertEqual(query.count(), 1)
+        self.assertEqual(query.first().count, 2)
+
+        # Create another more
+        api.exc_info_detail_create(
+           'host1', {}, binary='nova-api', exc_class='OtherError',
+            exc_value='ValueError1', file_path='/usr/local/bin/test',
+            func_name='testmethod', lineno=100,
+            created_at=timeutils.parse_strtime("2013-03-03 01:03:05",
+                                               '%Y-%m-%d %H:%M:%S')
+        )
+        query = api.exc_info_get_all()
+
+        self.assertEqual(query.count(), 2)
+
+    def test_exc_info_get_all(self):
+        api.exc_info_detail_create(
+           'host1', {}, binary='nova-api', exc_class='ValueError',
+            exc_value='ValueError1', file_path='/usr/local/bin/test',
+            func_name='testmethod', lineno=100,
+            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
+                                               '%Y-%m-%d %H:%M:%S')
+        )
+
+        query = api.exc_info_get_all({'exc_class': 'ValueError'})
+        self.assertEqual(query.count(), 1)
+
+        query = api.exc_info_get_all({'exc_class': 'NoExisted'})
+        self.assertEqual(query.count(), 0)
+
+    def test_exc_info_update(self):
+        exc_detail = api.exc_info_detail_create(
+           'host1', {}, binary='nova-api', exc_class='ValueError',
+            exc_value='ValueError1', file_path='/usr/local/bin/test',
+            func_name='testmethod', lineno=100,
+            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
+                                               '%Y-%m-%d %H:%M:%S')
+        )
+        api.exc_info_update(exc_detail.uuid, {'on_process': True})
+        updated = api.exc_info_get_all({'uuid': exc_detail.uuid})[0]
+        self.assertEqual(updated.on_process, True)
+
+    def test_exc_info_detail_get_by_uuid_and_number_ok(self):
+        exc_detail = api.exc_info_detail_create(
+           'host1', {}, binary='nova-api', exc_class='ValueError',
+            exc_value='ValueError1', file_path='/usr/local/bin/test',
+            func_name='testmethod', lineno=100,
+            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
+                                               '%Y-%m-%d %H:%M:%S')
+        )
+        ret = api.exc_info_detail_get_by_uuid_and_number(exc_detail.uuid)
+        self.assertEqual(ret.exc_class, exc_detail.exc_class)
+
+    def test_exc_info_detail_get_by_uuid_not_found(self):
+        ret = api.exc_info_detail_get_by_uuid_and_number('no-uuid')
+        self.assertEqual(ret, None)
+
+    def test_exc_info_detail_get_by_uuid_number_not_found(self):
+        exc_detail = api.exc_info_detail_create(
+            'host1', {}, binary='nova-api', exc_class='ValueError',
+            exc_value='ValueError1', file_path='/usr/local/bin/test',
+            func_name='testmethod', lineno=100,
+            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
+                                               '%Y-%m-%d %H:%M:%S')
+        )
+        ret = api.exc_info_detail_get_by_uuid_and_number(exc_detail.uuid, -1)
+        self.assertEqual(ret, None)
+
+        ret = api.exc_info_detail_get_by_uuid_and_number(exc_detail.uuid, 100)
+        self.assertEqual(ret, None)

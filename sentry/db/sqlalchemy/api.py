@@ -143,118 +143,116 @@ def event_schema():
     return fields, sortables, searchable
 
 # ---------------------------
-# error logs
+# exception informations
 # --------------------------
 
 
-def _refresh_error_log_stats_count(error_stats_id):
+def _refresh_exc_info_count(exc_info_id):
     """In case of race condition, not increase the number of error log count.
     """
     session = get_session()
     with session.begin():
-        stats = session.query(models.ErrorLogStats). \
-                    filter(models.ErrorLogStats.id == error_stats_id). \
+        exc_info = session.query(models.ExcInfo). \
+                    filter(models.ExcInfo.id == exc_info_id). \
                     first()
-        count = session.query(models.ErrorLog). \
-                    filter(models.ErrorLog.stats_id == error_stats_id). \
+        count = session.query(models.ExcInfoDetail). \
+                    filter(models.ExcInfoDetail.exc_info_id == exc_info_id). \
                     count()
-        stats.count = count
-        session.add(stats)
+        exc_info.count = count
+        session.add(exc_info)
 
 
-def error_log_stats_get(title, level, session=None):
-    """Searched by title and log_level"""
-    if session is None:
-        session = get_session()
-
-    query = session.query(models.ErrorLogStats). \
-                filter(models.ErrorLogStats.title == title). \
-                filter(models.ErrorLogStats.log_level == level)
-    return query.first()
+def exc_info_get_all(search_dict={}, sorts=[]):
+    return _model_complict_query(models.ExcInfo, search_dict, sorts)
 
 
-def error_log_stats_get_all(search_dict={}, sorts=[]):
-    return _model_complict_query(models.ErrorLogStats, search_dict, sorts)
+def exc_info_update(uuid, values):
+    if not isinstance(values, dict):
+        raise ValueError()
 
-
-def error_log_stats_update_on_process(uuid, on_process):
     session = get_session()
     with session.begin():
-        stats = session.query(models.ErrorLogStats). \
-                    filter(models.ErrorLogStats.uuid == uuid). \
-                    first()
-        stats.on_process = on_process
-        session.add(stats)
-    return stats
+        exc_info = session.query(models.ExcInfo). \
+                filter(models.ExcInfo.uuid == uuid). \
+                first()
+
+        for key, value in values.iteritems():
+            setattr(exc_info, key, value)
+
+        session.add(exc_info)
+
+    return exc_info
 
 
-def error_log_stats_schema():
-    fields = models.ErrorLogStats.get_fields()
-    sortables = models.ErrorLogStats.get_sortable()
-    searchable = models.ErrorLogStats.get_searchable()
-    return fields, sortables, searchable
-
-
-def error_log_get_by_uuid_and_number(uuid, number=1):
+def exc_info_detail_get_by_uuid_and_number(uuid, number=1):
     session = get_session()
 
-    stats = session.query(models.ErrorLogStats). \
-                filter(models.ErrorLogStats.uuid == uuid). \
-                options(joinedload('errors')). \
+    exc_info = session.query(models.ExcInfo). \
+                filter(models.ExcInfo.uuid == uuid). \
                 first()
-    if not stats:
+    if not exc_info:
         return None
 
     try:
-        return stats.errors[number - 1]
+        query = session.query(models.ExcInfoDetail). \
+                    options(joinedload('exc_info')). \
+                    filter(models.ExcInfoDetail.exc_info_id == exc_info.id)
+        return query[number - 1]
     except IndexError:
         return None
 
 
-def error_log_get_by_id(id_):
+def _exc_info_detail_get_by_id(id_):
     session = get_session()
-    error_log = session.query(models.ErrorLog). \
-                    filter(models.ErrorLog.id == id_). \
-                    options(joinedload('error_stats')). \
-                    first()
-    return error_log
+    detail = session.query(models.ExcInfoDetail). \
+            filter(models.ExcInfoDetail.id == id_). \
+            options(joinedload('exc_info')). \
+            first()
+    return detail
 
 
-def error_log_create(errorlog):
+def exc_info_detail_create(hostname, payload, binary, exc_class, exc_value,
+                           file_path, func_name, lineno, created_at):
     session = get_session()
 
     with session.begin(subtransactions=True):
         #FIXME: Race condiction here. If two error log arrive at the same time.
         #The result will be two error stats with the same log_level and title.
-        stats = error_log_stats_get(errorlog.title,
-                                    errorlog.log_level,
-                                    session)
-        if not stats:
-            # The first time to create error_log_stats
-            stats = models.ErrorLogStats(uuid=utils.get_uuid(),
-                                         title=errorlog.title,
-                                         log_level=errorlog.log_level,
-                                         datetime=errorlog.datetime,
-                                         count=0,
-                                         on_process=False)
+        exc_info = session.query(models.ExcInfo). \
+                filter(models.ExcInfo.exc_class == exc_class). \
+                filter(models.ExcInfo.file_path == file_path). \
+                filter(models.ExcInfo.func_name == func_name). \
+                filter(models.ExcInfo.lineno == lineno). \
+                first()
+        if not exc_info:
+            # First time to create
+            exc_info = models.ExcInfo(
+                binary=binary,
+                count=0,
+                on_process=False,
+                uuid=utils.get_uuid(),
+                exc_class=exc_class,
+                file_path=file_path,
+                func_name=func_name,
+                lineno=lineno
+            )
 
-        error_log = models.ErrorLog(datetime=errorlog.datetime,
-                                    hostname=errorlog.hostname,
-                                    payload=errorlog.payload)
+        exc_info.last_time = created_at
+        session.add(exc_info)
 
-        # NOTE(gtt): Why setting error_log.stats_id does not work?
-        error_log.error_stats = stats
-        session.add(error_log)
+        exc_detail = models.ExcInfoDetail(
+            created_at=created_at,
+            hostname=hostname,
+            exc_value=exc_value,
+            payload=payload
+        )
+        exc_detail.exc_info = exc_info
+        session.add(exc_detail)
 
-        stats.datetime = error_log.datetime
-        session.add(stats)
-        session.flush()
+    _refresh_exc_info_count(exc_info.id)
 
-    _refresh_error_log_stats_count(stats.id)
-
-    # return the persistented error_log
-    return error_log_get_by_id(error_log.id)
-
+    # Got latest exception detail
+    return _exc_info_detail_get_by_id(exc_detail.id)
 
 # --------------------------------------------------------
 # config database api

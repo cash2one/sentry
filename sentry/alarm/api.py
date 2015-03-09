@@ -40,19 +40,14 @@ class AlarmAPI(object):
             func = getattr(driver, method)
             func(*args, **kwargs)
 
-    def should_fire(self, error_log):
-        # On process ?
-        if error_log.on_process:
-            LOG.debug("%s is on processed, do not set off." % error_log)
+    def should_fire(self, exc_detail):
+        # On process
+        if exc_detail.on_process:
+            LOG.debug("%s is on processed, do not set off." % exc_detail)
             return False
 
-        # contains TRACE ?
-        if not error_log.sentry_payload.exception:
-            LOG.debug("%s doesn't include exception, not set off." % error_log)
-            return False
-
-        # too many alarms ?
-        uuid = error_log.stats_uuid
+        # In silence
+        uuid = exc_detail.uuid
 
         last_time = self.backlog.get(uuid)
 
@@ -60,9 +55,9 @@ class AlarmAPI(object):
             max_time = CONF.alarm_quiet_seconds
             delta = datetime.now() - last_time
             if delta.seconds <= max_time:
-                LOG.debug("Errorlog: %(error)s set off at %(time)s, "
+                LOG.debug("Exception: %(error)s set off at %(time)s, "
                           "quiet range is %(quiet)s" %
-                          {'error': error_log, 'time': last_time,
+                          {'error': exc_detail, 'time': last_time,
                            'quiet': max_time})
                 return False
 
@@ -73,11 +68,10 @@ class AlarmAPI(object):
         # At last is OK.
         return True
 
-    def alarm_error_log(self, error_log):
-        """Set off alarm when receive error log."""
-        if not self.should_fire(error_log):
+    def alarm_exception(self, exc_info_detail):
+        if not self.should_fire(exc_info_detail):
             return
 
-        LOG.info("Setting off errorlog: %s " % error_log)
-        html = render.render_error_log(error_log)
-        self._call_drivers('set_off', error_log.title, html)
+        LOG.info("Setting off exception: %s" % exc_info_detail)
+        html_content = render.render_exception(exc_info_detail)
+        self._call_drivers('set_off', exc_info_detail.exc_value, html_content)

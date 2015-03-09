@@ -17,5 +17,5 @@ template = functools.partial(bottle.template,
 ERROR_LOG_TEMPLATE = 'errorlog.html'
 
 
-def render_error_log(error):
-    return template(ERROR_LOG_TEMPLATE, error=error)
+def render_exception(exc_detail):
+    return template(ERROR_LOG_TEMPLATE, exception=exc_detail)
