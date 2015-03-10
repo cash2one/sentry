@@ -297,6 +297,9 @@ class Manager(object):
         self.neutron_collector.connect()
         self.neutron_collector.declare_consumer('neutron_notifications.info',
                                                 self.neutron_pipeline)
+        self.neutron_collector.declare_consumer(
+            'neutron_notifications.critical', self.log_error_pipeline
+        )
 
         LOG.info("Declare cinder consumers")
         self.cinder_pipeline = Pipeline.create(self.pool,
