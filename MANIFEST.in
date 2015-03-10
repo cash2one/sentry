@@ -9,6 +9,8 @@ include sentry/db/sqlalchemy/alembic/env.py
 include sentry/db/sqlalchemy/alembic/versions/*.sql
 include sentry/db/sqlalchemy/alembic/versions/*.py
 include sentry/alarm/templates/*.html
+include sentry/alarm/templates/*.css
+include sentry/alarm/templates/*.js
 
 exclude .gitignore
 exclude .gitreview
