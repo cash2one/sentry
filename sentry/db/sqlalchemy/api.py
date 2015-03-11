@@ -1,6 +1,7 @@
 import sys
 
 from sqlalchemy import func
+from sqlalchemy import Boolean, Integer
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import desc, asc
 
@@ -62,6 +63,27 @@ def _validate_search_dict(model, search_dict):
             raise ValueError(msg)
 
 
+def _normalize_search_dict(model, search_dict):
+    new_search_dict = {}
+    columns = getattr(model, '__table__').columns
+    for key, value in search_dict.iteritems():
+        column = columns[key]
+
+        if isinstance(column.type, Boolean):
+            if value.lower() in ('1', 't', 'true', 'on', 'y', 'yes'):
+                new_value = True
+            else:
+                new_value = False
+
+        elif isinstance(column.type, Integer):
+            new_value = int(value)
+        else:
+            new_value = value
+        new_search_dict[key] = new_value
+
+    return new_search_dict
+
+
 def _validate_sort_keys(model, sort_keys):
     """
     Inspect sort_keys is searchable in model, if not raise ValueError.
@@ -105,12 +127,13 @@ def _get_count(query):
     return count
 
 
-def _model_complict_query(model_object, search_dict={}, sorts=[]):
+def _model_complict_query(model_object, search_dict=None, sorts=None):
     se = get_session()
 
     # failed fast
     if search_dict:
         _validate_search_dict(model_object, search_dict)
+        search_dict = _normalize_search_dict(model_object, search_dict)
 
     sorts_criterion = _validate_sort_keys(model_object, sorts)
 
@@ -162,7 +185,7 @@ def _refresh_exc_info_count(exc_info_id):
         session.add(exc_info)
 
 
-def exc_info_get_all(search_dict={}, sorts=[]):
+def exc_info_get_all(search_dict=None, sorts=None):
     return _model_complict_query(models.ExcInfo, search_dict, sorts)
 
 

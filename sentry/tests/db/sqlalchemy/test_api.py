@@ -189,38 +189,6 @@ class DBAPITests(test.DBTestCase):
         self.assertEqual(0, result.count())
 
 
-class _ExcInfoDBAPITests(test.DBTestCase):
-
-    def test_error_log_get_by_uuid_and_number_ok(self):
-        error_log = self._insert_error_log('error1', 'error')
-        error_log2 = self._insert_error_log('error1', 'error')
-        result = api.error_log_get_by_uuid_and_number(
-            error_log.stats_uuid, 1)
-        self.assertEqual(error_log.title, result.title)
-
-        result = api.error_log_get_by_uuid_and_number(
-            error_log2.stats_uuid, 2)
-        self.assertEqual(error_log2.title, result.title)
-
-    def test_error_log_get_by_uuid_and_number_non_existed_uuid(self):
-        self._insert_error_log('error1', 'error')
-        result = api.error_log_get_by_uuid_and_number('no-existed-uuid')
-        self.assertEqual(None, result)
-
-    def test_error_log_get_by_uuid_and_number_non_existed_number(self):
-        error_log = self._insert_error_log('error1', 'error')
-        result = api.error_log_get_by_uuid_and_number(
-            error_log.stats_uuid, -1)
-        self.assertEqual(None, result)
-
-    def test_error_log_get_by_id(self):
-        error_log = self._insert_error_log('error1', 'error')
-        result = api.error_log_get_by_id(error_log.id)
-
-        self.assertEqual(result.title, 'error1')
-        self.assertEqual(result.id, error_log.id)
-
-
 class ExcInfoDBAPITests(test.DBTestCase):
 
     def test_create_exc_info(self):
@@ -277,6 +245,47 @@ class ExcInfoDBAPITests(test.DBTestCase):
 
         query = api.exc_info_get_all({'exc_class': 'NoExisted'})
         self.assertEqual(query.count(), 0)
+
+    def test_exc_info_get_all_boolean(self):
+        exc = api.exc_info_detail_create(
+            'host1', {}, binary='nova-api', exc_class='ValueError',
+            exc_value='ValueError1', file_path='/usr/local/bin/test',
+            func_name='testmethod', lineno=100,
+            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
+                                               '%Y-%m-%d %H:%M:%S')
+        )
+        api.exc_info_update(exc.uuid, {'on_process': True})
+        # NOTE(gtt): Yes, we actually test boolean string.
+        query = api.exc_info_get_all({'on_process': 'true'})
+        self.assertEqual(query.count(), 1)
+
+        query = api.exc_info_get_all({'on_process': 'false'})
+        self.assertEqual(query.count(), 0)
+
+    def test_exc_info_get_all_integer(self):
+        for i in xrange(2):
+            api.exc_info_detail_create(
+                'host1', {}, binary='nova-api', exc_class='Error1',
+                exc_value='ValueError1', file_path='/usr/local/bin/test',
+                func_name='testmethod', lineno=100,
+                created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
+                                                '%Y-%m-%d %H:%M:%S')
+            )
+
+        for i in xrange(1):
+            api.exc_info_detail_create(
+                'host1', {}, binary='nova-api', exc_class='Error2',
+                exc_value='ValueError1', file_path='/usr/local/bin/test',
+                func_name='testmethod', lineno=100,
+                created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
+                                                '%Y-%m-%d %H:%M:%S')
+            )
+
+        query = api.exc_info_get_all({'count': '2'})
+        self.assertEqual(query.count(), 1)
+
+        query = api.exc_info_get_all({'count': 1})
+        self.assertEqual(query.count(), 1)
 
     def test_exc_info_update(self):
         exc_detail = api.exc_info_detail_create(
