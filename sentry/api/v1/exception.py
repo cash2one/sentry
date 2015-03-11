@@ -7,6 +7,10 @@ from sentry.db import api as dbapi
 
 route = v1app.route
 
+SEARCHABLE = []
+SORTABLE = ["count", "exception_name", 'last_time', 'on_process']
+MAPPER = {'exception_name': 'exc_class'}
+
 
 def exception_viewer(page):
     ret = page.to_dict()
@@ -29,7 +33,7 @@ def exception_viewer(page):
 @route('/exceptions', method='GET')
 def index():
     try:
-        query = utils.RequestQuery(request)
+        query = utils.RequestQuery(request, MAPPER, SORTABLE, SEARCHABLE)
         db_query = dbapi.exc_info_get_all(query.search_dict, query.sort)
         paginator = utils.Paginator(db_query, query.limit)
         page = paginator.page(query.page_num)
@@ -45,9 +49,8 @@ def index():
 def schema():
     ret = {
         "schema": {
-            #FIXME: not return fields here
-            "searchable": [],
-            "sortable": [],
+            "searchable": SEARCHABLE,
+            "sortable": SORTABLE,
         }
     }
 
