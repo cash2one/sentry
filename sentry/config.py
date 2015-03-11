@@ -1,5 +1,7 @@
 # -*- coding:utf8 -*-
 from datetime import datetime
+
+from sentry import marvel
 from sentry.db import api as dbapi
 from sentry.common import exception
 
@@ -69,11 +71,15 @@ class ConfigEngine(object):
 
     @cache
     def get_config(self, key):
+        """Get config from database, if not in database, initiate with default
+        value."""
         self._validate_key(key)
         default = self.configs[key]
 
         db_key = dbapi.config_get_by_key(key)
-        if not db_key is None:
+        if db_key is None:
+            self.set_config(key, default.default_value)
+        else:
             default.load(db_key.value)
 
         return default.value
@@ -137,7 +143,8 @@ CONFIG = [
     Config('smtp_ssl', True),
     Config('smtp_username', ''),
     Config('smtp_password', '', secret=True),
-    Config('alarm_receivers', ['hzgott@corp.netease.com']),
+    Config('alarm_receivers', ['hzgaott@corp.netease.com']),
+    Config('env_name', marvel.pick_up())
 ]
 
 register_configs(CONFIG)
