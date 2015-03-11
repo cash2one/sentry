@@ -148,6 +148,9 @@ class RequestQuery(object):
             return
 
         for sort in self._sort:
+            if sort[0] == '-':
+                sort = sort[1:]
+
             if sort not in sortable:
                 msg = ('field: %s is not in sortable fields: %s' %
                        (sort, sortable))
@@ -169,8 +172,17 @@ class RequestQuery(object):
 
         new_sort = []
         for sort in self._sort:
+            neg = False
+
+            if sort[0] == '-':
+                sort = sort[1:]
+                neg = True
+
             new_item = mapper.get(sort, sort)
-            new_sort.append(new_item)
+            if not neg:
+                new_sort.append(new_item)
+            else:
+                new_sort.append('-%s' % new_item)
         self._sort = new_sort
 
     def _normalize_search_dict(self, mapper):

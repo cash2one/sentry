@@ -166,3 +166,48 @@ class RequestQueryTestCase(test.TestCase):
         req = fake.fake_request('GET', '/a', 'end=2014x01x01 01:01:01')
         self.assertRaises(http_exception.HTTPBadRequest,
                           utils.RequestQuery, req)
+
+    def test_passin_sortable_ok(self):
+        req = fake.fake_request('GET', '/a', 'sort=xx')
+        utils.RequestQuery(req, sortable=['xx'])
+
+        req = fake.fake_request('GET', '/a', 'sort=-xx')
+        utils.RequestQuery(req, sortable=['xx'])
+
+    def test_passin_sortable_failed(self):
+        req = fake.fake_request('GET', '/a', 'sort=xx')
+        self.assertRaises(http_exception.HTTPBadRequest,
+                          utils.RequestQuery, req, sortable=['ok'])
+
+    def test_passin_sortable_negative_failed(self):
+        req = fake.fake_request('GET', '/a', 'sort=-xx')
+        self.assertRaises(http_exception.HTTPBadRequest,
+                          utils.RequestQuery, req, sortable=['ok'])
+
+    def test_passin_searchable_ok(self):
+        req = fake.fake_request('GET', '/a', 'cat=kitty')
+        result = utils.RequestQuery(req, searchable=['cat'])
+        self.assertTrue('cat' in result.search_dict)
+
+    def test_passin_searchable_failed(self):
+        req = fake.fake_request('GET', '/a', 'cat=kitty')
+        self.assertRaises(http_exception.HTTPBadRequest,
+                          utils.RequestQuery, req, searchable=['dog'])
+
+    def test_passin_mapper_sort_ok(self):
+        req = fake.fake_request('GET', '/a', 'sort=xx')
+        result = utils.RequestQuery(req, mapper={'xx': 'yy'})
+        self.assertTrue('yy' in result.sort)
+        self.assertFalse('xx' in result.sort)
+
+    def test_passin_mapper_negative_sort_ok(self):
+        req = fake.fake_request('GET', '/a', 'sort=-xx')
+        result = utils.RequestQuery(req, mapper={'xx': 'yy'})
+        self.assertTrue('-yy' in result.sort)
+        self.assertFalse('-xx' in result.sort)
+
+    def test_passin_mapper_search_ok(self):
+        req = fake.fake_request('GET', '/a', 'cat=kitty')
+        result = utils.RequestQuery(req, mapper={'cat': 'dog'})
+        self.assertTrue('dog' in result.search_dict)
+        self.assertFalse('cat' in result.search_dict)
