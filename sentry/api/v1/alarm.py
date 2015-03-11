@@ -8,6 +8,10 @@ from sentry.api import http_exception
 
 route = v1app.route
 
+SORTABLE = ['title', 'count']
+SEARCHABLE = ['type']
+MAPPER = {'title': 'exc_class'}
+
 
 def exception_alarm_viewer(page):
     ret = page.to_dict()
@@ -27,7 +31,7 @@ def exception_alarm_viewer(page):
 
 @route('/alarms')
 def index():
-    query = utils.RequestQuery(request)
+    query = utils.RequestQuery(request, MAPPER, SORTABLE, SEARCHABLE)
     type_ = query.search_dict.pop('type', 'exception')
 
     if type_ == 'exception':
@@ -92,7 +96,7 @@ def update():
 def schema():
     return {
         "schema": {
-            "sortable": [],
-            "searchable": [],
+            "sortable": SORTABLE,
+            "searchable": SEARCHABLE,
         }
     }

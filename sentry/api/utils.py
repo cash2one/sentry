@@ -113,7 +113,7 @@ class Page(object):
 
 class RequestQuery(object):
 
-    def __init__(self, request):
+    def __init__(self, request, mapper=None, sortable=None, searchable=None):
         """
         Parse uri like `/?sort=a,-b&page=1&limit=100&col1=value1&col2=value2`
         """
@@ -125,6 +125,8 @@ class RequestQuery(object):
             self._sort = sort.split(',')
         else:
             self._sort = []
+        self._validate_sortable(sortable)
+        self._normalize_sort(mapper)
 
         self._page_num = int(query_dict.pop('page', 1))
         self._limit = int(query_dict.pop('limit', CONF.api.default_items))
@@ -138,6 +140,48 @@ class RequestQuery(object):
             self._validate_timestr(self.end)
 
         self._search_dict = query_dict
+        self._validate_searchable(searchable)
+        self._normalize_search_dict(mapper)
+
+    def _validate_sortable(self, sortable):
+        if sortable is None:
+            return
+
+        for sort in self._sort:
+            if sort not in sortable:
+                msg = ('field: %s is not in sortable fields: %s' %
+                       (sort, sortable))
+                raise http_exception.HTTPBadRequest(msg)
+
+    def _validate_searchable(self, searchable):
+        if searchable is None:
+            return
+
+        for field in self._search_dict.keys():
+            if field not in searchable:
+                msg = ('field: %s is not in searchable fields: %s' %
+                       (field, searchable))
+                raise http_exception.HTTPBadRequest(msg)
+
+    def _normalize_sort(self, mapper):
+        if mapper is None:
+            return
+
+        new_sort = []
+        for sort in self._sort:
+            new_item = mapper.get(sort, sort)
+            new_sort.append(new_item)
+        self._sort = new_sort
+
+    def _normalize_search_dict(self, mapper):
+        if mapper is None:
+            return
+
+        normalized_search_dict = {}
+        for key, value in self._search_dict.iteritems():
+            new_key = mapper.get(key, key)
+            normalized_search_dict[new_key] = value
+        self._search_dict = normalized_search_dict
 
     def _validate_timestr(self, timestr):
         try:
@@ -174,7 +218,7 @@ class RequestQuery(object):
     @property
     def search_dict(self):
         """
-        return a dict lik {"col1": "value1", "col2": "volue2"}
+        return a dict like {"col1": "value1", "col2": "volue2"}
         """
         return self._search_dict
 
