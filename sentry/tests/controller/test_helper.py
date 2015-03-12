@@ -5,7 +5,7 @@
 #
 
 from sentry.common import http_communication
-from sentry.controller import helper
+from sentry.notification import helper
 from sentry.tests import test
 
 

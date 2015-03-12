@@ -42,7 +42,61 @@
 
 
 #
-# Options defined in sentry.controller.handlers.alarm
+# Options defined in sentry.db.sqlalchemy.session
+#
+
+# The SQLAlchemy connection string used to connect to the
+# database (string value)
+#sql_connection=sqlite:////sentry/db/sentry.sqlite
+
+# Whether echo raw sql in log. (boolean value)
+#sql_debug=false
+
+# The SQLAlchemy max_overflow config (integer value)
+#sql_max_overflow=10
+
+# The SQLAlchemy pool_size config (integer value)
+#sql_pool_size=5
+
+# The SQLAlchemy pool_recycle config (integer value)
+#sql_pool_recycle=3600
+
+
+#
+# Options defined in sentry.file_cache.alarm_content
+#
+
+# JSON file representing different type alarm contents (string
+# value)
+#alarm_content_file=alarm_content.json
+
+
+#
+# Options defined in sentry.file_cache.setting_list
+#
+
+# JSON file representing setting list contents (string value)
+#setting_list_file=setting_list.json
+
+
+#
+# Options defined in sentry.filter.alarm_filter
+#
+
+#  (string value)
+#alarm_filter_config=/etc/sentry/filter/alarm_filter.conf
+
+
+#
+# Options defined in sentry.filter.owner_filter
+#
+
+#  (string value)
+#owner_filter_config=/etc/sentry/filter/owner_filter.conf
+
+
+#
+# Options defined in sentry.notification.handlers.alarm
 #
 
 # Enable alarm when receive ERROR (boolean value)
@@ -56,7 +110,7 @@
 
 
 #
-# Options defined in sentry.controller.handlers.notifier
+# Options defined in sentry.notification.handlers.notifier
 #
 
 # Enable notification about instance deleting (boolean value)
@@ -86,7 +140,7 @@
 
 
 #
-# Options defined in sentry.controller.helper
+# Options defined in sentry.notification.helper
 #
 
 # Enable notify platform when vm state change (boolean value)
@@ -110,7 +164,7 @@
 
 
 #
-# Options defined in sentry.controller.manager
+# Options defined in sentry.notification.manager
 #
 
 # Cinder rabbit broker hosts. (list value)
@@ -220,60 +274,6 @@
 
 # Nova event handlers (list value)
 #nova_event_handlers=alarm,nova,notifier
-
-
-#
-# Options defined in sentry.db.sqlalchemy.session
-#
-
-# The SQLAlchemy connection string used to connect to the
-# database (string value)
-#sql_connection=sqlite:////sentry/db/sentry.sqlite
-
-# Whether echo raw sql in log. (boolean value)
-#sql_debug=false
-
-# The SQLAlchemy max_overflow config (integer value)
-#sql_max_overflow=10
-
-# The SQLAlchemy pool_size config (integer value)
-#sql_pool_size=5
-
-# The SQLAlchemy pool_recycle config (integer value)
-#sql_pool_recycle=3600
-
-
-#
-# Options defined in sentry.file_cache.alarm_content
-#
-
-# JSON file representing different type alarm contents (string
-# value)
-#alarm_content_file=alarm_content.json
-
-
-#
-# Options defined in sentry.file_cache.setting_list
-#
-
-# JSON file representing setting list contents (string value)
-#setting_list_file=setting_list.json
-
-
-#
-# Options defined in sentry.filter.alarm_filter
-#
-
-#  (string value)
-#alarm_filter_config=/etc/sentry/filter/alarm_filter.conf
-
-
-#
-# Options defined in sentry.filter.owner_filter
-#
-
-#  (string value)
-#owner_filter_config=/etc/sentry/filter/owner_filter.conf
 
 
 #

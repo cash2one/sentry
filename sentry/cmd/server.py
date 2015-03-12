@@ -20,7 +20,7 @@ import logging as std_logging
 from oslo.config import cfg
 
 from sentry.common import config
-from sentry.controller import manager
+from sentry.notification import manager
 from sentry.openstack.common import log
 
 LOG = log.getLogger(__name__)

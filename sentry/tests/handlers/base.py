@@ -5,11 +5,11 @@ import unittest
 import pprint
 
 from sentry.openstack.common import jsonutils
-from sentry.controller import handlers
-from sentry.controller.handlers import nova
-from sentry.controller.handlers import glance
-from sentry.controller.handlers import cinder
-from sentry.controller.handlers import neutron
+from sentry.notificaion import handlers
+from sentry.notificaion.handlers import nova
+from sentry.notificaion.handlers import glance
+from sentry.notificaion.handlers import cinder
+from sentry.notificaion.handlers import neutron
 
 
 class _ExampleBaseTest(unittest.TestCase):

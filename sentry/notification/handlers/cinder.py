@@ -1,6 +1,6 @@
 from sentry.openstack.common import log as logging
 
-from sentry.controller import handlers
+from sentry.notification import handlers
 from sentry.db import models
 
 LOG = logging.getLogger(__name__)

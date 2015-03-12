@@ -1,7 +1,7 @@
 from sentry.openstack.common import log as logging
 
 from sentry.db import models
-from sentry.controller import handlers
+from sentry.notification import handlers
 
 LOG = logging.getLogger(__name__)
 

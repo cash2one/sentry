@@ -199,7 +199,7 @@ class Pipeline(object):
 
     @classmethod
     def create(cls, pool, handler_names):
-        prefix = "sentry.controller.handlers"
+        prefix = "sentry.notification.handlers"
         class_name = "Handler"
         real_handlers = []
         for name in handler_names:
