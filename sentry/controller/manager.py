@@ -309,6 +309,8 @@ class Manager(object):
                                                self.cinder_pipeline)
         self.cinder_collector.declare_consumer('cinder_notifications.error',
                                                self.cinder_pipeline)
+        self.cinder_collector.declare_consumer('cinder_notifications.critical',
+                                               self.log_error_pipeline)
 
     def run_server(self):
         self.serve()
