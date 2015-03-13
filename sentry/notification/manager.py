@@ -51,7 +51,7 @@ nova_opts = [
                 default=False,
                 help="nova HA queues"),
     cfg.ListOpt('nova_event_handlers',
-                default=['alarm', 'nova', 'notifier'],
+                default=['nova', 'notifier'],
                 help="Nova event handlers"),
 ]
 
