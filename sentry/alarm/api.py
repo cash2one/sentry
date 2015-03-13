@@ -15,7 +15,7 @@ alarm_opts = [
                 default=["sentry.alarm.driver.base.LogAlarmDriver"],
                 help="A list contains the class of alarm driver."),
     cfg.IntOpt('alarm_quiet_seconds',
-               default=60,
+               default=600,
                help="In quiet seconds the same alarm does not set off."),
 ]
 CONF.register_opts(alarm_opts)

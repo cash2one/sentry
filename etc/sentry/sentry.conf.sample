@@ -9,7 +9,7 @@
 
 # In quiet seconds the same alarm does not set off. (integer
 # value)
-#alarm_quiet_seconds=60
+#alarm_quiet_seconds=600
 
 
 #
