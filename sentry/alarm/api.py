@@ -6,6 +6,8 @@ from sentry import config
 from sentry.alarm import render
 from sentry.openstack.common import log as logging
 from sentry.openstack.common import importutils
+from sentry.openstack.common import lockutils
+
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -70,12 +72,19 @@ class AlarmAPI(object):
         return True
 
     def alarm_exception(self, exc_info_detail):
-        if not self.should_fire(exc_info_detail):
-            return
 
-        LOG.info("Setting off exception: %s" % exc_info_detail)
-        title = ('%s | %s | %s' % (config.get_config('env_name'),
-                                   exc_info_detail.hostname,
-                                   exc_info_detail.exc_value))
-        html_content = render.render_exception(exc_info_detail)
-        self._call_drivers('set_off', title, html_content)
+        # FIXME(gtt): Race condiction here. Future will be implemented
+        # in queues.
+        @lockutils.synchronized(exc_info_detail.uuid, 'sentry-alarm-')
+        def _alarm_exception():
+            if not self.should_fire(exc_info_detail):
+                return
+
+            LOG.info("Setting off exception: %s" % exc_info_detail)
+            title = ('%s | %s | %s' % (config.get_config('env_name'),
+                                    exc_info_detail.hostname,
+                                    exc_info_detail.exc_value))
+            html_content = render.render_exception(exc_info_detail)
+            self._call_drivers('set_off', title, html_content)
+
+        _alarm_exception()
