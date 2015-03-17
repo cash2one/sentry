@@ -36,7 +36,6 @@ class Handler(object):
         spayload = exc_models.SentryPayload(message.get('payload', {}))
 
         if not spayload.has_exception:
-            LOG.debug("no exception log, skip.")
             return
 
         binary = spayload.binary_name

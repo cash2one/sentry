@@ -51,7 +51,7 @@ nova_opts = [
                 default=False,
                 help="nova HA queues"),
     cfg.ListOpt('nova_event_handlers',
-                default=['nova', 'notifier'],
+                default=['nova', 'notifier', 'bi_log'],
                 help="Nova event handlers"),
 ]
 
@@ -81,7 +81,7 @@ glance_opts = [
                 deprecated_name='rabbit_ha_queues',
                 help="Glance HA queues"),
     cfg.ListOpt('glance_event_handlers',
-                default=['glance'],
+                default=['glance', 'bi_log'],
                 help="Glance event handlers"),
 ]
 
@@ -111,7 +111,7 @@ cinder_opts = [
                 deprecated_name='rabbit_ha_queues',
                 help="Cinder HA queues"),
     cfg.ListOpt('cinder_event_handlers',
-                default=['cinder'],
+                default=['cinder', 'bi_log'],
                 help="Cinder event handlers"),
 ]
 
@@ -142,7 +142,7 @@ neutron_opts = [
                 deprecated_name='rabbit_ha_queues',
                 help="Neutron HA queues"),
     cfg.ListOpt('neutron_event_handlers',
-                default=['neutron'],
+                default=['neutron', 'bi_log'],
                 help="Neutron event handlers"),
 ]
 

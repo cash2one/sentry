@@ -134,7 +134,8 @@ log_opts = [
                     'boto=WARN',
                     'suds=INFO',
                     'keystone=INFO',
-                    'eventlet.wsgi.server=WARN'
+                    'eventlet.wsgi.server=WARN',
+                    'sentry.openstack.common.lockutils=WARN',
                 ],
                 help='list of logger=LEVEL pairs'),
     cfg.BoolOpt('publish_errors',

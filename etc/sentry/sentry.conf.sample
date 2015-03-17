@@ -120,7 +120,7 @@
 #cinder_ha_queue=false
 
 # Cinder event handlers (list value)
-#cinder_event_handlers=cinder
+#cinder_event_handlers=cinder,bi_log
 
 # Glance rabbit broker hosts. (list value)
 # Deprecated group/name - [DEFAULT]/rabbit_hosts
@@ -146,7 +146,7 @@
 #glance_ha_queue=false
 
 # Glance event handlers (list value)
-#glance_event_handlers=glance
+#glance_event_handlers=glance,bi_log
 
 # The max greenthread to process messages. (integer value)
 #pipeline_pool_size=3000
@@ -176,7 +176,7 @@
 #neutron_ha_queue=false
 
 # Neutron event handlers (list value)
-#neutron_event_handlers=neutron
+#neutron_event_handlers=neutron,bi_log
 
 # Nova rabbit broker hosts. (list value)
 # Deprecated group/name - [DEFAULT]/rabbit_hosts
@@ -202,7 +202,7 @@
 #nova_ha_queue=false
 
 # Nova event handlers (list value)
-#nova_event_handlers=nova,notifier
+#nova_event_handlers=nova,notifier,bi_log
 
 
 #
@@ -249,7 +249,7 @@
 #logging_exception_prefix=%(asctime)s.%(msecs)03d %(process)d TRACE %(name)s %(instance)s
 
 # list of logger=LEVEL pairs (list value)
-#default_log_levels=amqplib=WARN,amqp=WARN,iso8601=WARN,sqlalchemy=WARN,boto=WARN,suds=INFO,keystone=INFO,eventlet.wsgi.server=WARN
+#default_log_levels=amqplib=WARN,amqp=WARN,iso8601=WARN,sqlalchemy=WARN,boto=WARN,suds=INFO,keystone=INFO,eventlet.wsgi.server=WARN,sentry.openstack.common.lockutils=WARN
 
 # publish error events (boolean value)
 #publish_errors=false
@@ -514,6 +514,21 @@
 
 # Heartbeat time-to-live. (integer value)
 #matchmaker_heartbeat_ttl=600
+
+
+[BI]
+
+#
+# Options defined in sentry.notification.handlers.bi_log
+#
+
+# The file name of BI log. Default is sentry_bi.log (string
+# value)
+#log_file=sentry-bi.log
+
+# The days that the BI log will holds. Default is 7 days
+# (integer value)
+#log_interval=7
 
 
 [api]
