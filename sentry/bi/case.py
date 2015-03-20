@@ -19,6 +19,7 @@ BI_DETACH_VOLUME = 'compute.instance.volume.detach'
 
 BI_CREATE_NETWORK = 'network.create'
 BI_CREATE_PORT = 'port.create'
+BI_DELETE_PORT = 'port.delete'
 
 
 class TaggerError(Exception):
@@ -358,6 +359,21 @@ class PortCreateStart(_CommonStartTagger):
 
 class PortCreateEnd(_CommonEndTagger):
     event_type = 'port.create.end'
+
+
+###########################
+# port delete
+###########################
+
+class PortDeleteStart(_CommonStartTagger):
+    event_type = 'port.delete.start'
+
+    def _get_bi_name(self, _message):
+        return BI_DELETE_PORT
+
+
+class PortDeleteEnd(_CommonEndTagger):
+    event_type = 'port.delete.end'
 
 
 #######################################
