@@ -68,6 +68,17 @@ class Handler(object):
         self.bi = engine.BIAnalyzer(cases, self.do_log)
 
     def _init_logger(self):
+        # NOTE(gtt): Since this method may be called many times,
+        # we need to avoid adding duplicate handlers into bi_log, which
+        # results in two logging with the exactly same content.
+
+        self.bi_log = ori_logging.getLogger('bi_log')
+
+        if len(self.bi_log.handlers) >= 1:
+            LOG.debug("BI Logging handler already is: %s" %
+                      self.bi_log.handlers)
+            return
+
         bi_path = os.path.join(CONF.log_dir, CONF.BI.log_file)
         handler = handlers.TimedRotatingFileHandler(
             bi_path, when='d', interval=CONF.BI.log_interval
@@ -76,7 +87,6 @@ class Handler(object):
         formatter = BILoggerFormatter()
         handler.setFormatter(formatter)
 
-        self.bi_log = ori_logging.getLogger('bi_log')
         self.bi_log.addHandler(handler)
 
     def do_log(self, action):
