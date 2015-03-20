@@ -4,6 +4,22 @@ from sentry.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
 
+BI_CREATE_SNAPSHOT = 'compute.instance.snapshot'
+BI_CREATE_VM_FROM_SNAPSHOT = 'compute.instance.create.from.snapshot'
+BI_CREATE_VM_FROM_IMAGE = 'compute.instance.create.from.image'
+BI_DELETE_VM = 'compute.instance.delete'
+BI_RESIZE_VM = 'compute.instance.resize'
+BI_MIGRATE_VM = 'compute.instance.migrate'
+
+BI_CREATE_VOLUME = 'volume.create'
+BI_DELETE_VOLUME = 'volume.delete'
+BI_RESIZE_VOLUME = 'volume.resize'
+BI_ATTACH_VOLUME = 'compute.instance.volume.attach'
+BI_DETACH_VOLUME = 'compute.instance.volume.detach'
+
+BI_CREATE_NETWORK = 'network.create'
+BI_CREATE_PORT = 'port.create'
+
 
 class TaggerError(Exception):
     """Common Exception raised when tag() failed."""
@@ -131,7 +147,7 @@ class InstanceSnapshotStart(_CommonStartTagger):
     event_type = 'compute.instance.snapshot.start'
 
     def _get_bi_name(self, _message):
-        return 'compute.instance.snapshot'
+        return BI_CREATE_SNAPSHOT
 
 
 class InstanceSnapshotEnd(_CommonEndTagger):
@@ -172,9 +188,9 @@ class InstanceCreateStart(_CommonStartTagger):
             image_type = None
 
         if image_type == 'snapshot':
-            bi_name = 'compute.instance.create.from.snapshot'
+            bi_name = BI_CREATE_VM_FROM_SNAPSHOT
         else:
-            bi_name = 'compute.instance.create.from.image'
+            bi_name = BI_CREATE_VM_FROM_IMAGE
 
         return bi_name
 
@@ -193,7 +209,7 @@ class InstanceDeleteStart(_CommonStartTagger):
     event_type = 'compute.instance.delete.start'
 
     def _get_bi_name(self, _message):
-        return 'compute.instance.delete'
+        return BI_DELETE_VM
 
 
 class InstanceDeleteEnd(_CommonEndTagger):
@@ -237,9 +253,9 @@ class InstanceResizePrep(Tagger):
         new_flavor_id = message['payload']['new_instance_type_id']
 
         if old_flavor_id != new_flavor_id:
-            bi_name = 'compute.instance.resize'
+            bi_name = BI_RESIZE_VM
         else:
-            bi_name = 'compute.instance.migrate'
+            bi_name = BI_MIGRATE_VM
         self.fill_bi_name(action, bi_name)
 
 
@@ -255,8 +271,7 @@ class VolumeCreateStart(_CommonStartTagger):
     event_type = 'volume.create.start'
 
     def _get_bi_name(self, _message):
-        bi_name = 'volume.create'
-        return bi_name
+        return BI_CREATE_VOLUME
 
 
 class VolumeCreateEnd(_CommonEndTagger):
@@ -271,7 +286,7 @@ class VolumeDeleteStart(_CommonStartTagger):
     event_type = 'volume.delete.start'
 
     def _get_bi_name(self, _message):
-        return 'volume.delete'
+        return BI_DELETE_VOLUME
 
 
 class VolumeDeleteEnd(_CommonEndTagger):
@@ -286,7 +301,7 @@ class VolumeResizeStart(_CommonStartTagger):
     event_type = 'volume.resize.start'
 
     def _get_bi_name(self, _message):
-        return 'volume.resize'
+        return BI_RESIZE_VOLUME
 
 
 class VolumeResizeEnd(_CommonEndTagger):
@@ -301,7 +316,7 @@ class InstanceVolumeAttach(_SyncTagger):
     event_type = 'compute.instance.volume.attach'
 
     def _get_bi_name(self, _message):
-        return 'compute.instance.volume.attach'
+        return BI_ATTACH_VOLUME
 
 
 ##########################
@@ -312,7 +327,7 @@ class InstanceVolumeDetach(_SyncTagger):
     event_type = 'compute.instance.volume.detach'
 
     def _get_bi_name(self, _message):
-        return 'compute.instance.volume.detach'
+        return BI_DETACH_VOLUME
 
 
 ###########################
@@ -323,7 +338,7 @@ class NetworkCreateStart(_CommonStartTagger):
     event_type = 'network.create.start'
 
     def _get_bi_name(self, _message):
-        return 'network.create'
+        return BI_CREATE_NETWORK
 
 
 class NetworkCreateEnd(_CommonEndTagger):
@@ -338,7 +353,7 @@ class PortCreateStart(_CommonStartTagger):
     event_type = 'port.create.start'
 
     def _get_bi_name(self, message):
-        return 'port.create'
+        return BI_CREATE_PORT
 
 
 class PortCreateEnd(_CommonEndTagger):
