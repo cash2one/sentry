@@ -9,8 +9,8 @@ from sentry.openstack.common import timeutils
 
 
 CONF = cfg.CONF
-# 100 pages with 20 items per page.
-MAX_COUNT = 20 * 100
+# 100 pages
+MAX_PAGE = 100
 
 
 def create_bottle_app(autojson=False, catchall=False):
@@ -21,13 +21,13 @@ def create_bottle_app(autojson=False, catchall=False):
 
 
 class Paginator(object):
-    def __init__(self, object_list, per_page, max_count=MAX_COUNT):
+    def __init__(self, object_list, per_page, max_page=MAX_PAGE):
         """
         :para object_list: should be a list or QuerySet.
         """
         self.object_list = object_list
         self.per_page = per_page
-        self.max_count = max_count
+        self.max_count = per_page * max_page
 
         self._count = None
         self._total_page_number = None
@@ -43,6 +43,8 @@ class Paginator(object):
                 self._count = self.object_list.limit(self.max_count).count()
             except (AttributeError, TypeError):
                 self._count = len(self.object_list)
+                if self._count > self.max_count:
+                    self._count = self.max_count
         return self._count
 
     @property

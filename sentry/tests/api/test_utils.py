@@ -5,6 +5,12 @@ from sentry.tests.api import fake
 
 
 class PaginatorTestCase(test.TestCase):
+
+    def test_exceed_max_page(self):
+        objs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        pager = utils.Paginator(objs, 1, 5)
+        self.assertEqual(pager.total_page_number, 5)
+
     def test_no_count(self):
         objs = []
         pager = utils.Paginator(objs, 1)
