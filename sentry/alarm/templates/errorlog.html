@@ -2,22 +2,49 @@
   "http://www.w3.org/TR/html4/loose.dtd">
 <html>
   <head>
-    <title>{{ environment }} | {{ exception.hostname }} | {{ exception.exc_value }}</title>
+  <title>{{ environment }} | {{ exception.hostname }} | {{ exception.binary }} | {{ exception.exc_class }}</title>
     <style>
     %include _errorlog.css
     </style>
   </head>
   <body>
     <div class="debugger">
-      <h1>{{ environment }} | {{ exception.hostname }} | {{ exception.exc_value }}</h1>
 
-      <dt>Happend at： {{ exception.created_at }}Z</dt>
-      <dt>Environment: {{ environment }}</dt>
-      <dt>Exception uuid: {{ exception.uuid }}</dt>
-      <dt>Hostname: {{ exception.hostname }}</dt>
-      <dt>Binary: {{ exception.binary}}</dt>
-      <dt>Level: {{ exception.spayload.levelname }}</dt>
-      <dt>Count: {{ exception.count }}</dt>
+      <h1>{{ environment }} | {{ exception.hostname }} | {{ exception.binary}}</h1>
+
+      <h2>{{ exception.exc_class }}: {{ exception.exc_value }}</h2>
+      <div class="box">
+        <table class="source">
+          <tr>
+            <td class="strong">happend at</td>
+            <td>{{ exception.created_at }}</td>
+          </tr>
+          <tr>
+            <td class="strong">Environment</td>
+            <td>{{ environment }}</td>
+          </tr>
+          <tr>
+            <td class="strong">Exception-uuid</td>
+            <td>{{ exception.uuid }}</td>
+          </tr>
+          <tr>
+            <td class="strong">Hostname</td>
+            <td>{{ exception.hostname }}</td>
+          </tr>
+          <tr>
+            <td class="strong">Binary</td>
+            <td>{{ exception.binary }}</td>
+          </tr>
+          <tr>
+            <td class="strong">Level</td>
+            <td>{{ exception.spayload.levelname }}</td>
+          </tr>
+          <tr>
+            <td class="strong">Count</td>
+            <td>{{ exception.count }}</td>
+          </tr>
+        </table>
+      </div>
 
       <h2 class="traceback">Traceback (most recent call last)</h2>
       <div class="traceback">
