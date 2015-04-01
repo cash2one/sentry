@@ -22,11 +22,13 @@ class EmailDriver(base.BaseAlarmDriver):
         try:
             sender.send(config.get_config('alarm_receivers'), title, content)
         except Exception:
-            LOG.exception('Sending mail failed.')
-        LOG.debug("Sending mail successfully.")
+            LOG.exception('Sending mail: %s failed.' % title)
+        else:
+            LOG.info("Sending mail: %s successfully." % title)
 
 
 class EmailSender(object):
+    """The real Email implement"""
 
     def __init__(self, host, username, password, port=0, ssl=True):
         self.host = host
