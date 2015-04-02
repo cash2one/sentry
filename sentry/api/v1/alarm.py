@@ -46,19 +46,11 @@ def index():
 
 @route('/alarms/action', method='POST')
 def update():
-    try:
-        action = request.json['action']
-    except (KeyError, TypeError):
-        msg = "Please specify 'action'."
-        raise http_exception.HTTPBadRequest(msg)
+    request_query = utils.RequestQuery(request)
+    action = request_query.json_get('action')
+    alarm_uuids = request_query.json_get('alarms')
 
     if action == 'enable':
-        try:
-            alarm_uuids = request.json['alarms']
-        except (KeyError, TypeError):
-            msg = 'Please specify alarms to enable.'
-            raise http_exception.HTTPBadRequest(msg)
-
         # failed early
         for uuid in alarm_uuids:
             if not dbapi.exc_info_get_all({'uuid': uuid}).first():
@@ -71,11 +63,6 @@ def update():
         return request.json
 
     elif action == 'disable':
-        try:
-            alarm_uuids = request.json['alarms']
-        except (KeyError, TypeError):
-            msg = 'Please specify alarms to enable.'
-            raise http_exception.HTTPBadRequest(msg)
 
         # failed early
         for uuid in alarm_uuids:

@@ -189,6 +189,10 @@ def exc_info_get_all(search_dict=None, sorts=None):
     return _model_complict_query(models.ExcInfo, search_dict, sorts)
 
 
+def exc_info_get_by_uuid(uuid):
+    return exc_info_get_all({'uuid': uuid}).first()
+
+
 def exc_info_update(uuid, values):
     if not isinstance(values, dict):
         raise ValueError()

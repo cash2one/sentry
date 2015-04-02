@@ -67,6 +67,7 @@ def get_session():
     global MAKER
     if not MAKER:
         engine = get_engine()
-        MAKER = sessionmaker(bind=engine, autocommit=True)
+        MAKER = sessionmaker(bind=engine, autocommit=True,
+                             expire_on_commit=False)
 
     return MAKER()

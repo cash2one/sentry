@@ -4,8 +4,8 @@ from oslo.config import cfg
 
 from sentry.api import bottle
 from sentry.api import http_exception
-from sentry.openstack.common import jsonutils
 from sentry.openstack.common import timeutils
+from sentry.openstack.common import jsonutils
 
 
 CONF = cfg.CONF
@@ -119,6 +119,7 @@ class RequestQuery(object):
         """
         Parse uri like `/?sort=a,-b&page=1&limit=100&col1=value1&col2=value2`
         """
+        self.request = request
         query_dict = dict(request.query.allitems())
         self._query_dict = query_dict
 
@@ -135,11 +136,11 @@ class RequestQuery(object):
 
         self.start = query_dict.pop('start', None)
         if self.start:
-            self._validate_timestr(self.start)
+            self.validate_timestr(self.start)
 
         self.end = query_dict.pop('end', None)
         if self.end:
-            self._validate_timestr(self.end)
+            self.validate_timestr(self.end)
 
         self._search_dict = query_dict
         self._validate_searchable(searchable)
@@ -197,9 +198,12 @@ class RequestQuery(object):
             normalized_search_dict[new_key] = value
         self._search_dict = normalized_search_dict
 
-    def _validate_timestr(self, timestr):
+    def validate_timestr(self, timestr, local=True):
         try:
-            timeutils.parse_isotime(timestr)
+            if local:
+                return timeutils.parse_local_isotime(timestr)
+            else:
+                return timeutils.parse_isotime(timestr)
         except ValueError:
             msg = '%s not in valid iso8601 format' % timestr
             raise http_exception.HTTPBadRequest(msg)
@@ -241,3 +245,27 @@ class RequestQuery(object):
             return int(self.search_dict.get(key, default))
         except ValueError:
             return default
+
+    def json_get(self, key, default=None):
+        """Get the key from jsonable body.
+
+        If key is not existed in body, and default is given, then return
+        the default, otherwise raise http_exceptions.
+        """
+        try:
+            if not self.request.json:
+                msg = ('No body. Are you miss header "'
+                    'content-type: application/json"')
+                raise http_exception.HTTPBadRequest(msg)
+        except ValueError:
+            msg = ('Invalid json body')
+            raise http_exception.HTTPBadRequest(msg)
+
+        try:
+            return self.request.json[key]
+        except KeyError:
+            if default:
+                return default
+            else:
+                msg = "%s must given." % key
+                raise http_exception.HTTPBadRequest(msg)
