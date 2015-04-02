@@ -22,15 +22,10 @@ def event_create(event):
     se = get_session()
 
     with se.begin():
-        raw_json = jsonutils.dumps(event.raw_json)
-        raw_message = models.RawMessage(json=raw_json)
-        se.add(raw_message)
-
         event = models.Event(
             message_id=event.message_id,
             token=event.token,
             object_id=event.object_id,
-            raw_message=raw_message,
             is_admin=event.is_admin,
             request_id=event.request_id,
             roles=jsonutils.dumps(event.roles),  # json
