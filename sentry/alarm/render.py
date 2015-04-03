@@ -19,5 +19,16 @@ ERROR_LOG_TEMPLATE = 'errorlog.html'
 
 
 def render_exception(exc_detail):
-    return template(ERROR_LOG_TEMPLATE, exception=exc_detail,
-                    environment=config.get_config('env_name'))
+
+    environment = config.get_config('env_name')
+
+    host = config.get_config('pf_prefix')
+    uri = config.get_config('pf_uri') + str(exc_detail.uuid)
+    pf_url = '%s/%s' % (host, uri)
+
+    return template(
+        ERROR_LOG_TEMPLATE,
+        exception=exc_detail,
+        environment=environment,
+        pf_url=pf_url,
+    )
