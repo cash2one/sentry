@@ -110,6 +110,10 @@ def utcnow_ts():
     return calendar.timegm(utcnow().timetuple())
 
 
+def local_now():
+    return tz_utc_to_local(datetime.datetime.now())
+
+
 def utcnow():
     """Overridable version of utils.utcnow."""
     if utcnow.override_time:

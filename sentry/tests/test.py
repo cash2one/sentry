@@ -7,6 +7,8 @@ from oslo.config import cfg
 
 from sentry.db.sqlalchemy import session
 from sentry.db.sqlalchemy import models
+from sentry.db.sqlalchemy import api as dbapi
+from sentry.openstack.common import timeutils
 
 
 CONF = cfg.CONF
@@ -41,3 +43,14 @@ class DBTestCase(TestCase):
     def tearDown(self):
         models.BASE.metadata.drop_all(self._engine)
         super(DBTestCase, self).tearDown()
+
+    def _create_exception(self, hostname='host1', payload={},
+                          binary='nova-api', exc_class='ValueError',
+                          exc_value='ValueError', file_path='/tmp/gtt',
+                          func_name='testmethod', lineno=10,
+                          created_at='2013-01-01 00:00:00'):
+        return dbapi.exc_info_detail_create(
+            hostname, payload, binary, exc_class, exc_value, file_path,
+            func_name, lineno,
+            created_at=timeutils.parse_local_isotime(created_at),
+        )

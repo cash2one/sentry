@@ -190,16 +190,6 @@ class DBAPITests(test.DBTestCase):
 
 
 class ExcInfoDBAPITests(test.DBTestCase):
-    def _create_exception(self, hostname='host1', payload={},
-                          binary='nova-api', exc_class='ValueError',
-                          exc_value='ValueError', file_path='/tmp/gtt',
-                          func_name='testmethod', lineno=10,
-                          created_at='2013-01-01 00:00:00'):
-        return api.exc_info_detail_create(
-            hostname, payload, binary, exc_class, exc_value, file_path,
-            func_name, lineno,
-            created_at=timeutils.parse_local_isotime(created_at),
-        )
 
     def test_create_exc_info(self):
         self._create_exception()
