@@ -144,7 +144,13 @@ CONFIG = [
     Config('smtp_username', ''),
     Config('smtp_password', '', secret=True),
     Config('alarm_receivers', ['hzgaott@corp.netease.com']),
-    Config('env_name', marvel.pick_up())
+    Config('env_name', marvel.pick_up()),
+]
+
+PF_CONFIGS = [
+    Config('pf_prefix', 'http://admin.cloud-dev.netease.com'),
+    Config('pf_uri', 'ops/service#/m/exlogs/detail/?id='),
 ]
 
 register_configs(CONFIG)
+register_configs(PF_CONFIGS)

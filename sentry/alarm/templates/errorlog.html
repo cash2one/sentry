@@ -10,7 +10,7 @@
   <body>
     <div class="debugger">
 
-      <h1>{{ environment }} | {{ exception.hostname }} | {{ exception.binary}}</h1>
+      <h1><a href="{{pf_url}}">{{ environment }} | {{ exception.hostname }} | {{ exception.binary}}</a></h1>
 
       <h2>{{ exception.exc_class }}: {{ exception.exc_value }}</h2>
       <div class="box">
