@@ -7,6 +7,7 @@ from sentry.alarm import render
 from sentry.openstack.common import log as logging
 from sentry.openstack.common import importutils
 from sentry.openstack.common import lockutils
+from sentry.openstack.common import timeutils
 
 
 CONF = cfg.CONF
@@ -23,14 +24,71 @@ alarm_opts = [
 CONF.register_opts(alarm_opts)
 
 
+class AlarmTimer(object):
+    """Keep tracker of last fire time."""
+
+    def __init__(self, max_time):
+        self.backlog = {}
+        self.max_time = max_time
+
+    def log_fire(self, uuid):
+        self.backlog[uuid] = datetime.now()
+
+    def can_fire(self, uuid):
+        last_time = self.backlog.get(uuid)
+
+        if last_time:
+            delta = datetime.now() - last_time
+
+            if delta.seconds <= self.max_time:
+                return False
+
+        # First time
+        self.log_fire(uuid)
+        return True
+
+
+class AlarmJudge(object):
+    """"Judge whether the exception should be fired."""
+
+    def __init__(self):
+        self.timer = AlarmTimer(CONF.alarm_quiet_seconds)
+
+    def _in_shutup(self, exc_detail):
+        now = timeutils.local_now()
+
+        # NOTE(gtt): no shupup
+        if not exc_detail.shutup_start or not exc_detail.shutup_end:
+            return False
+
+        if exc_detail.shutup_start <= now <= exc_detail.shutup_end:
+            return True
+        else:
+            return False
+
+    def can_fire(self, exception):
+        if exception.on_process:
+            LOG.debug("%s is on processed, do not set off." % exception)
+            return False
+
+        if self._in_shutup(exception):
+            LOG.debug("%s in shutup periodic, do not set off" % exception)
+            return False
+
+        if not self.timer.can_fire(exception.uuid):
+            LOG.debug("%s is in silent periodic, do not set off" % exception)
+            return False
+
+        return True
+
+
 class AlarmAPI(object):
     """Parse database object by render, then calling driver to set off alarm.
     """
 
     def __init__(self):
         self._init_drivers()
-        # cache last time of alarms
-        self.backlog = {}
+        self.judge = AlarmJudge()
 
     def _init_drivers(self):
         self.drivers = []
@@ -43,41 +101,13 @@ class AlarmAPI(object):
             func = getattr(driver, method)
             func(*args, **kwargs)
 
-    def should_fire(self, exc_detail):
-        # On process
-        if exc_detail.on_process:
-            LOG.debug("%s is on processed, do not set off." % exc_detail)
-            return False
-
-        # In silence
-        uuid = exc_detail.uuid
-
-        last_time = self.backlog.get(uuid)
-
-        if last_time:
-            max_time = CONF.alarm_quiet_seconds
-            delta = datetime.now() - last_time
-            if delta.seconds <= max_time:
-                LOG.debug("Exception: %(error)s set off at %(time)s, "
-                          "quiet range is %(quiet)s" %
-                          {'error': exc_detail, 'time': last_time,
-                           'quiet': max_time})
-                return False
-
-        # NOTE(gtt): If not set off, last time does not report in backlog.
-        # FIXME(gtt): self.backlog will grow up infinitely.
-        self.backlog[uuid] = datetime.now()
-
-        # At last is OK.
-        return True
-
     def alarm_exception(self, exc_info_detail):
 
         # FIXME(gtt): Race condiction here. Future will be implemented
         # in queues.
         @lockutils.synchronized(exc_info_detail.uuid, 'sentry-alarm-')
         def _alarm_exception():
-            if not self.should_fire(exc_info_detail):
+            if not self.judge.can_fire(exc_info_detail):
                 return
 
             LOG.info("Setting off exception: %s" % exc_info_detail)
