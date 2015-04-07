@@ -359,6 +359,18 @@ def deserialize_remote_exception(conf, data):
     return failure
 
 
+def deserialize_remote_exception2(conf, data):
+    failure = jsonutils.loads(str(data))
+
+    trace = failure.get('tb', [])
+    message = failure.get('message', "")
+    exc_type = failure.get('class')
+    module = failure.get('module')
+
+    return RPCException(message,
+                        exc_type=exc_type, traceback=trace, module=module)
+
+
 class CommonRpcContext(object):
     def __init__(self, **kwargs):
         self.values = kwargs

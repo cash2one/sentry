@@ -47,3 +47,23 @@ def config_set(*args, **kwargs):
 
 def config_get_all(*args, **kwargs):
     return IMPL.config_get_all(*args, **kwargs)
+
+
+def service_status_create_or_update(*args, **kwargs):
+    return IMPL.service_status_create_or_update(*args, **kwargs)
+
+
+def service_status_get_all(*args, **kwargs):
+    return IMPL.service_status_get_all(*args, **kwargs)
+
+
+def service_history_create(*args, **kwargs):
+    return IMPL.service_history_create(*args, **kwargs)
+
+
+def service_history_note(*args, **kwargs):
+    return IMPL.service_history_note(*args, **kwargs)
+
+
+def service_history_get_all(*args, **kwargs):
+    return IMPL.service_history_get_all(*args, **kwargs)

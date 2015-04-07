@@ -1,6 +1,132 @@
 [DEFAULT]
 
 #
+# Options defined in sentry.messaging
+#
+
+# Cinder rabbit broker hosts. (list value)
+# Deprecated group/name - [DEFAULT]/rabbit_hosts
+#cinder_rabbit_hosts=localhost:5672
+
+# Cinder rabbit exchange name. (string value)
+#cinder_exchange=openstack
+
+# Cinder rabbit userid. (string value)
+#cinder_rabbit_userid=$rabbit_userid
+
+# Cinder rabbit password. (string value)
+#cinder_rabbit_password=$rabbit_password
+
+# Cinder rabbit virtual host. (string value)
+#cinder_rabbit_virtual_host=$rabbit_virtual_host
+
+# Cinder rabbit durable (boolean value)
+#cinder_rabbit_durable=false
+
+# Cinder HA queues (boolean value)
+# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
+#cinder_ha_queue=false
+
+# Cinder event handlers (list value)
+#cinder_event_handlers=cinder,bi_log
+
+# Seconds to wait for a response from call or multicall
+# (integer value)
+#cinder_rpc_response_timeout=60
+
+# Glance rabbit broker hosts. (list value)
+# Deprecated group/name - [DEFAULT]/rabbit_hosts
+#glance_rabbit_hosts=localhost:5672
+
+# Glance rabbit exchange name. (string value)
+#glance_exchange=glance
+
+# Glance rabbit userid. (string value)
+#glance_rabbit_userid=$rabbit_userid
+
+# Glance rabbit password. (string value)
+#glance_rabbit_password=$rabbit_password
+
+# Glance rabbit virtual host. (string value)
+#glance_rabbit_virtual_host=$rabbit_virtual_host
+
+# Glance rabbit durable (boolean value)
+#glance_rabbit_durable=false
+
+# Glance HA queues (boolean value)
+# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
+#glance_ha_queue=false
+
+# Glance event handlers (list value)
+#glance_event_handlers=glance,bi_log
+
+# Seconds to wait for a response from call or multicall
+# (integer value)
+#glance_rpc_response_timeout=60
+
+# Neutron rabbit broker hosts. (list value)
+# Deprecated group/name - [DEFAULT]/rabbit_hosts
+#neutron_rabbit_hosts=localhost:5672
+
+# Neutron rabbit exchange name. (string value)
+#neutron_exchange=neutron
+
+# Neutron rabbit userid. (string value)
+#neutron_rabbit_userid=$rabbit_userid
+
+# Neutron rabbit password. (string value)
+#neutron_rabbit_password=$rabbit_password
+
+# Neutron rabbit virtual host. (string value)
+#neutron_rabbit_virtual_host=$rabbit_virtual_host
+
+# Neutron rabbit durable (boolean value)
+# Deprecated group/name - [DEFAULT]/neutron_durable
+#neutron_rabbit_durable=false
+
+# Neutron HA queues (boolean value)
+# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
+#neutron_ha_queue=false
+
+# Neutron event handlers (list value)
+#neutron_event_handlers=neutron,bi_log
+
+# Seconds to wait for a response from call or multicall
+# (integer value)
+#neutron_rpc_response_timeout=60
+
+# Nova rabbit broker hosts. (list value)
+# Deprecated group/name - [DEFAULT]/rabbit_hosts
+#nova_rabbit_hosts=localhost:5672
+
+# Nova rabbit exchange name. (string value)
+#nova_exchange=nova
+
+# Nova rabbit userid. (string value)
+#nova_rabbit_userid=$rabbit_userid
+
+# Nova rabbit password. (string value)
+#nova_rabbit_password=$rabbit_password
+
+# Nova rabbit virtual host. (string value)
+#nova_rabbit_virtual_host=$rabbit_virtual_host
+
+# nova rabbit durable (boolean value)
+#nova_rabbit_durable=false
+
+# nova HA queues (boolean value)
+# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
+#nova_ha_queue=false
+
+# Nova event handlers (list value)
+#nova_event_handlers=nova,notifier,bi_log
+
+# Seconds to wait for a response from call or multicall
+# (integer value)
+#nova_rpc_response_timeout=60
+
+
+#
 # Options defined in sentry.ncm
 #
 
@@ -21,6 +147,20 @@
 
 # The secret key to access to NCM. (string value)
 #ncm_secret_key=<None>
+
+
+#
+# Options defined in sentry.rabbit_admin
+#
+
+# The rabbit_admin page url. (integer value)
+#rabbit_admin_port=55672
+
+# The rabbit admin user id. (string value)
+#rabbit_admin_userid=$rabbit_userid
+
+# The rabbit admin user password. (string value)
+#rabbit_admin_password=$rabbit_password
 
 
 #
@@ -119,113 +259,8 @@
 # Options defined in sentry.notification.manager
 #
 
-# Cinder rabbit broker hosts. (list value)
-# Deprecated group/name - [DEFAULT]/rabbit_hosts
-#cinder_rabbit_hosts=localhost:5672
-
-# Cinder rabbit exchange name. (string value)
-#cinder_exchange=openstack
-
-# Cinder rabbit userid. (string value)
-#cinder_rabbit_userid=$rabbit_userid
-
-# Cinder rabbit password. (string value)
-#cinder_rabbit_password=$rabbit_password
-
-# Cinder rabbit virtual host. (string value)
-#cinder_rabbit_virtual_host=$rabbit_virtual_host
-
-# Cinder rabbit durable (boolean value)
-#cinder_rabbit_durable=false
-
-# Cinder HA queues (boolean value)
-# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
-#cinder_ha_queue=false
-
-# Cinder event handlers (list value)
-#cinder_event_handlers=cinder,bi_log
-
-# Glance rabbit broker hosts. (list value)
-# Deprecated group/name - [DEFAULT]/rabbit_hosts
-#glance_rabbit_hosts=localhost:5672
-
-# Glance rabbit exchange name. (string value)
-#glance_exchange=glance
-
-# Glance rabbit userid. (string value)
-#glance_rabbit_userid=$rabbit_userid
-
-# Glance rabbit password. (string value)
-#glance_rabbit_password=$rabbit_password
-
-# Glance rabbit virtual host. (string value)
-#glance_rabbit_virtual_host=$rabbit_virtual_host
-
-# Glance rabbit durable (boolean value)
-#glance_rabbit_durable=false
-
-# Glance HA queues (boolean value)
-# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
-#glance_ha_queue=false
-
-# Glance event handlers (list value)
-#glance_event_handlers=glance,bi_log
-
 # The max greenthread to process messages. (integer value)
 #pipeline_pool_size=3000
-
-# Neutron rabbit broker hosts. (list value)
-# Deprecated group/name - [DEFAULT]/rabbit_hosts
-#neutron_rabbit_hosts=localhost:5672
-
-# Neutron rabbit exchange name. (string value)
-#neutron_exchange=neutron
-
-# Neutron rabbit userid. (string value)
-#neutron_rabbit_userid=$rabbit_userid
-
-# Neutron rabbit password. (string value)
-#neutron_rabbit_password=$rabbit_password
-
-# Neutron rabbit virtual host. (string value)
-#neutron_rabbit_virtual_host=$rabbit_virtual_host
-
-# Neutron rabbit durable (boolean value)
-# Deprecated group/name - [DEFAULT]/neutron_durable
-#neutron_rabbit_durable=false
-
-# Neutron HA queues (boolean value)
-# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
-#neutron_ha_queue=false
-
-# Neutron event handlers (list value)
-#neutron_event_handlers=neutron,bi_log
-
-# Nova rabbit broker hosts. (list value)
-# Deprecated group/name - [DEFAULT]/rabbit_hosts
-#nova_rabbit_hosts=localhost:5672
-
-# Nova rabbit exchange name. (string value)
-#nova_exchange=nova
-
-# Nova rabbit userid. (string value)
-#nova_rabbit_userid=$rabbit_userid
-
-# Nova rabbit password. (string value)
-#nova_rabbit_password=$rabbit_password
-
-# Nova rabbit virtual host. (string value)
-#nova_rabbit_virtual_host=$rabbit_virtual_host
-
-# nova rabbit durable (boolean value)
-#nova_rabbit_durable=false
-
-# nova HA queues (boolean value)
-# Deprecated group/name - [DEFAULT]/rabbit_ha_queues
-#nova_ha_queue=false
-
-# Nova event handlers (list value)
-#nova_event_handlers=nova,notifier,bi_log
 
 
 #
@@ -625,6 +660,21 @@
 # Matchmaker ring file (JSON) (string value)
 # Deprecated group/name - [DEFAULT]/matchmaker_ringfile
 #ringfile=/etc/oslo/matchmaker_ring.json
+
+
+[monitor]
+
+#
+# Options defined in sentry.monitor.manager
+#
+
+# The interval in seconds monitor fetchs queues from rabbit
+# (integer value)
+#refresh_interval=30
+
+# The interval in seconds prober openstack service (integer
+# value)
+#prober_interval=20
 
 
 [rpc_notifier2]

@@ -51,7 +51,9 @@ class RequestContext(object):
 
     def to_dict(self):
         return {'user': self.user,
+                'user_name': self.user,
                 'tenant': self.tenant,
+                'project_name': self.tenant,
                 'is_admin': self.is_admin,
                 'read_only': self.read_only,
                 'show_deleted': self.show_deleted,
@@ -64,6 +66,14 @@ def get_admin_context(show_deleted="no"):
                              tenant=None,
                              is_admin=True,
                              show_deleted=show_deleted)
+    return context
+
+
+def get_sentry_context():
+    context = RequestContext(None,
+                             user='sentry_hack',
+                             tenant='sentry_hack',
+                             is_admin=True)
     return context
 
 

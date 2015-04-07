@@ -509,7 +509,7 @@ class MulticallProxyWaiter(object):
         self.msg_id_cache.check_duplicate_message(data)
         if data['failure']:
             failure = data['failure']
-            result = rpc_common.deserialize_remote_exception(self._conf,
+            result = rpc_common.deserialize_remote_exception2(self._conf,
                                                              failure)
         elif data.get('ending', False):
             self._got_ending = True
