@@ -4,7 +4,7 @@ Created on 2015-02-06
 @author: hzliuchw
 """
 
-from sentry.monitor import Monitor
+from sentry.ncm import Monitor
 import unittest
 
 
