@@ -215,6 +215,18 @@ class ExcInfoDetail(BASE, BaseModel):
     exc_info = relationship('ExcInfo', backref='details')
 
     @property
+    def shutup_start(self):
+        return self.exc_info.shutup_start
+
+    @property
+    def shutup_end(self):
+        return self.exc_info.shutup_end
+
+    @property
+    def note(self):
+        return self.exc_info.note
+
+    @property
     def count(self):
         return self.exc_info.count
 
