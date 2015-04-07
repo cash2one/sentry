@@ -1,7 +1,5 @@
 """
-Created on 2015-02-10
-
-@author: hzliuchw
+NetEase Cloud Monitor python client.
 """
 
 import httplib
