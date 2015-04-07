@@ -17,16 +17,28 @@
 
 """
 Time related utilities and helper functions.
+
+NOTE(gtt): When parsing input datetime string, please using:
+
+    `parse_isotime()` if passing is UTC
+
+else:
+
+    `parse_local_isotime()` if passing is local datetime.
+
+When saving to database, make sure datetime is UTC.
 """
 
 import calendar
 import datetime
 
 import iso8601
+import dateutil.tz
 
 
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 PERFECT_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
+LOCAL_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 def isotime(at=None):
@@ -39,6 +51,10 @@ def isotime(at=None):
     return str
 
 
+def _local_timezone():
+    return dateutil.tz.tzlocal()
+
+
 def parse_isotime(timestr):
     """Parse time from ISO 8601 format"""
     try:
@@ -49,7 +65,24 @@ def parse_isotime(timestr):
         raise ValueError(e.message)
 
 
-def strtime(at=None, fmt=PERFECT_TIME_FORMAT):
+def parse_local_isotime(timestr):
+    """Parse time from IOS 8601 format, and set local timezone"""
+    dt = parse_isotime(timestr)
+    return dt.replace(tzinfo=_local_timezone())
+
+
+def tz_utc_to_local(utc):
+    """
+    :param utc: The datetime to replace timezone from UTC to local timezone.
+    """
+    to_zone = _local_timezone()
+    if utc.tzinfo is None:
+        from_zone = dateutil.tz.tzutc()
+        utc = utc.replace(tzinfo=from_zone)
+    return utc.astimezone(to_zone)
+
+
+def strtime(at=None, fmt=LOCAL_TIME_FORMAT):
     """Returns formatted utcnow."""
     if not at:
         at = utcnow()

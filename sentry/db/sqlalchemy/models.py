@@ -1,3 +1,6 @@
+import datetime
+
+import sqlalchemy
 from sqlalchemy.dialects import mysql
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import object_mapper
@@ -6,8 +9,8 @@ from sqlalchemy import Column, ForeignKey, DateTime, Boolean, Text, Index
 from sqlalchemy import String, Integer, PickleType, LargeBinary
 
 from sentry import exc_models
-from sentry.openstack.common import jsonutils
 from sentry.openstack.common import timeutils
+from sentry.openstack.common import jsonutils
 
 BASE = declarative_base()
 
@@ -18,6 +21,30 @@ def MediumBlob():
 
 class MediumPickleType(PickleType):
     impl = MediumBlob()
+
+
+class LocalDateTime(sqlalchemy.TypeDecorator):
+    """Transfer between local timezone and UTC.
+
+    Always saving UTC in database, then transfer UTC to local timezone after
+    read from database.
+    """
+
+    impl = DateTime
+
+    def process_bind_param(self, value, dialects):
+        """Transfer timezone aware datatime object into UTC datetime."""
+        if isinstance(value, datetime.datetime):
+            return timeutils.normalize_time(value)
+        else:
+            return value
+
+    def process_result_value(self, value, dialects):
+        """Transfer UTC datetime to local timezone datetime."""
+        try:
+            return timeutils.tz_utc_to_local(value)
+        except Exception:
+            return value
 
 
 class BaseModel(object):
@@ -153,7 +180,7 @@ class ExcInfo(BASE, BaseModel):
               'exc_class', 'file_path', 'func_name', 'lineno'),
     )
 
-    last_time = Column(DateTime())
+    last_time = Column(LocalDateTime())
     binary = Column(String(36))
     count = Column(Integer)
     on_process = Column(Boolean, default=False)
@@ -162,6 +189,10 @@ class ExcInfo(BASE, BaseModel):
     file_path = Column(String(1024))
     func_name = Column(String(255))
     lineno = Column(Integer)
+
+    note = Column(Text())
+    shutup_start = Column(LocalDateTime())
+    shutup_end = Column(LocalDateTime())
 
     def __repr__(self):
         return ('<ExcInfo: %(exc_cls)s, count: %(count)s>' %
@@ -176,7 +207,7 @@ class ExcInfoDetail(BASE, BaseModel):
               'created_at', 'hostname'),
     )
 
-    created_at = Column(DateTime())
+    created_at = Column(LocalDateTime())
     hostname = Column(String(255))
     exc_value = Column(String(1024))
     payload = Column(MediumPickleType(), default={})

@@ -58,47 +58,6 @@ def read_cached_file(filename, cache_info, reload_func=None):
     return cache_info['data']
 
 
-def utcnow():
-    """Overridable version of utils.utcnow."""
-    if utcnow.override_time:
-        return utcnow.override_time
-    return datetime.datetime.utcnow()
-
-utcnow.override_time = None
-
-
-def tz_utc_to_local(utc):
-    """
-    Timezone switch, from utc to local
-    @param:
-        utc: datetime
-    """
-    # NOTE(hzyangtk): Change format of created_at from utc to local.
-    to_zone = tz.tzlocal()
-    if utc.tzinfo is None:
-        from_zone = tz.tzutc()
-        utc = utc.replace(tzinfo=from_zone)
-    result = utc.astimezone(to_zone)
-    return result
-
-
-def datetime_to_timestamp(source_time):
-    """include microseconds"""
-    return long(time.mktime(source_time.timetuple()) * 1000)
-
-
-def parse_strtime(timestr, fmt=PERFECT_TIME_FORMAT):
-    """Turn a formatted time back into a datetime."""
-    return datetime.datetime.strptime(timestr, fmt)
-
-
-def strtime(at=None, fmt=PERFECT_TIME_FORMAT):
-    """Returns formatted utcnow."""
-    if not at:
-        at = utcnow()
-    return at.strftime(fmt)
-
-
 def join_string(*args):
     args_list = list(args)
     for arg in args_list:

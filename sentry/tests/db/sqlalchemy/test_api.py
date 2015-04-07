@@ -190,15 +190,19 @@ class DBAPITests(test.DBTestCase):
 
 
 class ExcInfoDBAPITests(test.DBTestCase):
+    def _create_exception(self, hostname='host1', payload={},
+                          binary='nova-api', exc_class='ValueError',
+                          exc_value='ValueError', file_path='/tmp/gtt',
+                          func_name='testmethod', lineno=10,
+                          created_at='2013-01-01 00:00:00'):
+        return api.exc_info_detail_create(
+            hostname, payload, binary, exc_class, exc_value, file_path,
+            func_name, lineno,
+            created_at=timeutils.parse_local_isotime(created_at),
+        )
 
     def test_create_exc_info(self):
-        api.exc_info_detail_create(
-           'host1', {}, binary='nova-api', exc_class='ValueError',
-            exc_value='ValueError1', file_path='/usr/local/bin/test',
-            func_name='testmethod', lineno=100,
-            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
-                                               '%Y-%m-%d %H:%M:%S')
-        )
+        self._create_exception()
 
         query = api.exc_info_get_all()
 
@@ -206,13 +210,7 @@ class ExcInfoDBAPITests(test.DBTestCase):
         self.assertEqual(query.first().count, 1)
 
         # Create more
-        api.exc_info_detail_create(
-           'host1', {}, binary='nova-api', exc_class='ValueError',
-            exc_value='ValueError1', file_path='/usr/local/bin/test',
-            func_name='testmethod', lineno=100,
-            created_at=timeutils.parse_strtime("2013-03-03 01:03:05",
-                                               '%Y-%m-%d %H:%M:%S')
-        )
+        self._create_exception()
 
         query = api.exc_info_get_all()
 
@@ -220,25 +218,13 @@ class ExcInfoDBAPITests(test.DBTestCase):
         self.assertEqual(query.first().count, 2)
 
         # Create another more
-        api.exc_info_detail_create(
-           'host1', {}, binary='nova-api', exc_class='OtherError',
-            exc_value='ValueError1', file_path='/usr/local/bin/test',
-            func_name='testmethod', lineno=100,
-            created_at=timeutils.parse_strtime("2013-03-03 01:03:05",
-                                               '%Y-%m-%d %H:%M:%S')
-        )
+        self._create_exception(exc_class="OtherError")
         query = api.exc_info_get_all()
 
         self.assertEqual(query.count(), 2)
 
     def test_exc_info_get_all(self):
-        api.exc_info_detail_create(
-           'host1', {}, binary='nova-api', exc_class='ValueError',
-            exc_value='ValueError1', file_path='/usr/local/bin/test',
-            func_name='testmethod', lineno=100,
-            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
-                                               '%Y-%m-%d %H:%M:%S')
-        )
+        self._create_exception(exc_class='ValueError')
 
         query = api.exc_info_get_all({'exc_class': 'ValueError'})
         self.assertEqual(query.count(), 1)
@@ -247,13 +233,7 @@ class ExcInfoDBAPITests(test.DBTestCase):
         self.assertEqual(query.count(), 0)
 
     def test_exc_info_get_all_boolean(self):
-        exc = api.exc_info_detail_create(
-            'host1', {}, binary='nova-api', exc_class='ValueError',
-            exc_value='ValueError1', file_path='/usr/local/bin/test',
-            func_name='testmethod', lineno=100,
-            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
-                                               '%Y-%m-%d %H:%M:%S')
-        )
+        exc = self._create_exception(exc_class='ValueError')
         api.exc_info_update(exc.uuid, {'on_process': True})
         # NOTE(gtt): Yes, we actually test boolean string.
         query = api.exc_info_get_all({'on_process': 'true'})
@@ -264,22 +244,10 @@ class ExcInfoDBAPITests(test.DBTestCase):
 
     def test_exc_info_get_all_integer(self):
         for i in xrange(2):
-            api.exc_info_detail_create(
-                'host1', {}, binary='nova-api', exc_class='Error1',
-                exc_value='ValueError1', file_path='/usr/local/bin/test',
-                func_name='testmethod', lineno=100,
-                created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
-                                                '%Y-%m-%d %H:%M:%S')
-            )
+            self._create_exception(exc_class='Error1')
 
         for i in xrange(1):
-            api.exc_info_detail_create(
-                'host1', {}, binary='nova-api', exc_class='Error2',
-                exc_value='ValueError1', file_path='/usr/local/bin/test',
-                func_name='testmethod', lineno=100,
-                created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
-                                                '%Y-%m-%d %H:%M:%S')
-            )
+            self._create_exception(exc_class='Error2')
 
         query = api.exc_info_get_all({'count': '2'})
         self.assertEqual(query.count(), 1)
@@ -288,25 +256,13 @@ class ExcInfoDBAPITests(test.DBTestCase):
         self.assertEqual(query.count(), 1)
 
     def test_exc_info_update(self):
-        exc_detail = api.exc_info_detail_create(
-           'host1', {}, binary='nova-api', exc_class='ValueError',
-            exc_value='ValueError1', file_path='/usr/local/bin/test',
-            func_name='testmethod', lineno=100,
-            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
-                                               '%Y-%m-%d %H:%M:%S')
-        )
+        exc_detail = self._create_exception()
         api.exc_info_update(exc_detail.uuid, {'on_process': True})
         updated = api.exc_info_get_all({'uuid': exc_detail.uuid})[0]
         self.assertEqual(updated.on_process, True)
 
     def test_exc_info_detail_get_by_uuid_and_number_ok(self):
-        exc_detail = api.exc_info_detail_create(
-           'host1', {}, binary='nova-api', exc_class='ValueError',
-            exc_value='ValueError1', file_path='/usr/local/bin/test',
-            func_name='testmethod', lineno=100,
-            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
-                                               '%Y-%m-%d %H:%M:%S')
-        )
+        exc_detail = self._create_exception()
         ret = api.exc_info_detail_get_by_uuid_and_number(exc_detail.uuid)
         self.assertEqual(ret.exc_class, exc_detail.exc_class)
 
@@ -315,13 +271,7 @@ class ExcInfoDBAPITests(test.DBTestCase):
         self.assertEqual(ret, None)
 
     def test_exc_info_detail_get_by_uuid_number_not_found(self):
-        exc_detail = api.exc_info_detail_create(
-            'host1', {}, binary='nova-api', exc_class='ValueError',
-            exc_value='ValueError1', file_path='/usr/local/bin/test',
-            func_name='testmethod', lineno=100,
-            created_at=timeutils.parse_strtime("2013-03-03 01:03:04",
-                                               '%Y-%m-%d %H:%M:%S')
-        )
+        exc_detail = self._create_exception()
         ret = api.exc_info_detail_get_by_uuid_and_number(exc_detail.uuid, -1)
         self.assertEqual(ret, None)
 
