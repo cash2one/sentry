@@ -10,12 +10,16 @@ BI_CREATE_VM_FROM_IMAGE = 'compute.instance.create.from.image'
 BI_DELETE_VM = 'compute.instance.delete'
 BI_RESIZE_VM = 'compute.instance.resize'
 BI_MIGRATE_VM = 'compute.instance.migrate'
+BI_ATTACH_INTERFACE = 'compute.instance.interface.attach'
+BI_DETACH_INTERFACE = 'compute.instance.interface.detach'
+BI_GET_VNC = 'compute.instance.vnc'
 
 BI_CREATE_VOLUME = 'volume.create'
 BI_DELETE_VOLUME = 'volume.delete'
 BI_RESIZE_VOLUME = 'volume.resize'
 BI_ATTACH_VOLUME = 'compute.instance.volume.attach'
 BI_DETACH_VOLUME = 'compute.instance.volume.detach'
+BI_UPDATE_VOLUME_QOS = 'volume.update_qos'
 
 BI_CREATE_NETWORK = 'network.create'
 BI_CREATE_PORT = 'port.create'
@@ -331,6 +335,34 @@ class InstanceVolumeDetach(_SyncTagger):
 
     def _get_bi_name(self, _message):
         return BI_DETACH_VOLUME
+
+
+class UpdateVolumeQos(_SyncTagger):
+    event_type = 'volume.update_qos'
+
+    def _get_bi_name(self, _message):
+        return BI_UPDATE_VOLUME_QOS
+
+
+class InstanceInterfaceAttach(_SyncTagger):
+    event_type = 'compute.instance.interface.attach'
+
+    def _get_bi_name(self, _message):
+        return BI_ATTACH_INTERFACE
+
+
+class InstanceInterfaceDetach(_SyncTagger):
+    event_type = 'compute.instance.interface.detach'
+
+    def _get_bi_name(self, _message):
+        return BI_DETACH_INTERFACE
+
+
+class InstanceVnc(_SyncTagger):
+    event_type = 'compute.instance.vnc'
+
+    def _get_bi_name(self, _message):
+        return BI_GET_VNC
 
 
 ###########################
