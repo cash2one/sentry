@@ -42,14 +42,14 @@ def get_engine():
 
         connection_dict = sqlalchemy.engine.url.make_url(CONF.sql_connection)
 
+        kwargs = dict(
+            convert_unicode=True,
+        )
+
         if "sqlite" not in connection_dict.drivername:
-            kwargs = dict(
-                max_overflow=CONF.sql_max_overflow,
-                pool_size=CONF.sql_pool_size,
-                pool_recycle=CONF.sql_pool_recycle,
-            )
-        else:
-            kwargs = dict()
+            kwargs['max_overflow'] = CONF.sql_max_overflow
+            kwargs['pool_size'] = CONF.sql_pool_size
+            kwargs['pool_recycle'] = CONF.sql_pool_recycle
 
         ENGINE = create_engine(CONF.sql_connection, **kwargs)
     return ENGINE
