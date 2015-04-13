@@ -124,6 +124,7 @@ class BIAnalyzer(object):
             if action.old_enough():
 
                 if action.start_at is not None:
-                    LOG.exception("Cleanup started %s" % action)
+                    LOG.warn("Cleanup started action: %s" % action)
 
                 self.actions.pop(key)
+                LOG.debug("Cleanup action: %s" % key)
