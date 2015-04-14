@@ -201,6 +201,13 @@ class InstanceCreateStart(_CommonStartTagger):
 
         return bi_name
 
+    def fill_bi_name(self, action, name):
+        if (action.bi_name is not None and
+                action.bi_name == BI_CREATE_VM_FROM_IMAGE):
+            return
+        else:
+            super(InstanceCreateStart, self).fill_bi_name(action, name)
+
 
 class InstanceCreateEnd(_CommonEndTagger):
     #NOTE(gtt): Creating multiple instances emit multiple 'end' notification.
@@ -342,6 +349,14 @@ class UpdateVolumeQos(_SyncTagger):
 
     def _get_bi_name(self, _message):
         return BI_UPDATE_VOLUME_QOS
+
+    def fill_bi_name(self, action, name):
+        # NOTE(gtt): update qos may conflict with create volume,
+        # We only mark the request as create volume.
+        if action.bi_name is not None and action.bi_name == BI_CREATE_VOLUME:
+            return
+        else:
+            super(UpdateVolumeQos, self).fill_bi_name(action, name)
 
 
 class InstanceInterfaceAttach(_SyncTagger):
