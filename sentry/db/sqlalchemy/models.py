@@ -186,6 +186,8 @@ class ExcInfo(BASE, BaseModel):
     on_process = Column(Boolean, default=False)
     uuid = Column(String(36))
     exc_class = Column(String(255))
+    # Preview last ExcInfoDetail's exc_value
+    exc_value = Column(String(1024))
     file_path = Column(String(1024))
     func_name = Column(String(255))
     lineno = Column(Integer)
@@ -197,6 +199,21 @@ class ExcInfo(BASE, BaseModel):
     def __repr__(self):
         return ('<ExcInfo: %(exc_cls)s, count: %(count)s>' %
                 {'exc_cls': self.exc_class, 'count': self.count})
+
+    @property
+    def file_path_cleaned(self):
+        if self.file_path:
+            black_list = [
+                '/usr/lib/python2.7/dist-packages/',
+                '/usr/local/lib/python2.7/dist-packages/',
+                '/opt/stack/',
+            ]
+            for black in black_list:
+                if black in self.file_path:
+                    x = self.file_path.replace(black, '')
+                    return x
+
+        return self.file_path
 
 
 class ExcInfoDetail(BASE, BaseModel):

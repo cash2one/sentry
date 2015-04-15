@@ -259,7 +259,9 @@ def exc_info_detail_create(hostname, payload, binary, exc_class, exc_value,
                 lineno=lineno
             )
 
+        # refresh exc_info
         exc_info.last_time = created_at
+        exc_info.exc_value = exc_value
         session.add(exc_info)
 
         exc_detail = models.ExcInfoDetail(

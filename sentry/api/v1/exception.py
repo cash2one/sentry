@@ -8,8 +8,10 @@ from sentry.db import api as dbapi
 route = v1app.route
 
 SEARCHABLE = []
-SORTABLE = ["count", "exception_name", 'last_time', 'on_process']
-MAPPER = {'exception_name': 'exc_class'}
+SORTABLE = ["count", "exception_name", 'last_time', 'on_process', 'service',
+            'no']
+MAPPER = {'exception_name': 'exc_class', 'service': 'binary',
+          'no': 'id'}
 
 
 def _format_exception(exception_info):
@@ -22,6 +24,11 @@ def _format_exception(exception_info):
         'note': exception_info.note,
         'shutup_start': exception_info.shutup_start,
         'shutup_end': exception_info.shutup_end,
+        'file_path': exception_info.file_path_cleaned,
+        'func_name': exception_info.func_name,
+        'no': exception_info.id,
+        'exc_value': exception_info.exc_value,
+        'service': exception_info.binary,
     }
     return exception_object
 
