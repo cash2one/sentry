@@ -130,6 +130,32 @@ def add_note(uuid):
     return {'exception': _format_exception(exception)}
 
 
+@route('/exceptions/noshutup', method='POST')
+def no_shutup():
+    request_query = utils.RequestQuery(request)
+    uuids = request_query.json_get('uuids')
+
+    # Validate uuids
+    for uuid in uuids:
+        if not dbapi.exc_info_get_by_uuid(uuid):
+            msg = 'exception %s not existed' % uuid
+            raise http_exception.HTTPBadRequest(msg)
+
+    updateds = []
+    for uuid in uuids:
+        new_exception = dbapi.exc_info_update(
+            uuid, {'shutup_start': None, 'shutup_end': None}
+        )
+        updateds.append(new_exception)
+
+    exceptions = []
+    for updated in updateds:
+        exceptions.append(_format_exception(updated))
+
+    response = {'exceptions': exceptions}
+    return response
+
+
 @route('/exceptions/shutup', method='POST')
 def shutup():
     request_query = utils.RequestQuery(request)

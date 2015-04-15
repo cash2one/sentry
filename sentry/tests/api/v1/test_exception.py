@@ -70,3 +70,14 @@ class ExceptionAPITests(base.V1AppTest):
         )
         self.assertEqual(ret.status_code, 200)
         self.assertTrue('exceptions' in ret.json)
+
+    def test_no_shutup(self):
+        ret = self.app.post_json(
+            '/exceptions/noshutup',
+            {
+                "uuids": [self.uuid],
+            },
+            expect_errors=True
+        )
+        self.assertEqual(ret.status_code, 200)
+        self.assertTrue('exceptions' in ret.json)
