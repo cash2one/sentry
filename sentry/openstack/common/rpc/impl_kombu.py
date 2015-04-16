@@ -329,7 +329,9 @@ class Publisher(object):
             #
             # AMQP TTL is in milliseconds when set in the header.
             #
-            self.producer.publish(msg, headers={'ttl': (timeout * 1000)})
+            self.producer.publish(msg,
+                                  headers={'ttl': (timeout * 1000)},
+                                  expiration=str(timeout * 1000))
         else:
             self.producer.publish(msg)
 
