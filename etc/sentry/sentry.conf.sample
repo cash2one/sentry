@@ -1,6 +1,29 @@
 [DEFAULT]
 
 #
+# Options defined in sentry.ncm
+#
+
+# NCM host. e.g, 127.0.0.1 (string value)
+#ncm_host=<None>
+
+# NCM port, default is 8186. (integer value)
+#ncm_port=8186
+
+# The namespace when push metric data. (string value)
+#ncm_namespace=openstack
+
+# The project_id when push metric data. (string value)
+#ncm_project_id=openstack_sentry
+
+# The access key to access to NCM. (string value)
+#ncm_access_key=<None>
+
+# The secret key to access to NCM. (string value)
+#ncm_secret_key=<None>
+
+
+#
 # Options defined in sentry.alarm.api
 #
 

@@ -24,12 +24,10 @@ class DummyMonitor(Monitor):
     def do_post(self, request_uri, param):
         self.request_uri = request_uri
         self.param = param
+        self.body = param
 
 
 class MonitorTestCase(unittest.TestCase):
-    def runTest(self):
-        test_post_metric()
-        test_post_alarm()
 
     def test_post_metric(self):
         dummy = DummyMonitor("127.0.0.1",
@@ -49,12 +47,16 @@ class MonitorTestCase(unittest.TestCase):
         self.assertEqual(dummy.project_id, expected_projected_id)
         self.assertEqual(dummy.namespace, expected_namespace)
 
-        dummy.post_metric("value=99%")
+        dummy.post_metric("cpu", '100', 'host', 'hehe', {'a': 'b'})
         expected_uri = "/rest/V1/MetricData"
-        expected_param = ('ProjectId=PROJECT_ID&AccessKey=monitor_access_key'
-             '&Namespace=TEST_NAMESPACE&MetricDatasJson=value%3'
-             'D99%25&Signature=8XHZJhnS9yxi%2BCp9if%2BtXrgJ1YUk'
-             '%2B9wXW7Y4NQqjMtc%3D')
+        expected_param = (
+            'ProjectId=PROJECT_ID&AccessKey=monitor_access_key&Namespace'
+            '=TEST_NAMESPACE&MetricDatasJson=%7B%22metricDatas%22%3A+%5B%7B%2'
+            '2aggregationDimensions%22%3A+%22a%3Db%22%2C+%22dimensions%22%3A+%'
+            '22host%3Dhehe%22%2C+%22value%22%3A+%22100%22%2C+%22metricName%22%'
+            '3A+%22cpu%22%7D%5D%7D&Signature=9FkCMcZubgGR1vDmKRUQQ8PqRoEJhBjMQ'
+            '14bn1epya8%3D'
+        )
 
         self.assertEqual(dummy.request_uri, expected_uri)
         self.assertEqual(dummy.param, expected_param)
@@ -91,6 +93,3 @@ class MonitorTestCase(unittest.TestCase):
 
         self.assertEqual(dummy.request_uri, expected_uri)
         self.assertEqual(dummy.param, expected_param)
-
-if __name__ == '__main__':
-    nittest.main()

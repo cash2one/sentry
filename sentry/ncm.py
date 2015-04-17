@@ -6,10 +6,29 @@ import httplib
 import hmac
 import urllib
 import hashlib
+import json
+
+from oslo.config import cfg
 
 from sentry.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
+CONF = cfg.CONF
+ncm_opts = [
+    cfg.StrOpt('ncm_host',
+               help="NCM host. e.g, 127.0.0.1"),
+    cfg.IntOpt('ncm_port', default=8186,
+               help="NCM port, default is 8186."),
+    cfg.StrOpt('ncm_namespace', default='openstack',
+               help="The namespace when push metric data."),
+    cfg.StrOpt('ncm_project_id', default='openstack_sentry',
+               help="The project_id when push metric data."),
+    cfg.StrOpt('ncm_access_key',
+               help="The access key to access to NCM."),
+    cfg.StrOpt('ncm_secret_key',
+               help="The secret key to access to NCM."),
+]
+CONF.register_opts(ncm_opts)
 
 
 class Monitor(object):
@@ -25,11 +44,28 @@ class Monitor(object):
         self.access_key = access_key
         self.access_secret = access_secret
 
-    def post_metric(self, metric_datas_json):
+    def post_metric(self, metric_name, metric_value,
+                    dimension_key, dimension_value,
+                    aggregation_dimension=None):
         """Send MetricData to collect server by POST request.
 
         :param metric_datas_json: monitoring data in json format
         """
+
+        metric_data = {
+            'metricName': metric_name,
+            'dimensions': "%s=%s" % (dimension_key, dimension_value),
+            'value': metric_value,
+        }
+        if aggregation_dimension:
+            aggregates = []
+            for key, value in aggregation_dimension.iteritems():
+                aggregates.append('%s=%s' % (key, value))
+            aggregation = ','.join(aggregates)
+            metric_data['aggregationDimensions'] = aggregation
+
+        #NOTE(gtt): metricDatas is a list
+        metric_datas_json = json.dumps({'metricDatas': [metric_data]})
         params = urllib.urlencode({
                 'ProjectId': self.project_id,
                 'Namespace': self.namespace,
@@ -39,7 +75,7 @@ class Monitor(object):
                                                     'POST',
                                                     metric_datas_json)
         })
-        LOG.debug(_("post to monitor: %s") % metric_datas_json)
+        LOG.debug("POST to monitor: %s" % metric_datas_json)
         self.do_post("/rest/V1/MetricData", params)
 
     def post_alarm(self, alarm_type, alarm_time, alarm_content,
@@ -102,14 +138,30 @@ class Monitor(object):
             conn.request('POST', request_uri, body=param, headers=self.headers)
             response = conn.getresponse()
             if response.status != 200:
-                LOG.error(_("send alarm error: (status:%s):%s \ncontent:%s" %
+                LOG.error("send alarm error: (status:%s):%s \ncontent:%s" %
                            (response.status, response.reason,
-                            response.read().decode('utf8'))))
+                            response.read().decode('utf8')))
             else:
-                LOG.debug(_("do_post success request_uri:5s param:%s"),
-                            (rarequest_uri, param))
+                LOG.debug("do_post success")
         except Exception as e:
-            LOG.error(_("do_post error with expetion: %s" % e))
+            LOG.error("do_post error with expetion: %s" % e)
+
         finally:
             if 'conn' in locals():
                 conn.close()
+
+CLIENT = None
+
+
+def get_client():
+    """Get NCM client object, return None if config are not valid."""
+    if not all(CONF.ncm_host, CONF.ncm_port,
+               CONF.ncm_access_key, CONF.ncm_secret_key):
+        return None
+
+    global CLIENT
+    if not CLIENT:
+        CLIENT = Monitor(CONF.ncm_host, CONF.ncm_port, CONF.ncm_project_id,
+                         CONF.ncm_namespace, CONF.ncm_access_key,
+                         CONF.ncm_secret_key)
+    return CLIENT
