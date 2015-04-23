@@ -51,3 +51,11 @@ notification_topics=neutron_notifications
 notification_driver=cinder.openstack.common.notifier.rpc_notifier
 notification_topics=cinder_notifications
 ```
+
+Error aggregation
+=================
+
+Sentry collects OpenStack errors from message bus. And it subscribes to a
+oelist(OpenStack Error list) which contains a black list error, Sentry
+will automatic mark errors in the oelist to on_process, so users will no
+longer receive email alarm and not see the error in cloud admin page.
