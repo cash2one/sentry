@@ -136,15 +136,29 @@ class RequestQuery(object):
 
         self.start = query_dict.pop('start', None)
         if self.start:
-            self.validate_timestr(self.start)
+            self._start_datetime = self.validate_timestr(self.start)
 
         self.end = query_dict.pop('end', None)
         if self.end:
-            self.validate_timestr(self.end)
+            self._end_datetime = self.validate_timestr(self.end)
 
         self._search_dict = query_dict
         self._validate_searchable(searchable)
         self._normalize_search_dict(mapper)
+
+    @property
+    def start_datetime(self):
+        try:
+            return self._start_datetime
+        except AttributeError:
+            return None
+
+    @property
+    def end_datetime(self):
+        try:
+            return self._end_datetime
+        except AttributeError:
+            return None
 
     def _validate_sortable(self, sortable):
         if sortable is None:

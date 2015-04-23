@@ -316,3 +316,67 @@ def config_set(key, value):
 def config_get_all():
     session = get_session()
     return session.query(models.Config).all()
+
+
+def service_status_create_or_update(binary, hostname, state):
+    session = get_session()
+    with session.begin():
+        service = session.query(models.ServiceStatus). \
+                filter(models.ServiceStatus.binary == binary). \
+                filter(models.ServiceStatus.hostname == hostname). \
+                with_lockmode('update'). \
+                first()
+
+        if service is None:
+            service = models.ServiceStatus(
+                binary=binary,
+                hostname=hostname,
+                state=state,
+            )
+        else:
+            service.state = state
+        service.updated_at = timeutils.local_now()
+        session.add(service)
+    return service
+
+
+def service_status_get_all(search_dict={}, sorts=[]):
+    query = _model_complict_query(models.ServiceStatus, search_dict, sorts)
+    return query
+
+
+def service_history_create(binary, hostname, start_at, end_at, duration):
+    session = get_session()
+    with session.begin():
+        history = models.ServiceHistory(
+            binary=binary,
+            hostname=hostname,
+            start_at=start_at,
+            end_at=end_at,
+            duration=duration,
+        )
+        session.add(history)
+    return history
+
+
+def service_history_note(id_, note):
+    session = get_session()
+    with session.begin():
+        history = session.query(models.ServiceHistory). \
+                filter(models.ServiceHistory.id == id_).first()
+
+        if history:
+            history.note = note
+            session.add(history)
+
+        return history
+
+
+def service_history_get_all(search_dict={}, sorts=[], start=None, end=None):
+    query = _model_complict_query(models.ServiceHistory, search_dict, sorts)
+    if start:
+        query = query.filter(models.ServiceHistory.start_at >= start)
+
+    if end:
+        query = query.filter(models.ServiceHistory.end_at <= end)
+    return query

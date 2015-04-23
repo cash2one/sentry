@@ -54,6 +54,8 @@ def do_revision(config, cmd):
 
 def do_shell(config, cmd):
     try:
+        import eventlet
+        eventlet.monkey_patch(os=False)
         import IPython
         IPython.embed()
     except ImportError:

@@ -155,8 +155,8 @@ CLIENT = None
 
 def get_client():
     """Get NCM client object, return None if config are not valid."""
-    if not all(CONF.ncm_host, CONF.ncm_port,
-               CONF.ncm_access_key, CONF.ncm_secret_key):
+    if not (CONF.ncm_host and CONF.ncm_port and
+               CONF.ncm_access_key and CONF.ncm_secret_key):
         return None
 
     global CLIENT

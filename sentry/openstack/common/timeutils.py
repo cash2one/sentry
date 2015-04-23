@@ -111,7 +111,7 @@ def utcnow_ts():
 
 
 def local_now():
-    return tz_utc_to_local(datetime.datetime.now())
+    return tz_utc_to_local(datetime.datetime.utcnow())
 
 
 def utcnow():

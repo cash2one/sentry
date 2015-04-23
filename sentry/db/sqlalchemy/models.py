@@ -305,3 +305,45 @@ class Config(BASE, BaseModel):
 
     def __repr__(self):
         return '<Config %s = %s>' % (self.key, self.value)
+
+
+class ServiceStatus(BASE, BaseModel):
+
+    __tablename__ = 'service_status'
+    __table_args__ = (
+        Index('ss_binary_hostname_idx', 'binary', 'hostname'),
+        Index('ss_hostname_idx', 'hostname'),
+        Index('ss_state_idx', 'state'),
+    )
+
+    binary = Column(String(32))
+    hostname = Column(String(50))
+    updated_at = Column(LocalDateTime(), default=timeutils.utcnow)
+    state = Column(String(10))
+
+    def __repr__(self):
+        return '<ServiceStatus %s- %s: %s>' % (self.binary,
+                                               self.hostname,
+                                               self.state)
+
+
+class ServiceHistory(BASE, BaseModel):
+
+    __tablename__ = 'service_history'
+    __table_args__ = (
+        Index('sh_binary_hostname_idx', 'binary', 'hostname'),
+        Index('sh_hostname_idx', 'hostname'),
+    )
+
+    binary = Column(String(32))
+    hostname = Column(String(50))
+    start_at = Column(LocalDateTime())
+    end_at = Column(LocalDateTime())
+    # In seconds
+    duration = Column(Integer())
+    note = Column(Text())
+
+    def __repr__(self):
+        return '<ServiceHistory %s- %s: %s>' % (self.binary,
+                                                self.hostname,
+                                                self.duration)

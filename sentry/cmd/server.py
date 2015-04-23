@@ -16,15 +16,12 @@ if os.path.exists(os.path.join(possible_topdir, 'sentry', '__init__.py')):
     sys.path.insert(0, possible_topdir)
 
 import eventlet
-import logging as std_logging
-from oslo.config import cfg
 
 from sentry.common import config
-from sentry.notification import manager
+from sentry import daemon
 from sentry.openstack.common import log
 
 LOG = log.getLogger(__name__)
-CONF = cfg.CONF
 
 
 def main():
@@ -32,8 +29,5 @@ def main():
     log.setup('sentry')
     eventlet.monkey_patch(os=False)
 
-    mgr = manager.Manager()
-    # After manager instantiated, some handler will be imported
-    CONF.log_opt_values(LOG, std_logging.DEBUG)
-    mgr.run_server()
-    mgr.wait()
+    dd = daemon.GreenletDaemon()
+    dd.wait()
