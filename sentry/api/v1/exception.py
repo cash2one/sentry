@@ -7,7 +7,7 @@ from sentry.db import api as dbapi
 
 route = v1app.route
 
-SEARCHABLE = []
+SEARCHABLE = ['on_process']
 SORTABLE = ["count", "exception_name", 'last_time', 'on_process', 'service',
             'no']
 MAPPER = {'exception_name': 'exc_class', 'service': 'binary',

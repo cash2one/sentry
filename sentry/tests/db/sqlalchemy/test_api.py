@@ -222,6 +222,18 @@ class ExcInfoDBAPITests(test.DBTestCase):
         query = api.exc_info_get_all({'exc_class': 'NoExisted'})
         self.assertEqual(query.count(), 0)
 
+    def test_exc_info_get_all_default_return_not_on_process(self):
+        error1 = self._create_exception(exc_class='Error1')
+        api.exc_info_update(error1.uuid, {'on_process': True})
+        error2 = self._create_exception(exc_class='Error2')
+
+        query = api.exc_info_get_all()
+        self.assertEqual(
+            query.count(), 1,
+            "Query should only return !on_process exceptions"
+        )
+        self.assertEqual(query.first().uuid, error2.uuid)
+
     def test_exc_info_get_all_boolean(self):
         exc = self._create_exception(exc_class='ValueError')
         api.exc_info_update(exc.uuid, {'on_process': True})
@@ -248,7 +260,7 @@ class ExcInfoDBAPITests(test.DBTestCase):
     def test_exc_info_update(self):
         exc_detail = self._create_exception()
         api.exc_info_update(exc_detail.uuid, {'on_process': True})
-        updated = api.exc_info_get_all({'uuid': exc_detail.uuid})[0]
+        updated = api.exc_info_get_all({'on_process': True})[0]
         self.assertEqual(updated.on_process, True)
 
     def test_exc_info_detail_get_by_uuid_and_number_ok(self):

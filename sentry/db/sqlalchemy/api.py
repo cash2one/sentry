@@ -65,6 +65,9 @@ def _normalize_search_dict(model, search_dict):
         column = columns[key]
 
         if isinstance(column.type, Boolean):
+            # Convert anything to string
+            value = str(value)
+
             if value.lower() in ('1', 't', 'true', 'on', 'y', 'yes'):
                 new_value = True
             else:
@@ -181,6 +184,12 @@ def _refresh_exc_info_count(exc_info_id):
 
 
 def exc_info_get_all(search_dict=None, sorts=None):
+    # Default only return not on_process exceptions
+    if search_dict is None:
+        search_dict = {'on_process': False}
+    elif isinstance(search_dict, dict):
+        search_dict.setdefault('on_process', False)
+
     return _model_complict_query(models.ExcInfo, search_dict, sorts)
 
 
