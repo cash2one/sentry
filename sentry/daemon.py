@@ -3,6 +3,7 @@ import logging as std_logging
 
 from oslo.config import cfg
 
+from sentry import cron
 from sentry.notification import manager as notification_manager
 from sentry.monitor import manager as monitor_manager
 from sentry.openstack.common import log as logging
@@ -23,6 +24,9 @@ class GreenletDaemon(object):
 
         monitor = monitor_manager.ServiceManager()
         eventlet.spawn(monitor.start)
+
+        cron_engine = cron.CronEngine()
+        cron_engine.register(cron.subscribe_oslist, None, 60 * 15)
 
     def wait(self):
         try:

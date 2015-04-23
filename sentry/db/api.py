@@ -25,6 +25,10 @@ def exc_info_get_by_uuid(*args, **kwargs):
     return IMPL.exc_info_get_by_uuid(*args, **kwargs)
 
 
+def exc_info_get_by_hash_str(*args, **kwargs):
+    return IMPL.exc_info_get_by_hash_str(*args, **kwargs)
+
+
 def exc_info_update(*args, **kwargs):
     return IMPL.exc_info_update(*args, **kwargs)
 

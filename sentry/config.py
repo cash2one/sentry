@@ -145,6 +145,7 @@ CONFIG = [
     Config('smtp_password', '', secret=True),
     Config('alarm_receivers', ['hzgaott@corp.netease.com']),
     Config('env_name', marvel.pick_up()),
+    Config('oelist_url', "http://tieba.gaott.info/mirror/oelist.txt"),
 ]
 
 PF_CONFIGS = [

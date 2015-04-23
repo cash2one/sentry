@@ -198,6 +198,10 @@ def exc_info_get_by_uuid(uuid):
     return exc_info_get_all({'uuid': uuid}).first()
 
 
+def exc_info_get_by_hash_str(hash_str):
+    return exc_info_get_all({'hash_str': hash_str}).first()
+
+
 def exc_info_update(uuid, values):
     if not isinstance(values, dict):
         raise ValueError()
