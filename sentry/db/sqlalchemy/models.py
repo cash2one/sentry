@@ -178,6 +178,8 @@ class ExcInfo(BASE, BaseModel):
               'binary'),
         Index('exc_info_idx',
               'exc_class', 'file_path', 'func_name', 'lineno'),
+        Index('exc_info_hash_str',
+              'hash_str'),
     )
 
     last_time = Column(LocalDateTime())
@@ -195,6 +197,10 @@ class ExcInfo(BASE, BaseModel):
     note = Column(Text())
     shutup_start = Column(LocalDateTime())
     shutup_end = Column(LocalDateTime())
+
+    # md5 checksum of an exception
+    # includes: [exc_class, file_path, func_name, lineno]
+    hash_str = Column(String(32))
 
     def __repr__(self):
         return ('<ExcInfo: %(exc_cls)s, count: %(count)s>' %

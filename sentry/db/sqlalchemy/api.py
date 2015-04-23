@@ -1,4 +1,5 @@
 import sys
+import md5
 
 from sqlalchemy import func
 from sqlalchemy import Boolean, Integer
@@ -242,6 +243,15 @@ def _exc_info_detail_get_by_id(id_):
     return detail
 
 
+def exc_info_get_hash_str(exc_info):
+    base = md5.md5()
+    base.update(str(exc_info.exc_class))
+    base.update(str(exc_info.file_path))
+    base.update(str(exc_info.func_name))
+    base.update(str(exc_info.lineno))
+    return base.hexdigest()
+
+
 def exc_info_detail_create(hostname, payload, binary, exc_class, exc_value,
                            file_path, func_name, lineno, created_at):
     session = get_session()
@@ -267,6 +277,11 @@ def exc_info_detail_create(hostname, payload, binary, exc_class, exc_value,
                 func_name=func_name,
                 lineno=lineno
             )
+
+        # NOTE(gtt): backend compatible, old exc_info does not has hash_str
+        # field.
+        if not exc_info.hash_str:
+            exc_info.hash_str = exc_info_get_hash_str(exc_info)
 
         # refresh exc_info
         exc_info.last_time = created_at

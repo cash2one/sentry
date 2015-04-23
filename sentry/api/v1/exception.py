@@ -1,8 +1,12 @@
+import base64
+
 from sentry.api import utils
 from sentry.api import http_exception
 from sentry.api.bottle import request
 from sentry.api.v1 import app as v1app
 from sentry.db import api as dbapi
+
+from sentry.openstack.common import jsonutils
 
 
 route = v1app.route
@@ -201,3 +205,29 @@ def detail_html(uuid):
         raise http_exception.HTTPNotFound()
     from sentry.alarm import render
     return render.render_exception(error)
+
+
+@route('/exceptions/oelist', method='GET')
+def openstack_error_list():
+    db_query = dbapi.exc_info_get_all({'on_process': True})
+    oelist = []
+
+    for error in db_query.all():
+        if not error.hash_str:
+            error.hash_str = dbapi.exc_info_get_hash_str(error)
+
+        oelist.append({
+            'hash_str': error.hash_str,
+            'exc_class': error.exc_class,
+            'file_path': error.file_path,
+            'func_name': error.func_name,
+            'lineno': error.lineno,
+        })
+
+    return {'oelist': oelist, 'count': len(oelist)}
+
+
+@route('/exceptions/oelist/base64', method='GET')
+def openstack_error_list_base64():
+    json = jsonutils.dumps(openstack_error_list())
+    return base64.encodestring(json)

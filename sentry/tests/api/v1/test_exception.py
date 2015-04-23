@@ -25,6 +25,14 @@ class ExceptionAPITests(base.V1AppTest):
         ret = self.app.get('/exceptions')
         self.assertEqual(ret.status_code, 200)
 
+    def test_oelist(self):
+        ret = self.app.get('/exceptions/oelist')
+        self.assertEqual(ret.status_code, 200)
+
+    def test_oelist_base64(self):
+        ret = self.app.get('/exceptions/oelist/base64')
+        self.assertEqual(ret.status_code, 200)
+
     def test_schema(self):
         ret = self.app.get('/exceptions')
         self.assertEqual(ret.status_code, 200)

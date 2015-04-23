@@ -33,6 +33,10 @@ def exc_info_detail_get_by_uuid_and_number(*args, **kwargs):
     return IMPL.exc_info_detail_get_by_uuid_and_number(*args, **kwargs)
 
 
+def exc_info_get_hash_str(*args, **kwargs):
+    return IMPL.exc_info_get_hash_str(*args, **kwargs)
+
+
 def exc_info_detail_create(*args, **kwargs):
     return IMPL.exc_info_detail_create(*args, **kwargs)
 
