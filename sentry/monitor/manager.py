@@ -14,6 +14,8 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 monitor_opts = [
+    cfg.BoolOpt("enabled", default=False,
+            help="Whether enable OpenStack RPC probering."),
     cfg.IntOpt("refresh_interval", default=30,
             help="The interval in seconds monitor fetchs queues from rabbit"),
     cfg.IntOpt("prober_interval", default=20,
@@ -161,6 +163,9 @@ class ServiceManager(object):
         self.interval_s = CONF.monitor.refresh_interval
 
     def start(self):
+        if not CONF.monitor.enabled:
+            LOG.info("Monitor is disabled.")
+            return
         while True:
             try:
                 self._refresh_services()

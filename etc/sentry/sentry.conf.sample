@@ -668,6 +668,9 @@
 # Options defined in sentry.monitor.manager
 #
 
+# Whether enable OpenStack RPC probering. (boolean value)
+#enabled=false
+
 # The interval in seconds monitor fetchs queues from rabbit
 # (integer value)
 #refresh_interval=30
