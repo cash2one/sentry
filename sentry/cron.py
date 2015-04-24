@@ -66,8 +66,9 @@ def subscribe_oslist():
     oelist = jsonutils.loads(oelist_json)
     for error in oelist['oelist']:
         hash_str = error['hash_str']
-        LOG.debug("Error in hash_str: %s set on_process to True.")
         db_error = dbapi.exc_info_get_by_hash_str(hash_str)
-        dbapi.exc_info_update(db_error.uuid, {'on_process': True})
+        if db_error:
+            LOG.debug("Error in hash_str: %s set on_process to True.")
+            dbapi.exc_info_update(db_error.uuid, {'on_process': True})
 
     LOG.info("Subscribe oelist done.")
