@@ -266,6 +266,20 @@ class RequestQuery(object):
         If key is not existed in body, and default is given, then return
         the default, otherwise raise http_exceptions.
         """
+        json_body = self.json()
+
+        try:
+            return json_body[key]
+        except KeyError:
+            if default:
+                return default
+            else:
+                msg = "%s must given." % key
+                raise http_exception.HTTPBadRequest(msg)
+
+    def json(self):
+        """Return json from request, also return friendly response when
+        json is invalid"""
         try:
             if not self.request.json:
                 msg = ('No body. Are you miss header "'
@@ -275,11 +289,4 @@ class RequestQuery(object):
             msg = ('Invalid json body')
             raise http_exception.HTTPBadRequest(msg)
 
-        try:
-            return self.request.json[key]
-        except KeyError:
-            if default:
-                return default
-            else:
-                msg = "%s must given." % key
-                raise http_exception.HTTPBadRequest(msg)
+        return self.request.json
