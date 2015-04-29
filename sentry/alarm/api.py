@@ -111,11 +111,17 @@ class AlarmAPI(object):
                 return
 
             LOG.info("Setting off exception: %s" % exc_info_detail)
-            title = ('%s | %s | %s' % (config.get_config('env_name'),
-                                       exc_info_detail.hostname,
+
+            env = config.get_config('env_name')
+            hostname = exc_info_detail.hostname
+
+            title = ('%s | %s | %s' % (env,
+                                       hostname,
                                        exc_info_detail.exc_value))
             html_content = render.render_exception(exc_info_detail)
-            self._call_drivers('set_off', title, html_content)
+
+            self._call_drivers('set_off', title, html_content,
+                               env=env, hostname=hostname)
 
         _alarm_exception()
 

@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 class EmailDriver(base.BaseAlarmDriver):
 
-    def set_off(self, title, content):
+    def set_off(self, title, content, **headers):
         LOG.debug("Sending email: '%s'" % title)
         # NOTE(gtt): Yes, each seting off will construct a new object.
         # FIXME: make a connection pool.
@@ -22,7 +22,8 @@ class EmailDriver(base.BaseAlarmDriver):
                              ssl=config.get_config('smtp_ssl'))
 
         try:
-            sender.send(config.get_config('alarm_receivers'), title, content)
+            sender.send(config.get_config('alarm_receivers'), title, content,
+                        **headers)
         except Exception:
             LOG.exception('Sending mail: %s failed.' % title)
         else:
@@ -67,7 +68,7 @@ class EmailSender(object):
         except Exception:
             pass
 
-    def send(self, to_addrs, title, content):
+    def send(self, to_addrs, title, content, **headers):
         """Send email, retries max to 5 times, if failed in the end raises"""
 
         # NOTE(gtt): Retry 5 times is enougth.
@@ -81,6 +82,11 @@ class EmailSender(object):
                 mime['Subject'] = title
                 mime['From'] = from_addr
                 mime['To'] = ';'.join(to_addrs)
+
+                if headers:
+                    for key, value in headers.iteritems():
+                        sentry_key = 'X-Sentry-%s' % key.capitalize()
+                        mime.add_header(sentry_key, value)
 
                 self.smtp.sendmail(from_addr, to_addrs, mime.as_string())
                 break
