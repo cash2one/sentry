@@ -143,7 +143,7 @@ CONFIG = [
     Config('smtp_ssl', True),
     Config('smtp_username', ''),
     Config('smtp_password', '', secret=True),
-    Config('alarm_receivers', ['hzgaott@corp.netease.com']),
+    Config('alarm_receivers', ['nvs-log@hz.netease.com']),
     Config('env_name', marvel.pick_up()),
     Config('oelist_url', "http://tieba.gaott.info/mirror/oelist.txt"),
 ]
