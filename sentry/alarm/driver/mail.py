@@ -1,5 +1,6 @@
 # -*- coding:utf8 -*-
 import smtplib
+import eventlet
 from email.mime import text
 
 from sentry import config
@@ -19,6 +20,7 @@ class EmailDriver(base.BaseAlarmDriver):
                              config.get_config('smtp_username'),
                              config.get_config('smtp_password'),
                              ssl=config.get_config('smtp_ssl'))
+
         try:
             sender.send(config.get_config('alarm_receivers'), title, content)
         except Exception:
@@ -60,17 +62,39 @@ class EmailSender(object):
             raise
 
     def close(self):
-        self.smtp.close()
+        try:
+            self.smtp.close()
+        except Exception:
+            pass
 
     def send(self, to_addrs, title, content):
-        self.connect()
-        self.login()
+        """Send email, retries max to 5 times, if failed in the end raises"""
 
-        from_addr = self.sender
-        mime = text.MIMEText(content, _subtype='html', _charset='utf8')
-        mime['Subject'] = title
-        mime['From'] = from_addr
-        mime['To'] = ';'.join(to_addrs)
+        # NOTE(gtt): Retry 5 times is enougth.
+        for retry in xrange(5):
+            try:
+                self.connect()
+                self.login()
 
-        self.smtp.sendmail(from_addr, to_addrs, mime.as_string())
-        self.close()
+                from_addr = self.sender
+                mime = text.MIMEText(content, _subtype='html', _charset='utf8')
+                mime['Subject'] = title
+                mime['From'] = from_addr
+                mime['To'] = ';'.join(to_addrs)
+
+                self.smtp.sendmail(from_addr, to_addrs, mime.as_string())
+                break
+
+            except Exception as ex:
+                if retry >= 4:
+                    raise
+
+                wait = 2 * retry
+                LOG.error('Sending mail: %s failed. Exception: %s, wait %s' %
+                          (title, ex, wait))
+
+                eventlet.sleep(wait)
+                continue
+
+            finally:
+                self.close()
