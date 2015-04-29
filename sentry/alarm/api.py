@@ -15,7 +15,7 @@ LOG = logging.getLogger(__name__)
 
 alarm_opts = [
     cfg.ListOpt('alarm_driver_classes',
-                default=["sentry.alarm.driver.base.LogAlarmDriver"],
+                default=["sentry.alarm.driver.mail.EmailDriver"],
                 help="A list contains the class of alarm driver."),
     cfg.IntOpt('alarm_quiet_seconds',
                default=600,

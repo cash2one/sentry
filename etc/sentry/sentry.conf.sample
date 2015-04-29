@@ -168,7 +168,7 @@
 #
 
 # A list contains the class of alarm driver. (list value)
-#alarm_driver_classes=sentry.alarm.driver.base.LogAlarmDriver
+#alarm_driver_classes=sentry.alarm.driver.mail.EmailDriver
 
 # In quiet seconds the same alarm does not set off. (integer
 # value)

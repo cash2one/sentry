@@ -4,13 +4,18 @@ import eventlet
 from email.mime import text
 
 from sentry import config
-from sentry.alarm.driver import base
+from sentry.alarm.driver import interface
 from sentry.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
 
 
-class EmailDriver(base.BaseAlarmDriver):
+class EmailDriver(interface.BaseAlarmDriver):
+    """Sending alarm email driver.
+
+    Only when `smtp_host`, `smtp_username`, `smtp_password` are given, it sends
+    email to stmp server, otherwise logging the MIME text content.
+    """
 
     def set_off(self, title, content, **headers):
         LOG.debug("Sending email: '%s'" % title)
@@ -42,6 +47,9 @@ class EmailSender(object):
         self.smtp = None
         self.sender = self._get_sender_name(self.host)
 
+    def _valid_config(self):
+        return (self.host and self.username and self.password)
+
     def _get_sender_name(self, domain):
         suffix = self.host.split('.', 1)[-1]
         return '%s@%s' % (self.username, suffix)
@@ -68,27 +76,39 @@ class EmailSender(object):
         except Exception:
             pass
 
+    def _make_mime(self, to_addrs, title, content, **headers):
+        from_addr = self.sender
+        mime = text.MIMEText(content, _subtype='html', _charset='utf8')
+        mime['Subject'] = title
+        mime['From'] = from_addr
+        mime['To'] = ';'.join(to_addrs)
+
+        if headers:
+            for key, value in headers.iteritems():
+                sentry_key = 'X-Sentry-%s' % key.capitalize()
+                mime.add_header(sentry_key, value)
+
+        return mime
+
     def send(self, to_addrs, title, content, **headers):
         """Send email, retries max to 5 times, if failed in the end raises"""
 
         # NOTE(gtt): Retry 5 times is enougth.
         for retry in xrange(5):
             try:
-                self.connect()
-                self.login()
-
                 from_addr = self.sender
-                mime = text.MIMEText(content, _subtype='html', _charset='utf8')
-                mime['Subject'] = title
-                mime['From'] = from_addr
-                mime['To'] = ';'.join(to_addrs)
+                mime = self._make_mime(to_addrs, title, content, **headers)
 
-                if headers:
-                    for key, value in headers.iteritems():
-                        sentry_key = 'X-Sentry-%s' % key.capitalize()
-                        mime.add_header(sentry_key, value)
+                if not self._valid_config():
+                    # Fake send
+                    LOG.info("'smtp_*' config was not specified, Fake mail.")
+                    LOG.info(str(mime))
+                else:
+                    # Real send
+                    self.connect()
+                    self.login()
+                    self.smtp.sendmail(from_addr, to_addrs, mime.as_string())
 
-                self.smtp.sendmail(from_addr, to_addrs, mime.as_string())
                 break
 
             except Exception as ex:
