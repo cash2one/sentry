@@ -114,6 +114,7 @@ class AlarmAPI(object):
 
             env = config.get_config('env_name')
             hostname = exc_info_detail.hostname
+            binary = exc_info_detail.binary
 
             title = ('%s | %s | %s' % (env,
                                        hostname,
@@ -121,7 +122,7 @@ class AlarmAPI(object):
             html_content = render.render_exception(exc_info_detail)
 
             self._call_drivers('set_off', title, html_content,
-                               env=env, hostname=hostname)
+                               env=env, hostname=hostname, binary=binary)
 
         _alarm_exception()
 
