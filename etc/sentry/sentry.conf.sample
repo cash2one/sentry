@@ -150,20 +150,6 @@
 
 
 #
-# Options defined in sentry.rabbit_admin
-#
-
-# The rabbit_admin page url. (integer value)
-#rabbit_admin_port=55672
-
-# The rabbit admin user id. (string value)
-#rabbit_admin_userid=$rabbit_userid
-
-# The rabbit admin user password. (string value)
-#rabbit_admin_password=$rabbit_password
-
-
-#
 # Options defined in sentry.alarm.api
 #
 
@@ -663,6 +649,20 @@
 
 
 [monitor]
+
+#
+# Options defined in sentry.rabbit_admin
+#
+
+# The rabbit_admin page url. (integer value)
+#rabbit_admin_port=55672
+
+# The rabbit admin user id. (string value)
+#rabbit_admin_userid=$rabbit_userid
+
+# The rabbit admin user password. (string value)
+#rabbit_admin_password=$rabbit_password
+
 
 #
 # Options defined in sentry.monitor.manager

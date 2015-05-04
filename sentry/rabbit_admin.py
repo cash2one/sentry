@@ -26,7 +26,7 @@ rabbit_admin_opts = [
     cfg.StrOpt("rabbit_admin_password", default="$rabbit_password",
                help="The rabbit admin user password."),
 ]
-CONF.register_opts(rabbit_admin_opts)
+CONF.register_opts(rabbit_admin_opts, 'monitor')
 
 
 class RabbitQueue(object):
