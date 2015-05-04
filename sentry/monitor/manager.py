@@ -176,10 +176,18 @@ class ServiceManager(object):
 
     def _get_services_set(self):
         services = []
-        for queue in self.rabbit_api.get_queues():
+        try:
+            raw_queues = self.rabbit_api.get_queues()
+        except Exception as ex:
+            msg = 'Connect to RabbitMQ management failed: %s' % ex
+            LOG.exception(msg)
+            return []
+
+        for queue in raw_queues:
             service = self._parse_queue_name(queue.name)
             if service:
                 services.append(service)
+
         return services
 
     def _parse_queue_name(self, queue_name):

@@ -61,6 +61,9 @@ class RabbitAdminClient(object):
         self.root_url = url
         self.password = password
 
+    def __repr__(self):
+        return "<RabbitMQ: %s@%s>" % (self.username, self.root_url)
+
     def _url(self, uri):
         return urlparse.urljoin(self.root_url, uri)
 
@@ -96,10 +99,20 @@ class RabbitAPI(object):
     def __init__(self):
         self._client = None
 
+    def _valid_client(self, client):
+        try:
+            client.ping()
+        except urllib2.URLError as ex:
+            LOG.warn("Ping %s failed: %s" % (client, ex))
+            return False
+        else:
+            return True
+
     @property
     def rabbit_client(self):
         if self._client:
-            return self._client
+            if self._valid_client(self._client):
+                return self._client
 
         for i in xrange(len(CONF.rabbit_hosts)):
             rabbit_url = CONF.rabbit_hosts[i]
@@ -107,24 +120,21 @@ class RabbitAPI(object):
                 host = rabbit_url.split(':')[0]
             else:
                 host = rabbit_url
-            url = 'http://%s:%s' % (host, CONF.rabbit_admin_port)
+            url = 'http://%s:%s' % (host, CONF.monitor.rabbit_admin_port)
             LOG.debug("Attemping rabbit admin at %s" % url)
-            client = RabbitAdminClient(
-                url, CONF.rabbit_admin_userid, CONF.rabbit_admin_password
-            )
+            client = RabbitAdminClient(url,
+                                       CONF.monitor.rabbit_admin_userid,
+                                       CONF.monitor.rabbit_admin_password)
 
-            try:
-                client.ping()
-            except urllib2.URLError as ex:
-                LOG.warn("Rabbit admin at %s failed: %s, pick another." %
-                         (url, ex))
+            if not self._valid_client(client):
                 continue
 
             LOG.debug("Pick Rabbit admin at %s" % url)
             self._client = client
             return self._client
 
-        raise Exception("RabbitMQ management plugin not available.")
+        raise Exception("RabbitMQ management plugin not available. "
+                        "Please make sure rabbitmq_management was enabled.")
 
     def get_queues(self):
         json = self.rabbit_client.get_queues()
