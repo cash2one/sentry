@@ -5,7 +5,7 @@ from sentry.openstack.common import context
 CONF = cfg.CONF
 rpc_opts = [
     cfg.IntOpt('rpc_timeout',
-               default=10,
+               default=30,
                help="The timeout in second for RPC calling.")
 ]
 CONF.register_opts(rpc_opts, 'monitor')
