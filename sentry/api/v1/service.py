@@ -10,11 +10,13 @@ SEARCHABLE = [
     'state',
     'hostname',
 ]
+
 SORTABLE = [
     "binary",
     "state",
     'hostname',
 ]
+
 MAPPER = {}
 
 

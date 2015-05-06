@@ -8,9 +8,13 @@ from sentry.api import http_exception
 
 route = v1app.route
 
-SORTABLE = ['title', 'count']
-SEARCHABLE = ['type']
-MAPPER = {'title': 'exc_class'}
+SORTABLE = [
+    "title",
+    "count",
+]
+
+SEARCHABLE = ["type"]
+MAPPER = {"title": "exc_class"}
 
 
 def exception_alarm_viewer(page):

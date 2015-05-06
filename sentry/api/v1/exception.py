@@ -5,17 +5,29 @@ from sentry.api import http_exception
 from sentry.api.bottle import request
 from sentry.api.v1 import app as v1app
 from sentry.db import api as dbapi
-
 from sentry.openstack.common import jsonutils
 
 
 route = v1app.route
 
-SEARCHABLE = ['on_process']
-SORTABLE = ["count", "exception_name", 'last_time', 'on_process', 'service',
-            'no']
-MAPPER = {'exception_name': 'exc_class', 'service': 'binary',
-          'no': 'id'}
+SEARCHABLE = [
+    'on_process'
+]
+
+SORTABLE = [
+    "count",
+    "exception_name",
+    "last_time",
+    "on_process",
+    "service",
+    'no',
+]
+
+MAPPER = {
+    'exception_name': 'exc_class',
+    'service': 'binary',
+    'no': 'id',
+}
 
 
 def _format_exception(exception_info):
