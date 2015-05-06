@@ -16,3 +16,4 @@ SQLAlchemy>=0.7.8,<=0.7.99
 alembic>=0.4.1
 MySQL-python
 gunicorn==0.14.5
+Jinja2
