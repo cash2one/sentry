@@ -12,6 +12,9 @@ include sentry/alarm/templates/*.html
 include sentry/alarm/templates/*.css
 include sentry/alarm/templates/*.js
 
+recursive-include sentry/static *
+recursive-include sentry/templates/html *
+
 exclude .gitignore
 exclude .gitreview
 

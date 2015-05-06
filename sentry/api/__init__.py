@@ -61,19 +61,19 @@ class Logging(glogging.Logger):
         """Log access like apache, this method is borrow from gunicorn."""
         status = resp.status.split(None, 1)[0]
         atoms = {
-            'h': environ.get('REMOTE_ADDR', '-'),
+            'ip': environ.get('REMOTE_ADDR', '-'),
             'l': '-',
             'u': '-',
             't': self.now(),
-            'r': "%s %s %s" % (environ['REQUEST_METHOD'],
-                                environ['RAW_URI'],
-                                environ["SERVER_PROTOCOL"]),
-            's': status,
-            'b': str(resp.response_length) or '-',
+            'request': "%s %s %s" % (environ['REQUEST_METHOD'],
+                               environ['RAW_URI'],
+                               environ["SERVER_PROTOCOL"]),
+            'status': status,
+            'bytes': resp.response_length or '-',
             'f': environ.get('HTTP_REFERER', '-'),
             'a': environ.get('HTTP_USER_AGENT', '-'),
             'T': str(request_time.seconds),
-            'D': str(request_time.microseconds),
+            'D': (request_time.microseconds / 1000000),
             'p': "<%s>" % os.getpid()
         }
         # add request headers
@@ -89,9 +89,20 @@ class Logging(glogging.Logger):
         atoms.update(dict([("{%s}o" % k.lower(), v)
                             for k, v in resp.headers]))
 
-        access_format = ('"%(h)s "%(r)s" %(s)s %(b)s '
-                            '"%(f)s" "%(a)s"')
+        access_format = ('%(ip)s %(request)s %(status)s %(bytes)s - %(D).2fs')
         self.error_log.info(access_format % atoms)
+
+
+def make_root_app():
+    from sentry.api import root
+    from sentry.api.v1.app import app as v1app
+    from sentry.api.web.app import app as webapp
+
+    root_app = root.app
+    root_app.mount('/v1', v1app)
+    root_app.mount('/web', webapp)
+
+    return root_app
 
 
 def run():
@@ -106,13 +117,7 @@ def run():
     import eventlet
     eventlet.monkey_patch(os=False)
 
-    from sentry.api import root
-    from sentry.api.v1.app import app as v1app
-
-    root_app = root.app
-    root_app.mount('/v1', v1app)
-    # future v2
-    #root_app.mount('/v2', v2.app)
+    root_app = make_root_app()
 
     CONF.log_opt_values(LOG, ori_logging.DEBUG)
     LOG.info("Sentry API start running.")

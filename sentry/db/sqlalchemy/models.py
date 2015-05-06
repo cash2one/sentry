@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import object_mapper
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, ForeignKey, DateTime, Boolean, Text, Index
-from sqlalchemy import String, Integer, PickleType, LargeBinary
+from sqlalchemy import String, Integer, PickleType, LargeBinary, Float
 
 from sentry import exc_models
 from sentry.openstack.common import timeutils
@@ -326,6 +326,8 @@ class ServiceStatus(BASE, BaseModel):
     hostname = Column(String(50))
     updated_at = Column(LocalDateTime(), default=timeutils.utcnow)
     state = Column(String(10))
+    # unit is second
+    response_time = Column(Float())
 
     def __repr__(self):
         return '<ServiceStatus %s- %s: %s>' % (self.binary,

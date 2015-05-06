@@ -338,13 +338,13 @@ class RabbitEngine(object):
         return amqp.call(self.conf, context, topic, msg, timeout, self.pool)
 
     def call(self, version, namespace, exchange, context, topic,
-             method, **kwargs):
+             method, timeout, **kwargs):
         payload = {}
         payload['version'] = version
         payload['namespace'] = namespace
         payload['method'] = method
         payload['args'] = kwargs
-        return self._call(context, exchange, topic, payload)
+        return self._call(context, exchange, topic, payload, timeout)
 
 
 class MessageBus(object):

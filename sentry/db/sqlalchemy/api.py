@@ -346,7 +346,7 @@ def config_get_all():
     return session.query(models.Config).all()
 
 
-def service_status_create_or_update(binary, hostname, state):
+def service_status_create_or_update(binary, hostname, state, response_time):
     session = get_session()
     with session.begin():
         service = session.query(models.ServiceStatus). \
@@ -364,6 +364,7 @@ def service_status_create_or_update(binary, hostname, state):
         else:
             service.state = state
         service.updated_at = timeutils.local_now()
+        service.response_time = response_time
         session.add(service)
     return service
 

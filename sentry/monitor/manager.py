@@ -1,3 +1,4 @@
+import time
 import re
 
 import eventlet
@@ -85,12 +86,18 @@ class Prober(object):
         )
         LOG.debug("Push to NCM successfully")
 
-    def process_status(self, status):
+    def process_status(self, status, duration):
+        """The main point to process status changes."""
+
+        # Persistent to database
         dbapi.service_status_create_or_update(
             self.checker.binary_name,
             self.checker.hostname,
             status,
+            duration,
         )
+
+        # process events
         changed = self._state.change_to(status)
         if changed:
             if (changed['old_state'] == state.CHECK_OK and
@@ -106,12 +113,18 @@ class Prober(object):
         while True:
             # Make sure run_forever will not break out
             try:
+                start = time.time()
                 status = self.checker.check_status()
-                msg = '%s check result: %s, sleep %ss' % (self,
-                                                          status,
-                                                          self.interval_s)
+                end = time.time()
+                duration = end - start
+
+                msg = ('%(name)s check result: %(status)s '
+                       'duration: %(duration).3f, sleep %(sleep)ss' %
+                       {'name': self, 'status': status,
+                        'duration': duration, 'sleep': self.interval_s})
                 LOG.debug(msg)
-                self.process_status(status)
+
+                self.process_status(status, duration)
 
             except Exception:
                 msg = '%s check failed.' % self

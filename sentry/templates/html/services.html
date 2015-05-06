@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Services<a href="javascript:location.reload()" class="btn btn-default pull-right">Refresh</a></h1>
+<hr/>
+
+<div class="">
+  <table class="table table-striped datatable">
+    <thead>
+      <tr>
+        <th>Binary</th>
+        <th>Hostname</th>
+        <th>Status</th>
+        <th>RT(s)</th>
+        <th>Last</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for service in services %}
+      <tr>
+        <td>{{ service.binary }}</td>
+        <td><a href="services/{{ service.hostname }}">{{ service.hostname }}</a></td>
+        <td>
+          {% if service.state == 'success' %}
+          <span class="label label-success">{{ service.state }}</span>
+          {% elif service.state == 'timeout' %}
+          <span class="label label-warning">{{ service.state }}</span>
+          {% elif service.state == 'failed' %}
+          <span class="label label-danger">{{ service.state }}</span>
+          {% endif %} 
+        </td>
+        <td>{{ '%.3f' % service.response_time }}</td>
+        <td>{{ service.updated_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
