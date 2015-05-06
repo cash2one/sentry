@@ -19,7 +19,7 @@ CONF.import_opt('rabbit_userid', 'sentry.openstack.common.rpc.impl_kombu')
 CONF.import_opt('rabbit_password', 'sentry.openstack.common.rpc.impl_kombu')
 
 rabbit_admin_opts = [
-    cfg.IntOpt("rabbit_admin_port", default=55672,
+    cfg.IntOpt("rabbit_admin_port", default=15672,
                help="The rabbit_admin page url."),
     cfg.StrOpt("rabbit_admin_userid", default="$rabbit_userid",
                help="The rabbit admin user id."),

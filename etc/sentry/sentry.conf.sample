@@ -655,7 +655,7 @@
 #
 
 # The rabbit_admin page url. (integer value)
-#rabbit_admin_port=55672
+#rabbit_admin_port=15672
 
 # The rabbit admin user id. (string value)
 #rabbit_admin_userid=$rabbit_userid
