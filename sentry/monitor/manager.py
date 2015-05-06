@@ -4,6 +4,7 @@ import re
 import eventlet
 from oslo.config import cfg
 
+from sentry import ncm
 from sentry.db import api as dbapi
 from sentry.alarm import api as alarm_api
 from sentry.monitor import checkers
@@ -47,10 +48,12 @@ class Prober(object):
         eventlet.sleep(0)
         self.running = True
 
-    def process_failed(self, changed):
-        pass
+    def on_service_failed(self, changed):
+        self.alarm_api.alarm_service_changed(self.checker.hostname,
+                                             self.checker.binary_name,
+                                             changed['new_state'])
 
-    def process_regain(self, changed):
+    def on_service_recovered(self, changed):
         dbapi.service_history_create(
             self.checker.binary_name,
             self.checker.hostname,
@@ -62,31 +65,22 @@ class Prober(object):
                                              self.checker.binary_name,
                                              changed['new_state'])
 
-    def push_ncm(self, status):
-        from sentry import ncm
+    def push_to_ncm(self, response_time):
+        ncm.push_rpc_response_time(response_time,
+                                   self.checker.hostname,
+                                   self.checker.binary_name)
 
-        ncmclient = ncm.get_client()
-        if not ncmclient:
-            LOG.warn("NCM Client is disabled, do not push metric.")
-            return
+    @staticmethod
+    def _state_ok_to_other(changed):
+        return (changed['old_state'] == state.CHECK_OK and
+                changed['new_state'] != state.CHECK_OK)
 
-        metric_value_map = {state.CHECK_OK: 0,
-                            state.CHECK_TIMEOUT: 1,
-                            state.CHECK_FAILED: 2}
-        metric_name = 'service_status'
-        metric_value = metric_value_map[status]
-        dimension_name = 'service'
-        dimension_value = '%s:%s' % (self.checker.hostname,
-                                     self.checker.binary_name)
-        ncmclient.post_metric(
-            metric_name, metric_value, dimension_name,
-            dimension_value,
-            {'hostname': self.checker.hostname,
-             'binary': self.checker.binary_name}
-        )
-        LOG.debug("Push to NCM successfully")
+    @staticmethod
+    def _state_other_to_ok(changed):
+        return (changed['old_state'] != state.CHECK_OK and
+                changed['new_state'] == state.CHECK_OK)
 
-    def process_status(self, status, duration):
+    def process_status(self, status, response_time):
         """The main point to process status changes."""
 
         # Persistent to database
@@ -94,20 +88,20 @@ class Prober(object):
             self.checker.binary_name,
             self.checker.hostname,
             status,
-            duration,
+            response_time,
         )
 
-        # process events
+        # process state changing
         changed = self._state.change_to(status)
+
         if changed:
-            if (changed['old_state'] == state.CHECK_OK and
-                            changed['new_state'] != state.CHECK_OK):
-                self.process_failed(changed)
-            elif (changed['old_state'] != state.CHECK_OK and
-                            changed['new_state'] == state.CHECK_OK):
-                self.process_regain(changed)
+            if self._state_ok_to_other(changed):
+                self.on_service_failed(changed)
+            elif self._state_other_to_ok(changed):
+                self.on_service_recovered(changed)
+
         self.last_status = status
-        self.push_ncm(status)
+        self.push_to_ncm(response_time)
 
     def _run_forever(self):
         while True:
@@ -116,15 +110,15 @@ class Prober(object):
                 start = time.time()
                 status = self.checker.check_status()
                 end = time.time()
-                duration = end - start
+                response_time = end - start
 
                 msg = ('%(name)s check result: %(status)s '
                        'duration: %(duration).3f, sleep %(sleep)ss' %
                        {'name': self, 'status': status,
-                        'duration': duration, 'sleep': self.interval_s})
+                        'duration': response_time, 'sleep': self.interval_s})
                 LOG.debug(msg)
 
-                self.process_status(status, duration)
+                self.process_status(status, response_time)
 
             except Exception:
                 msg = '%s check failed.' % self
@@ -144,9 +138,9 @@ class Prober(object):
 
 
 class ServiceManager(object):
-    """The boss who controls the main monitor logic
+    """The boss who controls the main monitoring logic.
 
-    In this context, checker to service is one to one mapping.
+    Under this context, checker to service is one to one mapping.
     """
 
     SERVICE_CHECK_MAPPER = [

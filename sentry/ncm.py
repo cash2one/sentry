@@ -13,6 +13,7 @@ from oslo.config import cfg
 from sentry.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
+
 CONF = cfg.CONF
 ncm_opts = [
     cfg.StrOpt('ncm_host',
@@ -165,3 +166,24 @@ def get_client():
                          CONF.ncm_namespace, CONF.ncm_access_key,
                          CONF.ncm_secret_key)
     return CLIENT
+
+
+def push_rpc_response_time(response_time, hostname, binary_name):
+    client = get_client()
+    if not client:
+        LOG.warn("NCM Client is disabled, do not push metric.")
+        return
+
+    metric_name = 'rpc_response_time'
+    metric_value = response_time
+    dimension_name = 'service'
+    dimension_value = '%s_%s' % (hostname, binary_name)
+    aggregation_dimension = {'hostname': hostname, 'binary': binary_name}
+
+    try:
+        client.post_metric(metric_name, metric_value, dimension_name,
+                        dimension_value, aggregation_dimension)
+    except Exception:
+        LOG.exception("Push to NCM failed.")
+    else:
+        LOG.debug("Push to NCM successfully")

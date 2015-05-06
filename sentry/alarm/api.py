@@ -127,7 +127,10 @@ class AlarmAPI(object):
         _alarm_exception()
 
     def alarm_service_changed(self, hostname, binary, status):
-        title = "%s:%s status change to: %s" % (hostname, binary, status)
-        LOG.info("Alarm service status changed: %s" % title)
+        title = "[%s: %s] status => %s" % (hostname, binary, status)
         content = title
-        self._call_drivers('set_off', title, content)
+
+        LOG.info("Alarm service status changed: %s" % title)
+
+        self._call_drivers('set_off', title, content,
+                           hostname=hostname, binary=binary)
