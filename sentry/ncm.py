@@ -142,10 +142,6 @@ class Monitor(object):
                 LOG.error("send alarm error: (status:%s):%s \ncontent:%s" %
                            (response.status, response.reason,
                             response.read().decode('utf8')))
-            else:
-                LOG.debug("do_post success")
-        except Exception as e:
-            LOG.error("do_post error with expetion: %s" % e)
 
         finally:
             if 'conn' in locals():
