@@ -30,7 +30,7 @@
           <span class="label label-danger">{{ service.state }}</span>
           {% endif %} 
         </td>
-        <td>{{ '%.3f' % service.response_time }}</td>
+        <td>{{ service.response_time }}</td>
         <td>{{ service.updated_at }}</td>
       </tr>
       {% endfor %}
