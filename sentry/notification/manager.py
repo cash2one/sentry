@@ -3,6 +3,7 @@ import eventlet
 from eventlet import greenpool
 from oslo.config import cfg
 
+from sentry import green
 from sentry import messaging
 from sentry.openstack.common import log
 from sentry.openstack.common import importutils
@@ -83,7 +84,7 @@ class Pipeline(object):
         self.pool.spawn_n(self.process, message)
 
 
-class Manager(object):
+class Manager(green.GreenletDaemon):
     """Contains a greenthread pool which fire to process incoming messags."""
 
     def __init__(self):

@@ -27,7 +27,7 @@ LOG = log.getLogger(__name__)
 def main():
     config.parse_args(sys.argv[1:])
     log.setup('sentry')
-    eventlet.monkey_patch(os=False)
 
-    dd = daemon.GreenletDaemon()
+    dd = daemon.ProcessMaster()
+    dd.start()
     dd.wait()

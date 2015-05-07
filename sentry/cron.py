@@ -5,6 +5,7 @@ import urllib2
 import eventlet
 import base64
 
+from sentry import green
 from sentry.db import api as dbapi
 from sentry import config
 from sentry.openstack.common import log as logging
@@ -36,7 +37,7 @@ class CronJob(object):
         return '<Cronjob %s>' % self.function
 
 
-class CronEngine(object):
+class CronEngine(green.GreenletDaemon):
 
     def __init__(self):
         self.pool = eventlet.GreenPool()
