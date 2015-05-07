@@ -1,4 +1,5 @@
 import time
+import datetime
 import re
 
 import eventlet
@@ -10,6 +11,7 @@ from sentry.alarm import api as alarm_api
 from sentry.monitor import checkers
 from sentry.monitor import state
 from sentry.openstack.common import log as logging
+from sentry.openstack.common import timeutils
 from sentry import rabbit_admin
 
 CONF = cfg.CONF
@@ -173,15 +175,17 @@ class ServiceManager(object):
         if not CONF.monitor.enabled:
             LOG.info("Monitor is disabled.")
             return
+
         while True:
             try:
-                self._refresh_services()
+                self.refresh_services()
+                self.clean_obsolete_services()
             except Exception:
                 LOG.exception('')
 
             eventlet.sleep(self.interval_s)
 
-    def _get_services_set(self):
+    def _get_services_from_rabbit(self):
         services = []
         try:
             raw_queues = self.rabbit_api.get_queues()
@@ -207,34 +211,41 @@ class ServiceManager(object):
             return service_cls(hostname)
 
     @property
-    def old_service_set(self):
+    def cached_services(self):
         return self.checker_prober_mapping.keys()
 
-    def _refresh_services(self):
-        services_set = self._get_services_set()
-        LOG.debug("Got services %s" % services_set)
-
-        for old in self.old_service_set:
-            if old not in services_set:
-                self._process_offline(old)
-
-        for service in services_set:
-            if service not in self.old_service_set:
-                # NOTE(gtt): avoid burst to RCP checking.
-                eventlet.sleep(1.5)
-
-                self._process_online(service)
-        LOG.info("Total %s services." % len(self.old_service_set))
-        LOG.info("%s" % self.old_service_set)
-
-    def _process_online(self, service):
+    def _on_adding_service(self, service):
         LOG.info("Online service: %s" % service)
         prober = Prober(service)
         self.checker_prober_mapping[service] = prober
         prober.start()
 
-    def _process_offline(self, service):
+    def _on_remove_service(self, service):
         LOG.info("Offline service: %s" % service)
         prober = self.checker_prober_mapping[service]
         prober.stop()
         del self.checker_prober_mapping[service]
+
+    def refresh_services(self):
+        services_set = self._get_services_from_rabbit()
+        LOG.debug("Got services %s" % services_set)
+
+        for old in self.cached_services:
+            if old not in services_set:
+                self._on_remove_service(old)
+
+        for service in services_set:
+            if service not in self.cached_services:
+                # NOTE(gtt): avoid burst to RCP checking.
+                eventlet.sleep(1.5)
+                self._on_adding_service(service)
+
+        LOG.info("Total %s services." % len(self.cached_services))
+        LOG.info("%s" % self.cached_services)
+
+    def clean_obsolete_services(self):
+        """Clean obsolete services which long time (1 hour) no update."""
+        old_timestamp = timeutils.local_now() - datetime.timedelta(hours=1)
+        db_services = dbapi.service_status_get_by_updated_at(old_timestamp)
+        LOG.info("Clean obsolete services: %s" % db_services.all())
+        db_services.delete()

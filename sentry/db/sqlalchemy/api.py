@@ -374,6 +374,12 @@ def service_status_get_all(search_dict={}, sorts=[]):
     return query
 
 
+def service_status_get_by_updated_at(older_then):
+    query = service_status_get_all()
+    query = query.filter(models.ServiceStatus.updated_at <= older_then)
+    return query
+
+
 def service_history_create(binary, hostname, start_at, end_at, duration):
     session = get_session()
     with session.begin():

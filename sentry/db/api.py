@@ -65,6 +65,10 @@ def service_status_get_all(*args, **kwargs):
     return IMPL.service_status_get_all(*args, **kwargs)
 
 
+def service_status_get_by_updated_at(*args, **kwargs):
+    return IMPL.service_status_get_by_updated_at(*args, **kwargs)
+
+
 def service_history_create(*args, **kwargs):
     return IMPL.service_history_create(*args, **kwargs)
 
