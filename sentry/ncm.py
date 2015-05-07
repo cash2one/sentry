@@ -10,6 +10,7 @@ import json
 
 from oslo.config import cfg
 
+from sentry.common import retryutils
 from sentry.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
@@ -177,8 +178,9 @@ def push_rpc_response_time(response_time, hostname, binary_name):
     aggregation_dimension = {'hostname': hostname, 'binary': binary_name}
 
     try:
-        client.post_metric(metric_name, metric_value, dimension_name,
-                        dimension_value, aggregation_dimension)
+        retryutils.retry_do(3, client.post_metric,
+                            metric_name, metric_value, dimension_name,
+                            dimension_value, aggregation_dimension)
     except Exception:
         LOG.exception("Push to NCM failed.")
     else:
