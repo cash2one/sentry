@@ -112,8 +112,8 @@ class Prober(object):
                 end = time.time()
                 response_time = end - start
 
-                msg = ('%(name)s check result: %(status)s '
-                       'duration: %(duration).3f, sleep %(sleep)ss' %
+                msg = ('%(name)s :: %(status)s, '
+                       '%(duration).3fs, sleep %(sleep)ss' %
                        {'name': self, 'status': status,
                         'duration': response_time, 'sleep': self.interval_s})
                 LOG.debug(msg)
@@ -211,7 +211,6 @@ class ServiceManager(object):
         return self.checker_prober_mapping.keys()
 
     def _refresh_services(self):
-        LOG.debug("Refresh services information.")
         services_set = self._get_services_set()
         LOG.debug("Got services %s" % services_set)
 
@@ -221,8 +220,12 @@ class ServiceManager(object):
 
         for service in services_set:
             if service not in self.old_service_set:
+                # NOTE(gtt): avoid burst to RCP checking.
+                eventlet.sleep(1.5)
+
                 self._process_online(service)
-        LOG.debug("Refresh service done.")
+        LOG.info("Total %s services." % len(self.old_service_set))
+        LOG.info("%s" % self.old_service_set)
 
     def _process_online(self, service):
         LOG.info("Online service: %s" % service)
