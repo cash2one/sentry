@@ -30,6 +30,7 @@ def format_service_status(page):
         x['state'] = db_service.state
         x['updated_at'] = db_service.updated_at
         x['hostname'] = db_service.hostname
+        x['response_time'] = db_service.response_time
         services.append(x)
     ret['services'] = services
     return ret
