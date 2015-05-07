@@ -774,7 +774,10 @@
 
     <script type="text/javascript" language="javascript">
     $(document).ready(function() {
-        $('.datatable').dataTable();
+        $('.datatable').dataTable({
+          stateSave: true,
+          "pageLength": 50,
+        });
     });
     </script>
   </body>
