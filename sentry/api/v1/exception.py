@@ -208,17 +208,6 @@ def shutup():
     return response
 
 
-@route('/exceptions/web/<uuid>', method='GET')
-def detail_html(uuid):
-    query = utils.RequestQuery(request)
-    number = query.search_get_int('number', 1)
-    error = dbapi.exc_info_detail_get_by_uuid_and_number(uuid, number)
-    if error is None:
-        raise http_exception.HTTPNotFound()
-    from sentry.alarm import render
-    return render.render_exception(error)
-
-
 @route('/exceptions/oelist', method='GET')
 def openstack_error_list():
     db_query = dbapi.exc_info_get_all({'on_process': True})
