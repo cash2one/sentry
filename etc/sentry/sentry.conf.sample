@@ -685,7 +685,7 @@
 #
 
 # The timeout in second for RPC calling. (integer value)
-#rpc_timeout=100
+#rpc_timeout=300
 
 
 [rpc_notifier2]
