@@ -3,7 +3,7 @@ from datetime import datetime
 from oslo.config import cfg
 
 from sentry import config
-from sentry.alarm import render
+from sentry.templates import jinja
 from sentry.openstack.common import log as logging
 from sentry.openstack.common import importutils
 from sentry.openstack.common import lockutils
@@ -116,10 +116,16 @@ class AlarmAPI(object):
             hostname = exc_info_detail.hostname
             binary = exc_info_detail.binary
 
-            title = ('%s | %s | %s' % (env,
-                                       hostname,
-                                       exc_info_detail.exc_value))
-            html_content = render.render_exception(exc_info_detail)
+            title = ('%s | %s | %s' %
+                     (env, hostname, exc_info_detail.exc_value))
+            pf_prefix = config.get_config('pf_prefix')
+            pf_uri = config.get_config('pf_uri') + str(exc_info_detail.uuid)
+            pf_url = '%s/%s' % (pf_prefix, pf_uri)
+
+            html_content = jinja.render('email_error.html',
+                                        exception=exc_info_detail,
+                                        environment=env,
+                                        pf_url=pf_url)
 
             self._call_drivers('set_off', title, html_content,
                                env=env, hostname=hostname, binary=binary)
