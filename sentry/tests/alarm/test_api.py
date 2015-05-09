@@ -47,3 +47,20 @@ class AlarmTimerTest(test.TestCase):
         time.sleep(3)
         self.assertTrue(self.timer.can_fire(uuid))
         self.assertTrue(self.timer.can_fire(uuid2))
+
+
+class AlarmAPI(test.DBTestCase):
+    def setUp(self):
+        super(AlarmAPI, self).setUp()
+        self.alarm = api.AlarmAPI()
+
+    def test_alarm_service_broken(self):
+        self.alarm.alarm_service_broken(
+            'hostname1', 'nova-compute-x', '2014-03-03 00:00:22', 20
+        )
+
+    def test_alarm_service_recover(self):
+        self.alarm.alarm_service_recover(
+            'hostname2', 'nova-cmpute-y', '2014-02-02 22:11:33',
+            '2013-04-04 22:33:44', 20,
+        )

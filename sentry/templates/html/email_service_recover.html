@@ -1,0 +1,33 @@
+{% extends '_email_base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block head %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<h2>详细信息</h2>
+
+<div class="box">
+  <table class="source">
+    <tr>
+      <td class="strong">异常时长：</td>
+      <td>{{ duration }}s</td>
+    </tr>
+    <tr>
+      <td class="strong">异常开始：</td>
+      <td>{{ start_at }}</td>
+    </tr>
+    <tr>
+      <td class="strong">异常结束：</td>
+      <td>{{ end_at }}</td>
+    </tr>
+    <tr>
+  </table>
+</div>
+
+{% endblock %}

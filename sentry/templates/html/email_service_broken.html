@@ -1,0 +1,29 @@
+{% extends '_email_base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block head %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<h2>详细信息</h2>
+
+<div class="box">
+  <table class="source">
+    <tr>
+      <td class="strong">异常时间：</td>
+      <td>{{ failed_at }}</td>
+    </tr>
+    <tr>
+      <td class="strong">响应时间：</td>
+      <td>{{ response_time }}</td>
+    </tr>
+    <tr>
+  </table>
+</div>
+
+{% endblock %}

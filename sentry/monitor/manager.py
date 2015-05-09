@@ -50,12 +50,18 @@ class Prober(object):
         eventlet.sleep(0)
         self.running = True
 
-    def on_service_failed(self, changed):
-        self.alarm_api.alarm_service_changed(self.checker.hostname,
-                                             self.checker.binary_name,
-                                             changed['new_state'])
+    def on_service_broken(self, changed, response_time):
+        try:
+            self.alarm_api.alarm_service_broken(
+                self.checker.hostname,
+                self.checker.binary_name,
+                changed['end_at'],  # end_at is 'success' status end timestamp.
+                response_time,
+            )
+        except Exception:
+            LOG.exception('')
 
-    def on_service_recovered(self, changed):
+    def on_service_recover(self, changed, response_time):
         dbapi.service_history_create(
             self.checker.binary_name,
             self.checker.hostname,
@@ -63,9 +69,16 @@ class Prober(object):
             changed['end_at'],
             changed['duration'],
         )
-        self.alarm_api.alarm_service_changed(self.checker.hostname,
-                                             self.checker.binary_name,
-                                             changed['new_state'])
+        try:
+            self.alarm_api.alarm_service_recover(
+                self.checker.hostname,
+                self.checker.binary_name,
+                changed['start_at'],
+                changed['end_at'],
+                changed['duration'],
+            )
+        except Exception:
+            LOG.exception('')
 
     def push_to_ncm(self, response_time):
         ncm.push_rpc_response_time(response_time,
@@ -98,9 +111,9 @@ class Prober(object):
 
         if changed:
             if self._state_ok_to_other(changed):
-                self.on_service_failed(changed)
+                self.on_service_broken(changed, response_time)
             elif self._state_other_to_ok(changed):
-                self.on_service_recovered(changed)
+                self.on_service_recover(changed, response_time)
 
         self.last_status = status
         self.push_to_ncm(response_time)

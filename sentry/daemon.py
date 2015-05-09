@@ -14,6 +14,7 @@ from sentry.openstack.common import log as logging
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
+#TODO: close children process's STDIO, STDOUT, STDERR
 
 
 class NotificationProcess(multiprocessing.Process):

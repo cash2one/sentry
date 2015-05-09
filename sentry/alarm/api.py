@@ -101,6 +101,11 @@ class AlarmAPI(object):
             func = getattr(driver, method)
             func(*args, **kwargs)
 
+    def _email_subject(self, hostname, title):
+        env = config.get_config('env_name')
+        subject = '%s | %s | %s' % (env, hostname, title)
+        return subject
+
     def alarm_exception(self, exc_info_detail):
 
         # FIXME(gtt): Race condiction here. Future will be implemented
@@ -115,9 +120,8 @@ class AlarmAPI(object):
             env = config.get_config('env_name')
             hostname = exc_info_detail.hostname
             binary = exc_info_detail.binary
+            title = self._email_subject(hostname, exc_info_detail.exc_value)
 
-            title = ('%s | %s | %s' %
-                     (env, hostname, exc_info_detail.exc_value))
             pf_prefix = config.get_config('pf_prefix')
             pf_uri = config.get_config('pf_uri') + str(exc_info_detail.uuid)
             pf_url = '%s/%s' % (pf_prefix, pf_uri)
@@ -132,11 +136,43 @@ class AlarmAPI(object):
 
         _alarm_exception()
 
-    def alarm_service_changed(self, hostname, binary, status):
-        title = "[%s: %s] status => %s" % (hostname, binary, status)
-        content = title
+    def alarm_service_broken(self, hostname, binary, failed_at, response_time):
+        """Alarm when service is broken.
 
-        LOG.info("Alarm service status changed: %s" % title)
+            nova-compute => broken
+            ========================
+
+            failed_at: 2015-01-01 22:11:22
+            response time: 200s
+
+        """
+        title = self._email_subject(hostname, '%s => broken' % binary)
+        content = jinja.render('email_service_broken.html',
+                               title=title,
+                               failed_at=failed_at,
+                               response_time=response_time)
+
+        self._call_drivers('set_off', title, content,
+                           hostname=hostname, binary=binary)
+
+    def alarm_service_recover(self, hostname, binary, start_at, end_at,
+                              duration):
+        """Alarm when service back to life:
+
+            nova-compute => recover
+            ========================
+
+            duration: 20s
+            From: 2015-02-02 00:00:00
+            To:   2015-02-02 00:12:22
+
+        """
+        title = self._email_subject(hostname, '%s => recover' % binary)
+        content = jinja.render('email_service_recover.html',
+                               title=title,
+                               start_at=start_at,
+                               end_at=end_at,
+                               duration=duration)
 
         self._call_drivers('set_off', title, content,
                            hostname=hostname, binary=binary)
