@@ -1,5 +1,4 @@
 
-import eventlet
 from eventlet import greenpool
 from oslo.config import cfg
 
@@ -80,8 +79,9 @@ class Pipeline(object):
 
         return cls(pool, real_handlers)
 
-    def __call__(self, message):
-        self.pool.spawn_n(self.process, message)
+    def __call__(self, body, message):
+        self.pool.spawn_n(self.process, body)
+        message.ack()
 
 
 class Manager(green.GreenletDaemon):
@@ -91,10 +91,10 @@ class Manager(green.GreenletDaemon):
         LOG.info("Sentry collector start running.")
         self.pool = greenpool.GreenPool(CONF.pipeline_pool_size)
 
-        self.nova_collector = messaging.nova_bus()
-        self.glance_collector = messaging.glance_bus()
-        self.neutron_collector = messaging.neutron_bus()
-        self.cinder_collector = messaging.cinder_bus()
+        self.nova_collector = messaging.create_consumer('nova')
+        self.glance_collector = messaging.create_consumer('glance')
+        self.neutron_collector = messaging.create_consumer('neutron')
+        self.cinder_collector = messaging.create_consumer('cinder')
         self.log_error_pipeline = Pipeline.create(self.pool, ['log_error'])
 
     def setup_consumers(self):
@@ -103,7 +103,6 @@ class Manager(green.GreenletDaemon):
         LOG.info("Declare nova consumers.")
         self.nova_pipeline = Pipeline.create(self.pool,
                                              CONF.nova_event_handlers)
-        self.nova_collector.connect()
         self.nova_collector.declare_consumer('notifications.info',
                                              self.nova_pipeline)
         self.nova_collector.declare_consumer('notifications.error',
@@ -114,7 +113,6 @@ class Manager(green.GreenletDaemon):
         LOG.info("Declare glance consumers")
         self.glance_pipeline = Pipeline.create(self.pool,
                                                CONF.glance_event_handlers)
-        self.glance_collector.connect()
         self.glance_collector.declare_consumer('glance_notifications.info',
                                                self.glance_pipeline)
         self.glance_collector.declare_consumer('glance_notifications.error',
@@ -125,7 +123,6 @@ class Manager(green.GreenletDaemon):
         LOG.info("Declare neutron consumers")
         self.neutron_pipeline = Pipeline.create(self.pool,
                                                 CONF.neutron_event_handlers)
-        self.neutron_collector.connect()
         self.neutron_collector.declare_consumer('neutron_notifications.info',
                                                 self.neutron_pipeline)
         self.neutron_collector.declare_consumer(
@@ -135,7 +132,6 @@ class Manager(green.GreenletDaemon):
         LOG.info("Declare cinder consumers")
         self.cinder_pipeline = Pipeline.create(self.pool,
                                                CONF.cinder_event_handlers)
-        self.cinder_collector.connect()
         self.cinder_collector.declare_consumer('cinder_notifications.info',
                                                self.cinder_pipeline)
         self.cinder_collector.declare_consumer('cinder_notifications.error',

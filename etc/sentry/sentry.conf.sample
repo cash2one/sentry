@@ -1,6 +1,91 @@
 [DEFAULT]
 
 #
+# Options defined in sentry.ncm
+#
+
+# NCM host. e.g, 127.0.0.1 (string value)
+#ncm_host=<None>
+
+# NCM port, default is 8186. (integer value)
+#ncm_port=8186
+
+# The namespace when push metric data. (string value)
+#ncm_namespace=openstack
+
+# The project_id when push metric data. (string value)
+#ncm_project_id=openstack_sentry
+
+# The access key to access to NCM. (string value)
+#ncm_access_key=<None>
+
+# The secret key to access to NCM. (string value)
+#ncm_secret_key=<None>
+
+
+#
+# Options defined in sentry.alarm.api
+#
+
+# A list contains the class of alarm driver. (list value)
+#alarm_driver_classes=sentry.alarm.driver.mail.EmailDriver
+
+# In quiet seconds the same alarm does not set off. (integer
+# value)
+#alarm_quiet_seconds=600
+
+
+#
+# Options defined in sentry.common.http_communication
+#
+
+# Retry counts when http connection failed. (integer value)
+#http_retry_count=3
+
+# Retry dealy when http connection failed. (floating point
+# value)
+#http_retry_delay=3.0
+
+
+#
+# Options defined in sentry.common.novaclient_helper
+#
+
+# Nova Client Username (string value)
+#novaclient_username=default
+
+# Nova Client Password (string value)
+#novaclient_password=default
+
+# Nova Client Project Name (string value)
+#novaclient_projectName=default
+
+# Nova Client Keystone Url (string value)
+#novaclient_keystoneUrl=default
+
+
+#
+# Options defined in sentry.db.sqlalchemy.session
+#
+
+# The SQLAlchemy connection string used to connect to the
+# database (string value)
+#sql_connection=sqlite:////sentry/db/sentry.sqlite
+
+# Whether echo raw sql in log. (boolean value)
+#sql_debug=false
+
+# The SQLAlchemy max_overflow config (integer value)
+#sql_max_overflow=10
+
+# The SQLAlchemy pool_size config (integer value)
+#sql_pool_size=5
+
+# The SQLAlchemy pool_recycle config (integer value)
+#sql_pool_recycle=3600
+
+
+#
 # Options defined in sentry.messaging
 #
 
@@ -124,91 +209,6 @@
 # Seconds to wait for a response from call or multicall
 # (integer value)
 #nova_rpc_response_timeout=60
-
-
-#
-# Options defined in sentry.ncm
-#
-
-# NCM host. e.g, 127.0.0.1 (string value)
-#ncm_host=<None>
-
-# NCM port, default is 8186. (integer value)
-#ncm_port=8186
-
-# The namespace when push metric data. (string value)
-#ncm_namespace=openstack
-
-# The project_id when push metric data. (string value)
-#ncm_project_id=openstack_sentry
-
-# The access key to access to NCM. (string value)
-#ncm_access_key=<None>
-
-# The secret key to access to NCM. (string value)
-#ncm_secret_key=<None>
-
-
-#
-# Options defined in sentry.alarm.api
-#
-
-# A list contains the class of alarm driver. (list value)
-#alarm_driver_classes=sentry.alarm.driver.mail.EmailDriver
-
-# In quiet seconds the same alarm does not set off. (integer
-# value)
-#alarm_quiet_seconds=600
-
-
-#
-# Options defined in sentry.common.http_communication
-#
-
-# Retry counts when http connection failed. (integer value)
-#http_retry_count=3
-
-# Retry dealy when http connection failed. (floating point
-# value)
-#http_retry_delay=3.0
-
-
-#
-# Options defined in sentry.common.novaclient_helper
-#
-
-# Nova Client Username (string value)
-#novaclient_username=default
-
-# Nova Client Password (string value)
-#novaclient_password=default
-
-# Nova Client Project Name (string value)
-#novaclient_projectName=default
-
-# Nova Client Keystone Url (string value)
-#novaclient_keystoneUrl=default
-
-
-#
-# Options defined in sentry.db.sqlalchemy.session
-#
-
-# The SQLAlchemy connection string used to connect to the
-# database (string value)
-#sql_connection=sqlite:////sentry/db/sentry.sqlite
-
-# Whether echo raw sql in log. (boolean value)
-#sql_debug=false
-
-# The SQLAlchemy max_overflow config (integer value)
-#sql_max_overflow=10
-
-# The SQLAlchemy pool_size config (integer value)
-#sql_pool_size=5
-
-# The SQLAlchemy pool_recycle config (integer value)
-#sql_pool_recycle=3600
 
 
 #
