@@ -21,7 +21,7 @@ CONF = cfg.CONF
 
 
 manager_opts = [
-    cfg.IntOpt("pipeline_pool_size", default=3000,
+    cfg.IntOpt("pipeline_pool_size", default=50,
                help="The max greenthread to process messages."),
 ]
 
@@ -80,6 +80,7 @@ class Pipeline(object):
         return cls(pool, real_handlers)
 
     def __call__(self, body, message):
+        # First ack() the message
         self.pool.spawn_n(self.process, body)
         message.ack()
 

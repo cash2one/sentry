@@ -51,6 +51,7 @@ class KombuConsumer(mixins.ConsumerMixin):
         consumers = []
         for callback, queues in self._consumers.iteritems():
             consumer = Consumer(queues=queues, callbacks=[callback])
+            consumer.qos(prefetch_count=20)
             consumers.append(consumer)
             LOG.debug("%s" % consumer)
         return consumers

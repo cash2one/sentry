@@ -246,7 +246,7 @@
 #
 
 # The max greenthread to process messages. (integer value)
-#pipeline_pool_size=3000
+#pipeline_pool_size=50
 
 
 #
