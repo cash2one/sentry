@@ -17,12 +17,16 @@ LOG = logging.getLogger(__name__)
 #TODO: close children process's STDIO, STDOUT, STDERR
 
 
+def monkey_patch():
+    eventlet.monkey_patch(os=False)
+
+
 class NotificationProcess(multiprocessing.Process):
     log = logging.getLogger('notification_process')
 
     def run(self):
         self.log.info("Start running.")
-        eventlet.monkey_patch(select=True, socket=True)
+        monkey_patch()
 
         notification = notification_manager.Manager()
         notification.setup_consumers()
@@ -35,7 +39,7 @@ class MonitorProcess(multiprocessing.Process):
 
     def run(self):
         self.log.info("Start monitoring.")
-        eventlet.monkey_patch(select=True, socket=True)
+        monkey_patch()
 
         monitor = monitor_manager.ServiceManager()
         monitor.start()
@@ -46,7 +50,7 @@ class CronProcess(multiprocessing.Process):
 
     def run(self):
         self.log.info("Staring cron jobs.")
-        eventlet.monkey_patch(select=True, socket=True)
+        monkey_patch()
 
         cron_engine = cron.CronEngine()
         cron_engine.register(cron.subscribe_oslist, None, 60 * 15)
