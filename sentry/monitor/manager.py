@@ -185,11 +185,12 @@ class ServiceManager(object):
         self.interval_s = CONF.monitor.refresh_interval
 
     def start(self):
-        if not CONF.monitor.enabled:
-            LOG.info("Monitor is disabled.")
-            return
-
         while True:
+            if not CONF.monitor.enabled:
+                LOG.info("Monitor is disabled.")
+                eventlet.sleep(999999999)
+                continue
+
             try:
                 self.refresh_services()
                 self.clean_obsolete_services()
