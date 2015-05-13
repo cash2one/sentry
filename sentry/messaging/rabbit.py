@@ -69,7 +69,7 @@ class KombuPublisher(_KombuConnectionMixin):
         exchange = kombu.Exchange(
             exchange_name,
             durable=False,
-            auto_delete=True,
+            auto_delete=False,
             type='fanout',
         )
         producer = kombu.Producer(
