@@ -36,7 +36,7 @@
   "_context_read_deleted": "no", 
   "_context_user_id": "bea40c2a26454befbf74da59a8ca4117", 
   "_context_remote_address": "10.184.17.45", 
-  "publisher_id": "volume.binjiang-neutron-netease", 
+  "publisher_id": "volume.binjiang.neutron-netease", 
   "payload": {
     "status": "deleting", 
     "display_name": "vol1", 

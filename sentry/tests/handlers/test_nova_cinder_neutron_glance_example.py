@@ -5,30 +5,38 @@ import unittest
 import pprint
 
 from sentry.openstack.common import jsonutils
-from sentry.notificaion import handlers
-from sentry.notificaion.handlers import nova
-from sentry.notificaion.handlers import glance
-from sentry.notificaion.handlers import cinder
-from sentry.notificaion.handlers import neutron
+from sentry.notification import handlers
+from sentry.notification.handlers import nova
+from sentry.notification.handlers import glance
+from sentry.notification.handlers import cinder
+from sentry.notification.handlers import neutron
 
 
 class _ExampleBaseTest(unittest.TestCase):
     def setUp(self):
         self.unknows = []
-
-        def no_save(*args, **kwargs):
-            pass
+        self.logged = False
 
         def save_unknown(x, msg):
             self.unknows.append(msg)
 
         self.stub = stubout.StubOutForTesting()
         self.handler = None
-        self.stub.Set(handlers.PersistentHandler, 'save_event', no_save)
-        self.stub.Set(handlers.PersistentHandler,
-                      'save_unknown_event',
-                      save_unknown)
-        self.stub.Set(handlers.PersistentHandler, 'save_notification', no_save)
+        self._stubs()
+
+    def _no_save(*args, **kwargs):
+        pass
+
+    def _stubs(self):
+        self.stub.Set(handlers.MySQLHandler, 'save_event', self._no_save)
+
+        # Make sure logging.exception() was not invoking
+        handler_module = globals()[self.name]
+        log = getattr(handler_module, 'LOG')
+        self.stub.Set(log, 'exception', self._logging)
+
+    def _logging(self, *args, **kwargs):
+        self.logged = True
 
     def tearDown(self):
         self.stub.SmartUnsetAll()
@@ -52,6 +60,7 @@ class _ExampleBaseTest(unittest.TestCase):
                 self._try_process(json)
 
         pprint.pprint(self.unknows)
+        self.assertFalse(self.logged, 'Handler meets some exception')
 
     def _try_process(self, json_msg):
         if not self.handler:

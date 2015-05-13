@@ -8,3 +8,7 @@ class MySQLHandler(object):
 
     def save_event(self, event):
         return dbapi.event_create(event)
+
+    def get_binary_hostname(self, publisher):
+        binary, hostname = publisher.split('.', 1)
+        return binary, hostname

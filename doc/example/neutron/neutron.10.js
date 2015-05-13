@@ -17,7 +17,7 @@
   "_context_tenant_id": "5944f796796141c99b032294116cb52e", 
   "_context_user": "a133807120664049b8df4e5a16b7ddf4", 
   "_context_user_id": "a133807120664049b8df4e5a16b7ddf4", 
-  "publisher_id": "network.binjiang-neutron-netease", 
+  "publisher_id": "network.binjiang-neutron.netease", 
   "payload": {
     "network_id": "d27e8f84-48c3-4f1a-b533-c7b42955cc14"
   }, 

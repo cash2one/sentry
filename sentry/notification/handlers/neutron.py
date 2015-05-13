@@ -31,7 +31,8 @@ class Handler(handlers.MySQLHandler):
             # event.catelog = msg['_context_service_catalog']
 
             event.object_id = self.object_id(msg)
-            event.binary, event.hostname = event.publisher_id.split('.')
+            event.binary, event.hostname = self.get_binary_hostname(
+                event.publisher_id)
             event = self.save_event(event)
             return event
         except Exception as ex:

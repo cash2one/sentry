@@ -34,7 +34,8 @@ class Handler(handlers.MySQLHandler):
 
             # The publisher_id of volume_type.delete/start is 'volumeType'
             if not event.event_type.startswith('volume_type'):
-                event.binary, event.hostname = event.publisher_id.split('.')
+                event.binary, event.hostname = self.get_binary_hostname(
+                    event.publisher_id)
             event = self.save_event(event)
             return event
         except Exception as ex:
