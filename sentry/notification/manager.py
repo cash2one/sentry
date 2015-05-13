@@ -98,6 +98,10 @@ class Manager(green.GreenletDaemon):
         self.cinder_collector = messaging.create_consumer('cinder')
         self.log_error_pipeline = Pipeline.create(self.pool, ['log_error'])
 
+    def _noop(self, body, message):
+        """Noop consumer to purge a queue."""
+        message.ack()
+
     def setup_consumers(self):
         """Declare queues and binding pipeline to each queue."""
 
@@ -128,6 +132,11 @@ class Manager(green.GreenletDaemon):
                                                 self.neutron_pipeline)
         self.neutron_collector.declare_consumer(
             'neutron_notifications.critical', self.log_error_pipeline
+        )
+        # messages in 'neutron_dsn.critical' are duplicate with these in
+        # 'neutron_notifications.critical', so just purge them.
+        self.neutron_collector.declare_consumer(
+            'neutron_dsn.critical', self._noop
         )
 
         LOG.info("Declare cinder consumers")
