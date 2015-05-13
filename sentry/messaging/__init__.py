@@ -2,13 +2,14 @@ from oslo.config import cfg
 from eventlet import semaphore
 
 from sentry.messaging import common
-from sentry.messaging import consumer
+from sentry.messaging import rabbit
 from sentry.messaging import rpc
 from sentry.messaging.rpc import RabbitEngine
 from sentry.messaging.common import RabbitConfig
+from sentry.messaging.rabbit import KombuPublisher
 
 __all__ = [
-    'RabbitConfig', 'RabbitEngine',
+    'RabbitConfig', 'RabbitEngine', 'KombuPublisher',
     'nova_bus', 'cinder_bus', 'neutron_bus', 'glance_bus', 'create_consumer',
 ]
 
@@ -182,7 +183,7 @@ class Factory(object):
         with cls._sem:
             if name not in cls.consumers:
                 config = common.RabbitConfig.factory(name)
-                c = consumer.KombuConsumer(config)
+                c = rabbit.KombuConsumer(config)
                 cls.consumers[name] = c
 
         return cls.consumers[name]

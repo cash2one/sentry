@@ -48,7 +48,7 @@ class Handler(object):
                 rabbit_password=CONF.notifier_rabbit_password,
                 rabbit_virtual_host=CONF.notifier_rabbit_virtual_host,
             )
-            self.rabbit = messaging.RabbitEngine(conf)
+            self.rabbit = messaging.KombuPublisher(conf)
         else:
             self.rabbit = None
 
@@ -72,8 +72,7 @@ class Handler(object):
 
         LOG.debug("Notifying message: %s" % message)
 
-        # underline messaging system will append '_fanout' to exchange name.
-        exchange = CONF.notifier_exchange.replace('_fanout', '')
+        exchange = CONF.notifier_exchange
         ttl = CONF.notifier_ttl
 
         # will make sure success

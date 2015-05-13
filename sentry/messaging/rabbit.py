@@ -31,7 +31,59 @@ from sentry.openstack.common import log as logging
 LOG = logging.getLogger(__name__)
 
 
-class KombuConsumer(mixins.ConsumerMixin):
+class _KombuConnectionMixin(object):
+    """Parses ``RabbitConfig`` object to init a kombu connection object."""
+
+    def _init_connection(self, config):
+        hosts = config.rabbit_hosts
+        userid = config.rabbit_userid
+        password = config.rabbit_password
+        vhost = config.rabbit_virtual_host
+
+        urls = []
+        for host in hosts:
+            url = ('amqp://%(userid)s:%(password)s@%(host)s/%(vhost)s' %
+                   {'userid': userid, 'password': password,
+                    'host': host, 'vhost': vhost})
+            urls.append(url)
+
+        urls = ';'.join(urls)
+        self.connection = kombu.Connection(
+            urls, failover_strategy='round-robin', connect_timeout=5
+        )
+
+
+class KombuPublisher(_KombuConnectionMixin):
+
+    def __init__(self, config):
+        self._config = config
+        self._init_connection(config)
+
+    def fanout(self, exchange_name, message, ttl):
+        """Using fanout exchange to send a message.
+
+        :param exchange_name: String, the fanout exchange name.
+        :param message: String, message body.
+        :param ttl: Int, message TTL in seconds.
+        """
+        exchange = kombu.Exchange(
+            exchange_name,
+            durable=False,
+            auto_delete=True,
+            type='fanout',
+        )
+        producer = kombu.Producer(
+            self.connection,
+            exchange,
+            routing_key=None,
+        )
+        producer.publish(
+            message,
+            expiration=str(ttl * 1000)
+        )
+
+
+class KombuConsumer(mixins.ConsumerMixin, _KombuConnectionMixin):
 
     def __init__(self, config):
         self._config = config
@@ -66,24 +118,6 @@ class KombuConsumer(mixins.ConsumerMixin):
             exclusive=False,     # oslo.messaging set it to False
         )
         self._consumers[callback].append(queue)
-
-    def _init_connection(self, config):
-        hosts = config.rabbit_hosts
-        userid = config.rabbit_userid
-        password = config.rabbit_password
-        vhost = config.rabbit_virtual_host
-
-        urls = []
-        for host in hosts:
-            url = ('amqp://%(userid)s:%(password)s@%(host)s/%(vhost)s' %
-                   {'userid': userid, 'password': password,
-                    'host': host, 'vhost': vhost})
-            urls.append(url)
-
-        urls = ';'.join(urls)
-        self.connection = kombu.Connection(
-            urls, failover_strategy='round-robin', connect_timeout=5
-        )
 
     def consume_in_thread(self):
         eventlet.spawn(self.run)
