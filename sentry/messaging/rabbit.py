@@ -25,6 +25,7 @@ import collections
 import eventlet
 import kombu
 from kombu import mixins
+from kombu import pools
 
 from sentry.openstack.common import log as logging
 
@@ -54,10 +55,17 @@ class _KombuConnectionMixin(object):
 
 
 class KombuPublisher(_KombuConnectionMixin):
+    """Publisher will using kombu.pool.Connection to send messages."""
+
+    pool_size = 10
 
     def __init__(self, config):
         self._config = config
         self._init_connection(config)
+        # https://kombu.readthedocs.org/en/latest/userguide/pools.html
+        # We using custom pool to divide kombu connection pool and
+        # oslo.messaging connection pool.
+        self.pool = pools.Connections(limit=self.pool_size)
 
     def fanout(self, exchange_name, message, ttl):
         """Using fanout exchange to send a message.
@@ -72,15 +80,10 @@ class KombuPublisher(_KombuConnectionMixin):
             auto_delete=False,
             type='fanout',
         )
-        producer = kombu.Producer(
-            self.connection,
-            exchange,
-            routing_key=None,
-        )
-        producer.publish(
-            message,
-            expiration=str(ttl * 1000)
-        )
+
+        with self.pool[self.connection].acquire(block=True) as conn:
+            producer = kombu.Producer(conn, exchange, routing_key=None)
+            producer.publish(message, expiration=str(ttl * 1000))
 
 
 class KombuConsumer(mixins.ConsumerMixin, _KombuConnectionMixin):
