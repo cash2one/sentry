@@ -82,6 +82,17 @@ def tz_utc_to_local(utc):
     return utc.astimezone(to_zone)
 
 
+def tz_local_to_utc(local):
+    """
+    :param local: The datetime to replace timezone from local to UTC timezone.
+    """
+    to_zone = dateutil.tz.tzutc()
+    if local.tzinfo is None:
+        from_zone = _local_timezone()
+        local = local.replace(tzinfo=from_zone)
+    return local.astimezone(to_zone)
+
+
 def strtime(at=None, fmt=LOCAL_TIME_FORMAT):
     """Returns formatted utcnow."""
     if not at:

@@ -13,6 +13,8 @@ from sentry.monitor import manager as monitor_manager
 from sentry.openstack.common import log as logging
 
 CONF = cfg.CONF
+CONF.import_opt('watch_interval', 'sentry.crons.platform_watcher',
+                group='platform_watcher')
 LOG = logging.getLogger(__name__)
 #TODO: close children process's STDIO, STDOUT, STDERR
 
@@ -54,6 +56,8 @@ class CronProcess(multiprocessing.Process):
 
         cron_engine = cron.CronEngine()
         cron_engine.register(cron.subscribe_oslist, None, 60 * 15)
+        cron_engine.register(cron.watch_platform_status, None,
+                             CONF.platform_watcher.watch_interval)
         cron_engine.wait()
 
 

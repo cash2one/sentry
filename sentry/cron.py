@@ -5,6 +5,7 @@ import urllib2
 import eventlet
 import base64
 
+from sentry.crons import platform_watcher
 from sentry import green
 from sentry.db import api as dbapi
 from sentry import config
@@ -73,3 +74,9 @@ def subscribe_oslist():
             dbapi.exc_info_update(db_error.uuid, {'on_process': True})
 
     LOG.info("Subscribe oelist done.")
+
+
+def watch_platform_status():
+    LOG.info("Start to Watch platform status.")
+    pw = platform_watcher.PlatformWatcherManager()
+    pw.process()

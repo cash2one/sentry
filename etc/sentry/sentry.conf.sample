@@ -688,6 +688,39 @@
 #rpc_timeout=300
 
 
+[platform_watcher]
+
+#
+# Options defined in sentry.crons.platform_watcher
+#
+
+# Whether enable platform status watcher. (boolean value)
+#enabled=false
+
+# Memcached servers for caching instance heartbeat. (list
+# value)
+#memcached_servers=
+
+# The interval in seconds watching platform status. (integer
+# value)
+#watch_interval=60
+
+# When service is abnormal during this period(seconds), then
+# it's been taken as abnormal for platform watcher. (integer
+# value)
+#service_abnormal_period=330
+
+# When instance is abnormal during this period(seconds), then
+# it's been taken as abnormal for platform watcher. (integer
+# value)
+#instance_abnormal_period=60
+
+# When service or instance status is not been updated during
+# this period(seconds), the status data should be deprecated.
+# (integer value)
+#status_expired_period=3600
+
+
 [rpc_notifier2]
 
 #

@@ -393,10 +393,10 @@ class PlatformStatus(BASE, BaseModel):
     updated_at = Column(LocalDateTime(), default=timeutils.utcnow)
 
     def __repr__(self):
-        return '<PlatformStatus %s- %s: %s>' % (self.hostname,
-                                                self.item_name,
-                                                self.item_type,
-                                                self.state)
+        return '<PlatformStatus %s- %s - %s: %s>' % (self.hostname,
+                                                     self.item_type,
+                                                     self.item_name,
+                                                     self.state)
 
 
 class StatsdMetric(BASE, BaseModel):
