@@ -355,3 +355,45 @@ class ServiceHistory(BASE, BaseModel):
         return '<ServiceHistory %s- %s: %s>' % (self.binary,
                                                 self.hostname,
                                                 self.duration)
+
+
+class InstanceNetworkStatus(BASE, BaseModel):
+
+    __tablename__ = 'instance_network_status'
+    __table_args__ = (
+        Index('ins_hostname_uuid_idx', 'hostname', 'uuid'),
+        Index('ins_hostname_idx', 'hostname'),
+        Index('ins_state_idx', 'state'),
+    )
+
+    hostname = Column(String(50))
+    uuid = Column(String(50))
+    updated_at = Column(LocalDateTime(), default=timeutils.utcnow)
+    state = Column(String(20))
+
+    def __repr__(self):
+        return '<InstanceNetworkStatus %s- %s: %s>' % (self.hostname,
+                                                       self.uuid,
+                                                       self.state)
+
+
+class PlatformStatus(BASE, BaseModel):
+
+    __tablename__ = 'platform_status'
+    __table_args__ = (
+        Index('ps_hostname_item_idx', 'hostname', 'item_name', 'item_type'),
+        Index('ps_hostname_idx', 'hostname'),
+        Index('ps_state_idx', 'state'),
+    )
+
+    hostname = Column(String(50))
+    item_name = Column(String(50))
+    item_type = Column(String(50))
+    state = Column(String(50))
+    updated_at = Column(LocalDateTime(), default=timeutils.utcnow)
+
+    def __repr__(self):
+        return '<PlatformStatus %s- %s: %s>' % (self.hostname,
+                                                self.item_name,
+                                                self.item_type,
+                                                self.state)

@@ -79,3 +79,27 @@ def service_history_note(*args, **kwargs):
 
 def service_history_get_all(*args, **kwargs):
     return IMPL.service_history_get_all(*args, **kwargs)
+
+
+def instance_network_status_create_or_update(*args, **kwargs):
+    return IMPL.instance_network_status_create_or_update(*args, **kwargs)
+
+
+def instance_network_status_get_all(*args, **kwargs):
+    return IMPL.instance_network_status_get_all(*args, **kwargs)
+
+
+def instance_network_status_get_by_updated_at(*args, **kwargs):
+    return IMPL.instance_network_status_get_by_updated_at(*args, **kwargs)
+
+
+def platform_status_create_or_update(*args, **kwargs):
+    return IMPL.platform_status_create_or_update(*args, **kwargs)
+
+
+def platform_status_get_all(*args, **kwargs):
+    return IMPL.platform_status_get_all(*args, **kwargs)
+
+
+def platform_status_get_by_updated_at(*args, **kwargs):
+    return IMPL.platform_status_get_by_updated_at(*args, **kwargs)

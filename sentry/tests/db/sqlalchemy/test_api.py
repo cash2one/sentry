@@ -1,3 +1,5 @@
+import datetime
+
 from sentry.tests import test
 from sentry.db import models as base_models
 from sentry.db.sqlalchemy import api
@@ -279,3 +281,100 @@ class ExcInfoDBAPITests(test.DBTestCase):
 
         ret = api.exc_info_detail_get_by_uuid_and_number(exc_detail.uuid, 100)
         self.assertEqual(ret, None)
+
+
+class InstanceNetworkStatusDBAPITests(test.DBTestCase):
+
+    def _insert_instance_network_status(self, **kwargs):
+        hostname = kwargs.get('hostname')
+        uuid = kwargs.get('uuid')
+        state = kwargs.get('state')
+        api.instance_network_status_create_or_update(hostname,
+                                                     uuid,
+                                                     state)
+
+        return {'hostname': hostname, 'uuid': uuid, 'state': state}
+
+    def test_create_instance_network_status(self):
+        # no exception raises
+        self._insert_instance_network_status(hostname='fake-host',
+                                             uuid='fake-uuid',
+                                             state='normal')
+
+    def test_instance_network_status_get_all_sort_by_host(self):
+        ins1 = self._insert_instance_network_status(hostname='fake-host2',
+                                                    uuid='fake-uuid2',
+                                                    state='normal')
+        ins2 = self._insert_instance_network_status(hostname='fake-host1',
+                                                    uuid='fake-uuid1',
+                                                    state='normal')
+        result = api.instance_network_status_get_all(sorts=['hostname'])
+
+        self.assertEqual(2, result.count())
+        self.assertEqual(ins2['uuid'], result.first().uuid)
+        self.assertEqual(ins1['uuid'], result[1].uuid)
+
+    def test_instance_network_status_get_by_updated_at(self):
+        ins1 = self._insert_instance_network_status(hostname='fake-host1',
+                                                    uuid='fake-uuid2',
+                                                    state='normal')
+        time1 = timeutils.utcnow() + datetime.timedelta(seconds=60)
+        time2 = timeutils.utcnow() - datetime.timedelta(seconds=60)
+
+        res1 = api.instance_network_status_get_by_updated_at(time1)
+        self.assertEqual(1, res1.count())
+
+        res2 = api.instance_network_status_get_by_updated_at(time2)
+        self.assertEqual(0, res2.count())
+
+
+class PlatformStatusDBAPITests(test.DBTestCase):
+
+    def _insert_platform_status(self, **kwargs):
+        hostname = kwargs.get('hostname')
+        item_name = kwargs.get('item_name')
+        item_type = kwargs.get('item_type')
+        state = kwargs.get('state')
+        api.platform_status_create_or_update(hostname,
+                                             item_name,
+                                             item_type,
+                                             state)
+
+        return {'hostname': hostname, 'item_name': item_name,
+                'item_type': item_type, 'state': state}
+
+    def test_create_platform_status(self):
+        # no exception raises
+        self._insert_platform_status(hostname='fake-host',
+                                     item_name='nova-compute',
+                                     item_type='service',
+                                     state='normal')
+
+    def test_platform_status_get_all_sort_by_host(self):
+        ps1 = self._insert_platform_status(hostname='fake-host2',
+                                           item_name='nova-compute',
+                                           item_type='service',
+                                           state='normal')
+        ps2 = self._insert_platform_status(hostname='fake-host1',
+                                           item_name='nova-compute',
+                                           item_type='service',
+                                           state='normal')
+        result = api.platform_status_get_all(sorts=['hostname'])
+
+        self.assertEqual(2, result.count())
+        self.assertEqual(ps2['item_name'], result.first().item_name)
+        self.assertEqual(ps1['item_type'], result[1].item_type)
+
+    def test_platform_status_get_by_updated_at(self):
+        ps1 = self._insert_platform_status(hostname='fake-host2',
+                                           item_name='nova-compute',
+                                           item_type='service',
+                                           state='normal')
+        time1 = timeutils.utcnow() + datetime.timedelta(seconds=60)
+        time2 = timeutils.utcnow() - datetime.timedelta(seconds=60)
+
+        res1 = api.platform_status_get_by_updated_at(time1)
+        self.assertEqual(1, res1.count())
+
+        res2 = api.platform_status_get_by_updated_at(time2)
+        self.assertEqual(0, res2.count())

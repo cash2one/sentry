@@ -415,3 +415,73 @@ def service_history_get_all(search_dict={}, sorts=[], start=None, end=None):
     if end:
         query = query.filter(models.ServiceHistory.end_at <= end)
     return query
+
+
+def instance_network_status_create_or_update(hostname, uuid, state):
+    session = get_session()
+    with session.begin():
+        instance = session.query(models.InstanceNetworkStatus). \
+                 filter(models.InstanceNetworkStatus.hostname == hostname). \
+                 filter(models.InstanceNetworkStatus.uuid == uuid). \
+                 with_lockmode('update'). \
+                 first()
+
+        if instance is None:
+            instance = models.InstanceNetworkStatus(
+                hostname=hostname,
+                uuid=uuid,
+                state=state,
+            )
+        else:
+            instance.state = state
+        instance.updated_at = timeutils.local_now()
+        session.add(instance)
+    return instance
+
+
+def instance_network_status_get_all(search_dict={}, sorts=[]):
+    query = _model_complict_query(models.InstanceNetworkStatus, search_dict,
+                                  sorts)
+    return query
+
+
+def instance_network_status_get_by_updated_at(older_then):
+    query = instance_network_status_get_all()
+    query = query.filter(models.InstanceNetworkStatus.updated_at <= older_then)
+    return query
+
+
+def platform_status_create_or_update(hostname, item_name, item_type, state):
+    session = get_session()
+    with session.begin():
+        platform = session.query(models.PlatformStatus). \
+                 filter(models.PlatformStatus.hostname == hostname). \
+                 filter(models.PlatformStatus.item_name == item_name). \
+                 filter(models.PlatformStatus.item_type == item_type). \
+                 with_lockmode('update'). \
+                 first()
+
+        if platform is None:
+            platform = models.PlatformStatus(
+                hostname=hostname,
+                item_name=item_name,
+                item_type=item_type,
+                state=state,
+            )
+        else:
+            platform.state = state
+        platform.updated_at = timeutils.local_now()
+        session.add(platform)
+    return platform
+
+
+def platform_status_get_all(search_dict={}, sorts=[]):
+    query = _model_complict_query(models.PlatformStatus, search_dict,
+                                  sorts)
+    return query
+
+
+def platform_status_get_by_updated_at(older_then):
+    query = platform_status_get_all()
+    query = query.filter(models.PlatformStatus.updated_at <= older_then)
+    return query
