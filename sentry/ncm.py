@@ -2,6 +2,7 @@
 NetEase Cloud Monitor python client.
 """
 
+import time
 import httplib
 import hmac
 import urllib
@@ -45,6 +46,9 @@ class Monitor(object):
         self.namespace = namespace
         self.access_key = access_key
         self.access_secret = access_secret
+
+    def set_namespace(self, namespace):
+        self.namespace = namespace
 
     def post_metric(self, metric_name, metric_value,
                     dimension_key, dimension_value,
@@ -135,18 +139,23 @@ class Monitor(object):
         return signature
 
     def do_post(self, request_uri, param):
-        try:
-            conn = httplib.HTTPConnection(self.url, timeout=5)
-            conn.request('POST', request_uri, body=param, headers=self.headers)
-            response = conn.getresponse()
-            if response.status != 200:
-                LOG.error("send alarm error: (status:%s):%s \ncontent:%s" %
-                           (response.status, response.reason,
-                            response.read().decode('utf8')))
-
-        finally:
-            if 'conn' in locals():
-                conn.close()
+        for i in xrange(5):
+            try:
+                conn = httplib.HTTPConnection(self.url, timeout=5)
+                conn.request('POST', request_uri, body=param,
+                             headers=self.headers)
+                response = conn.getresponse()
+                if response.status != 200:
+                    LOG.error("send alarm error: (status:%s):%s \ncontent:%s" %
+                              (response.status, response.reason,
+                               response.read().decode('utf8')))
+                    continue  # retry
+                break
+            except Exception:
+                time.sleep(i * 2)
+            finally:
+                if 'conn' in locals():
+                    conn.close()
 
 CLIENT = None
 
@@ -155,6 +164,8 @@ def get_client():
     """Get NCM client object, return None if config are not valid."""
     if not (CONF.ncm_host and CONF.ncm_port and
                CONF.ncm_access_key and CONF.ncm_secret_key):
+        LOG.warn("'ncm_host', 'ncm_port', 'ncm_access_key', 'ncm_secret_key'"
+                 " should be config. ")
         return None
 
     global CLIENT

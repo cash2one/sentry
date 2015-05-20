@@ -717,3 +717,28 @@
 #key_file=<None>
 
 
+[statsd]
+
+#
+# Options defined in sentry.statsd.server
+#
+
+# The host of statsd listens on. (string value)
+#bind_host=127.0.0.1
+
+# The port os statsd listens on. (integer value)
+#bind_port=8125
+
+# The default buffer size each time receive from UDP. (integer
+# value)
+#udp_buffer=8192
+
+# The cocurrency to process the UDP request. Default 3000
+# (integer value)
+#pool_size=3000
+
+# The interval to send metric to NCM in seconds (integer
+# value)
+#flush_interval=60
+
+

@@ -26,6 +26,7 @@ setuptools.setup(
         'console_scripts': [
             'sentry-manage = sentry.cmd.manage:main',
             'sentry-api = sentry.cmd.api:main',
+            'sentry-statsd = sentry.statsd.server:main',
             'sentry = sentry.cmd.server:main',
         ]
     },

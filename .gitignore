@@ -7,3 +7,4 @@ sentry.egg-info/
 .tags
 .venv
 build/
+sentry.conf
