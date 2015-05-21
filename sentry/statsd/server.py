@@ -406,7 +406,7 @@ def main():
         while True:
             data, addr = ss.recvfrom(buf)
             if data:
-                LOG.debug("%s %s" % (addr, data.strip()))
+                LOG.info("%s %s" % (addr, data.strip()))
                 pool.spawn_n(server.process, data)
     except KeyboardInterrupt:
         sys.exit(0)
