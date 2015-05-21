@@ -1,0 +1,31 @@
+{% extends '_email_base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block head %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<h2>宕机节点信息</h2>
+
+<div class="box">
+  <table class="source">
+      {% for node in abnormal_nodes.keys() %}
+    <tr>
+      <td class="strong">宕机节点：</td>
+      <td>{{ node }}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td class="strong">异常时间：</td>
+      <td>{{ updated_at }}</td>
+    </tr>
+    <tr>
+  </table>
+</div>
+
+{% endblock %}

@@ -4,6 +4,7 @@ import datetime
 from oslo.config import cfg
 
 from sentry.db import api as dbapi
+from sentry.alarm import api as alarm_api
 from sentry.openstack.common import log as logging
 from sentry.openstack.common import timeutils
 from sentry.monitor import state as service_state
@@ -29,6 +30,8 @@ platform_watcher_opts = [
                help="When service or instance status is not been updated "
                "during this period(seconds), the status data "
                "should be deprecated."),
+    cfg.BoolOpt("alarm_enabled", default=False,
+                help="Whether to alarm platform abnormal."),
 ]
 CONF.register_opts(platform_watcher_opts, 'platform_watcher')
 
@@ -128,6 +131,7 @@ class PlatformWatcherManager(object):
     def __init__(self):
         self.memcache_client = memcache.Client(
             CONF.platform_watcher.memcached_servers)
+        self.alarm_api = alarm_api.AlarmAPI()
 
         # key is hostname, value is HostStateInfo(hostname)
         self.status = {}
@@ -197,17 +201,68 @@ class PlatformWatcherManager(object):
         for host in self.status.keys():
             self.status[host].update_state()
 
+    def send_alarm(self):
+        now = timeutils.strtime(timeutils.local_now())
+
+        # NOTE(): abnormal_vms:
+        abnormal_vms = {"updated_at": now}
+        abnormal_services = {"updated_at": now}
+        abnormal_nodes = {"updated_at": now}
+
+        for host in self.status.keys():
+            if self.status[host].state == NODE_STATE_NODE_ABNORMAL:
+                abnormal_nodes.update({host: NODE_STATE_NODE_ABNORMAL})
+            elif self.status[host].state == NODE_STATE_SERVICE_ABNORMAL:
+                for s in self.status[host].services.keys():
+                    if self.status[host].services[s] == SERVICE_STATE_ABNORMAL:
+                        if host not in abnormal_services.keys():
+                            abnormal_services[host] = {}
+                        abnormal_services[host].update({s:
+                                                    SERVICE_STATE_ABNORMAL})
+            elif self.status[host].state == NODE_STATE_VM_ABNORMAL:
+                for vm in self.status[host].vms.keys():
+                    if self.status[host].vms[vm] != VM_STATE_NORMAL:
+                        if host not in abnormal_vms.keys():
+                            abnormal_vms[host] = {}
+                        abnormal_vms[host].update({vm:
+                                                   self.status[host].vms[vm]})
+            elif self.status[host].state == NODE_STATE_SERVICE_VM_ABNORMAL:
+                for s in self.status[host].services.keys():
+                    if self.status[host].services[s] == SERVICE_STATE_ABNORMAL:
+                        if host not in abnormal_services.keys():
+                            abnormal_services[host] = {}
+                        abnormal_services[host].update({s:
+                                                    SERVICE_STATE_ABNORMAL})
+                for vm in self.status[host].vms.keys():
+                    if self.status[host].vms[vm] != VM_STATE_NORMAL:
+                        if host not in abnormal_vms.keys():
+                            abnormal_vms[host] = {}
+                        abnormal_vms[host].update({vm:
+                                                   self.status[host].vms[vm]})
+
+        LOG.info("abnormal_vms: %s" % abnormal_vms)
+        LOG.info("abnormal_services: %s" % abnormal_services)
+        LOG.info("abnormal_nodes: %s" % abnormal_nodes)
+
+        if len(abnormal_nodes) != 1:
+            self.alarm_api.alarm_nodes_abnormal(abnormal_nodes)
+        if len(abnormal_services) != 1:
+            self.alarm_api.alarm_services_abnormal(abnormal_services)
+        if len(abnormal_vms) != 1:
+            self.alarm_api.alarm_vms_abnormal(abnormal_vms)
+
     def process(self):
 
         # get all service status
         self._get_all_service_status()
-
         # get all vms status by host
         self._update_platform_vms_status()
-
         self._update_platform_host_status()
-
         LOG.info("platform_status: %s" % self.status)
+
+        if CONF.platform_watcher.alarm_enabled:
+            self.send_alarm()
+
         self.clean_expired_platform_status()
 
     def clean_expired_platform_status(self):

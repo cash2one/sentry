@@ -720,6 +720,9 @@
 # (integer value)
 #status_expired_period=3600
 
+# Whether to alarm platform abnormal. (boolean value)
+#alarm_enabled=false
+
 
 [rpc_notifier2]
 

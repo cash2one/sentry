@@ -1,0 +1,36 @@
+{% extends '_email_base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block head %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<h2>服务异常信息</h2>
+
+<div class="box">
+  <table class="source">
+    {% for host in abnormal_services.keys() %}
+        <tr>
+        <td class="strong">{{ host  }}：</td>
+        <td></td>
+        </tr>
+        {% for s in abnormal_services[host].keys() %}
+        <tr>
+        <td class="strong"></td>
+        <td class="strong">{{ s  }}：{{ abnormal_services[host][s] }} </td>
+        </tr>
+        {% endfor %}
+    {% endfor %}
+    <tr>
+      <td class="strong">异常时间：</td>
+      <td>{{ updated_at }}</td>
+    </tr>
+  </table>
+</div>
+
+{% endblock %}

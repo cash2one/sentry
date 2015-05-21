@@ -176,3 +176,62 @@ class AlarmAPI(object):
 
         self._call_drivers('set_off', title, content,
                            hostname=hostname, binary=binary)
+
+    def alarm_nodes_abnormal(self, abnormal_nodes):
+        """Alarm when host node is abnormal.
+
+             platform status => nodes abnormal
+            ========================
+
+            devstack: abnormal
+            updated_at: 2015-01-01 22:11:22
+
+        """
+        title = self._email_subject("", "platform status => nodes abnormal")
+        updated_at = abnormal_nodes.pop("updated_at")
+        content = jinja.render('email_node_abnormal.html',
+                               title=title,
+                               abnormal_nodes=abnormal_nodes,
+                               updated_at=updated_at)
+
+        self._call_drivers('set_off', title, content)
+
+    def alarm_services_abnormal(self, abnormal_services):
+        """Alarm when service is abnormal.
+
+             platform status => services abnormal
+            ========================
+
+            devstack-test
+                        nova-compute: abnormal
+            updated_at: 2015-01-01 22:11:22
+
+        """
+        title = self._email_subject("", "platform status => services abnormal")
+        updated_at = abnormal_services.pop("updated_at")
+        content = jinja.render('email_service_abnormal.html',
+                               title=title,
+                               abnormal_services=abnormal_services,
+                               updated_at=updated_at)
+
+        self._call_drivers('set_off', title, content)
+
+    def alarm_vms_abnormal(self, abnormal_vms):
+        """Alarm when vm is abnormal.
+
+             platform status => vms abnormal
+            ========================
+
+            devstack-test
+                        xxx-xx-xx-xx: heartbeat_abnormal
+            updated_at: 2015-01-01 22:11:22
+
+        """
+        title = self._email_subject("", "platform status => vms abnormal")
+        updated_at = abnormal_vms.pop("updated_at")
+        content = jinja.render('email_vm_abnormal.html',
+                               title=title,
+                               abnormal_vms=abnormal_vms,
+                               updated_at=updated_at)
+
+        self._call_drivers('set_off', title, content)

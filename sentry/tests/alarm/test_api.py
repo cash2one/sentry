@@ -64,3 +64,32 @@ class AlarmAPI(test.DBTestCase):
             'hostname2', 'nova-cmpute-y', '2014-02-02 22:11:33',
             '2013-04-04 22:33:44', 20,
         )
+
+    def test_alarm_nodes_abnormal(self):
+        abnormal_nodes = {
+            u'nvsdev-devstack-ntse2': 'abnormal',
+            'updated_at': 'Thu May 21 20:40:42 2015',
+        }
+        self.alarm.alarm_nodes_abnormal(abnormal_nodes)
+
+    def test_alarm_services_abnormal(self):
+        abnormal_services = {
+            u'nvsdev-devstack-ntse2': {
+                u'cinder-volume.nvsdev-devstack-ntse': 'abnormal'
+            },
+            'updated_at': '2015-05-26 14:13:40'
+        }
+        self.alarm.alarm_services_abnormal(abnormal_services)
+
+    def test_alarm_vms_abnormal(self):
+        abnormal_vms = {
+            u'nvsdev-devstack-ntse2': {
+                u'6ad8685d-471b-45a0-bb41-cb57784bbc17': 'heartbeat_abnormal'
+            },
+            'updated_at': '2015-05-26 14:13:40',
+            u'nvsdev-devstack-ntse': {
+                u'b334e9fb-8c57-459a-8f95-6ecc29a2dcf6': 'heartbeat_abnormal',
+                u'9970500f-7eb7-48a6-aaac-94d3e635c4ca': 'heartbeat_abnormal'
+            }
+        }
+        self.alarm.alarm_vms_abnormal(abnormal_vms)
