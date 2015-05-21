@@ -5,10 +5,10 @@
 A: we want to measure lots of stuff about OpenStack, like response time of
 API, RPC, database, error-rates. The normal way in OpenStack is send
 notification to message bus, then a consumer (maybe stacktach) drain out
-these event to measure things. This way have some cons. 
+these event to measure things. This way have some cons.
 
-First, notification is something important, OpenStack will do retry to sent 
-them forever. It is too much to measure, losting some metric data do little 
+First, notification is something important, OpenStack will do retry to sent
+them forever. It is too much to measure, losting some metric data do little
 harm. and retrying forever may block the normal service which is unexpected.
 
 Second, putting lots of metric data take make much load on MQ, in designment
@@ -46,7 +46,7 @@ metric.
 `value` should be a number
 `type` should be c for Counter, g for Gauge, h for Histogram, ms for Timer or s
 for Set. Full explanation of type
-[here](https://github.com/etsy/statsd/blob/master/docs/metric_types.md). 
+[here](https://github.com/etsy/statsd/blob/master/docs/metric_types.md).
 `sample rate` is optional and should be a float between 0 and 1 inclusive.
 `tags` are optional, and should be a comma seperated list of tags. colons are
 used for key value tags. The first item of tags will be dimension, the other of
