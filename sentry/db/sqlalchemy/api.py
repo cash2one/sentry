@@ -451,7 +451,7 @@ def instance_network_status_get_by_updated_at(older_then):
     return query
 
 
-def platform_status_create_or_update(hostname, item_name, item_type, state):
+def platform_status_create_or_update(hostname, item_type, item_name, state):
     session = get_session()
     with session.begin():
         platform = session.query(models.PlatformStatus). \
@@ -473,6 +473,32 @@ def platform_status_create_or_update(hostname, item_name, item_type, state):
         platform.updated_at = timeutils.local_now()
         session.add(platform)
     return platform
+
+
+def platform_status_bulk_create_or_update(hostname, item_type, items_state):
+    session = get_session()
+    with session.begin():
+        for item_name in items_state.keys():
+            state = items_state[item_name]
+
+            platform = session.query(models.PlatformStatus). \
+                    filter(models.PlatformStatus.hostname == hostname). \
+                    filter(models.PlatformStatus.item_name == item_name). \
+                    filter(models.PlatformStatus.item_type == item_type). \
+                    with_lockmode('update'). \
+                    first()
+
+            if platform is None:
+                platform = models.PlatformStatus(
+                    hostname=hostname,
+                    item_name=item_name,
+                    item_type=item_type,
+                    state=state,
+                )
+            else:
+                platform.state = state
+            platform.updated_at = timeutils.local_now()
+            session.add(platform)
 
 
 def platform_status_get_all(search_dict={}, sorts=[]):

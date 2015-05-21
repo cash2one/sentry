@@ -336,19 +336,51 @@ class PlatformStatusDBAPITests(test.DBTestCase):
         item_type = kwargs.get('item_type')
         state = kwargs.get('state')
         api.platform_status_create_or_update(hostname,
-                                             item_name,
                                              item_type,
+                                             item_name,
                                              state)
 
         return {'hostname': hostname, 'item_name': item_name,
                 'item_type': item_type, 'state': state}
 
+    def _insert_bulk_platform_status(self, **kwargs):
+        hostname = kwargs.get('hostname')
+        item_type = kwargs.get('item_type')
+        items_state = kwargs.get('items_state')
+        api.platform_status_bulk_create_or_update(hostname,
+                                                  item_type,
+                                                  items_state)
+
+        return {'hostname': hostname, 'item_type': item_type,
+                'items_state': items_state}
+
     def test_create_platform_status(self):
         # no exception raises
         self._insert_platform_status(hostname='fake-host',
-                                     item_name='nova-compute',
                                      item_type='service',
+                                     item_name='nova-compute',
                                      state='normal')
+
+        services = {'nova-compute': 'normal', 'cinder-volume': 'normal'}
+        self._insert_bulk_platform_status(hostname='fake-host2',
+                                          item_type='service',
+                                          items_state=services)
+        result = api.platform_status_get_all(sorts=['hostname'])
+        self.assertEqual(3, result.count())
+
+    def test_update_platform_status(self):
+        # no exception raises
+        self._insert_platform_status(hostname='fake-host',
+                                     item_type='service',
+                                     item_name='nova-compute',
+                                     state='normal')
+
+        services = {'nova-compute': 'abnormal', 'cinder-volume': 'normal'}
+        self._insert_bulk_platform_status(hostname='fake-host',
+                                          item_type='service',
+                                          items_state=services)
+        result = api.platform_status_get_all(sorts=['hostname'])
+        self.assertEqual(2, result.count())
 
     def test_platform_status_get_all_sort_by_host(self):
         ps1 = self._insert_platform_status(hostname='fake-host2',

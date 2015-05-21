@@ -201,6 +201,17 @@ class PlatformWatcherManager(object):
         for host in self.status.keys():
             self.status[host].update_state()
 
+    def _update_platform_status_db(self):
+        for host in self.status.keys():
+            dbapi.platform_status_create_or_update(host, "node", host,
+                                                   self.status[host].state)
+
+            dbapi.platform_status_bulk_create_or_update(host, "service",
+                                                self.status[host].services)
+
+            dbapi.platform_status_bulk_create_or_update(host, "vm",
+                                                self.status[host].vms)
+
     def send_alarm(self):
         now = timeutils.strtime(timeutils.local_now())
 
@@ -263,6 +274,7 @@ class PlatformWatcherManager(object):
         if CONF.platform_watcher.alarm_enabled:
             self.send_alarm()
 
+        self._update_platform_status_db()
         self.clean_expired_platform_status()
 
     def clean_expired_platform_status(self):
