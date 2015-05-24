@@ -8,3 +8,4 @@ sentry.egg-info/
 .venv
 build/
 sentry.conf
+sentry/db/sentry.sqlite

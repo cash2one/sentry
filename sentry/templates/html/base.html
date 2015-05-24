@@ -6,14 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../favicon.ico">
+    <link rel="icon" href="/web/static/favicon.ico">
 
     <title>{% block title %}Sentry - Monitoring for OpenStack{% endblock %}</title>
 
     <link href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
-    <link href="http://cdn.bootcss.com/datatables/1.10.7/css/jquery.dataTables.min.css" rel="stylesheet">
-
-    <link href="static/css/theme.css" rel="stylesheet">
+    <link href="/web/static/css/theme.css" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
 
   </head>
 
@@ -23,13 +22,13 @@
     <nav class="navbar navbar-inverse">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="/">Sentry</a>
+          <a class="navbar-brand" href="/web">Sentry</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Dashboard</a></li>
-            <li><a href="#about">Metrics</a></li>
-            <li><a href="#contact">Services</a></li>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Metrics</a></li>
+            <li {% if CURRENT == 'services' %}class="active"{%endif%}><a href="/web/services">Services</a></li>
             <li><a href="#contact">Errors</a></li>
             <li><a href="#contact">Notifications</a></li>
             <li><a href="#contact">Setting</a></li>
@@ -762,16 +761,8 @@
 
 
     <script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
-    <script src="http://cdn.bootcss.com/datatables/1.10.7/js/jquery.dataTables.min.js"></script>
     <script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 
-    <script type="text/javascript" language="javascript">
-    $(document).ready(function() {
-        $('.datatable').dataTable({
-          stateSave: true,
-          "pageLength": 50,
-        });
-    });
-    </script>
+    {% block extra_js %}{% endblock %}
   </body>
 </html>

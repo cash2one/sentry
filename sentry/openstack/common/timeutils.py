@@ -121,6 +121,11 @@ def utcnow():
     return datetime.datetime.utcnow()
 
 
+def dt_to_timestamp(dt):
+    return (dt - tz_utc_to_local(datetime.datetime(1970, 1, 1))). \
+                total_seconds()
+
+
 utcnow.override_time = None
 
 

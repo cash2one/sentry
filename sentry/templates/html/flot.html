@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.js"></script>
+    <script src="http://cdn.bootcss.com/flot/0.8.3/jquery.flot.min.js"></script>
+    <script src="http://cdn.bootcss.com/flot/0.8.3/jquery.flot.time.min.js"></script>
+
+    <script type="text/javascript">
+  
+    $(function() {
+
+        var options = {
+          xaxis: { 
+            mode:"time",
+            timeformat: "%Y-%m-%e %H:%M:%S",
+          },
+          series: {
+              lines: { show: true },
+              points: { show: true }
+          }
+        };
+        var datas = [];
+
+      function update_plot(data){
+        datas.push(data);
+        plot = $.plot('#demo', datas, options);
+      }
+
+      $('#metric').click(function(){
+        console.log($('#data').val());
+        dataurl = '/v1/metric/' + $('#data').val();
+        $.ajax({
+            url: dataurl,
+            type: "GET",
+            dataType: "json",
+            success: update_plot,
+        });
+      });
+    
+    })
+  </script>
+<style>
+#demo {
+  height: 500px;
+}
+#data {
+  width: 90%;
+}
+</style>
+</head>
+<body>
+<input type="text" name="data" id="data" value="openstack/haha/a/rpc_mean/1"/>
+<input type='button' value="test it" id="metric" />
+<div id="demo"> </div>
+</body>
+</html>

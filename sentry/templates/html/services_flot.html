@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% set CURRENT = "services" %}
+
+{% block extra_js %}
+<script src="http://cdn.bootcss.com/flot/0.8.3/jquery.flot.min.js"></script>
+<script src="http://cdn.bootcss.com/flot/0.8.3/jquery.flot.time.min.js"></script>
+
+<script type="text/javascript">
+
+$(function() {
+
+  function update_plot(data){
+    var options = {
+      xaxis: { 
+        mode:"time",
+        timeformat: "%Y-%m-%e %H:%M:%S",
+      },
+      series: {
+          lines: { show: true },
+          points: { show: true }
+      }
+    };
+    $.plot('#flot-box', [data], options);
+  }
+
+  $.ajax({
+      url: "{{metric_url}}",
+      type: "GET",
+      dataType: "json",
+      success: update_plot,
+  });
+
+})
+</script>
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+  #flot-box {
+    height: 500px;
+  }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<h1>
+  <a href="../services">&lt;&lt;</a>
+  Services Detail: {{ service_name }}
+</h1>
+<hr/>
+
+<div id='toolbox' class="pull-right">
+  <a href="?h=1" class="btn btn-default {% if hour == 1 %}btn-primary{%endif%}">1h</a>
+  <a href="?h=3" class="btn btn-default {% if hour == 3 %}btn-primary{%endif%}">3h</a>
+  <a href="?h=6" class="btn btn-default {% if hour == 6 %}btn-primary{%endif%}">6h</a>
+  <a href="?h=12" class="btn btn-default {% if hour == 12 %}btn-primary{%endif%}">12h</a>
+  <a href="?h=24" class="btn btn-default {% if hour == 24 %}btn-primary{%endif%}">24h</a>
+  <a href="?h=72" class="btn btn-default {% if hour == 72 %}btn-primary{%endif%}">3d</a>
+  <a href="?h=168" class="btn btn-default {% if hour == 168 %}btn-primary{%endif%}">7d</a>
+  <a href="?h=720" class="btn btn-default {% if hour == 720 %}btn-primary{%endif%}">30d</a>
+</div>
+<div class="clearfix"></div>
+<div id="flot-box"> </div>
+
+{% endblock %}

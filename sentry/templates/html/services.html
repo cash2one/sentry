@@ -1,7 +1,26 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% set CURRENT = "services" %}
 
+{% block extra_css %}
+<link href="http://cdn.bootcss.com/datatables/1.10.7/css/jquery.dataTables.min.css" rel="stylesheet">
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="http://cdn.bootcss.com/datatables/1.10.7/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" language="javascript">
+$(document).ready(function() {
+    $('.datatable').dataTable({
+        stateSave: true,
+        "pageLength": 50,
+    });
+});
+</script>
+{% endblock %}
+
+
+{% block content %}
 <h1>Services<a href="javascript:location.reload()" class="btn btn-default pull-right">Refresh</a></h1>
 <hr/>
 
@@ -19,19 +38,23 @@
     <tbody>
       {% for service in services %}
       <tr>
-        <td>{{ service.binary }}</td>
-        <td><a href="services/{{ service.hostname }}">{{ service.hostname }}</a></td>
-        <td>
-          {% if service.state == 'success' %}
-          <span class="label label-success">{{ service.state }}</span>
-          {% elif service.state == 'timeout' %}
-          <span class="label label-warning">{{ service.state }}</span>
-          {% elif service.state == 'failed' %}
-          <span class="label label-danger">{{ service.state }}</span>
-          {% endif %} 
-        </td>
-        <td>{{ service.response_time }}</td>
-        <td>{{ service.updated_at }}</td>
+          <td>
+              <a href="services/{{service.hostname}}_{{service.binary}}">
+                  {{ service.binary }}
+              </a>
+          </td>
+          <td>{{ service.hostname }}</td>
+          <td>
+              {% if service.state == 'success' %}
+              <span class="label label-success">{{ service.state }}</span>
+              {% elif service.state == 'timeout' %}
+              <span class="label label-warning">{{ service.state }}</span>
+              {% elif service.state == 'failed' %}
+              <span class="label label-danger">{{ service.state }}</span>
+              {% endif %} 
+          </td>
+          <td>{{ service.response_time }}</td>
+          <td>{{ service.updated_at }}</td>
       </tr>
       {% endfor %}
     </tbody>

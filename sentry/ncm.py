@@ -13,6 +13,7 @@ from oslo.config import cfg
 
 from sentry.common import retryutils
 from sentry.openstack.common import log as logging
+from sentry.openstack.common import timeutils
 
 LOG = logging.getLogger(__name__)
 
@@ -49,6 +50,69 @@ class Monitor(object):
 
     def set_namespace(self, namespace):
         self.namespace = namespace
+
+    @staticmethod
+    def _java_timestamp(timestamp):
+        return int(timestamp * 1000)
+
+    def get_metric_data(self, namespace, metric_name,
+                        dimension_key, dimension_value,
+                        start, end, period_minute):
+        """
+        Get metric data points.
+
+        :param start: datetime;
+        :param end: datetime;
+        :param period_minute: int, period in minute;
+
+        The response look like:
+
+           {
+                "MetricData": {
+                    "lable": "rpc_response_time",
+                    "metricDatas": [
+                        {
+                            "sampleCount": 54,
+                            "sum": 3.51,
+                            "createTime": 1431703800000,
+                            "maxinum": 2.03,
+                            "average": 0.065,
+                            "mininum": 0.013
+                        },
+                        {
+                            "sampleCount": 90,
+                            "sum": 2.83,
+                            "createTime": 1431705600000,
+                            "maxinum": 0.356,
+                            "average": 0.031,
+                            "mininum": 0.013
+                        }
+                    ]
+                }
+            }
+
+        """
+        url = '/rest/V1/MetricData'
+        start_time = self._java_timestamp(timeutils.dt_to_timestamp(start))
+        end_time = self._java_timestamp(timeutils.dt_to_timestamp(end))
+        period = period_minute * 60
+        dimensions = '%s=%s' % (dimension_key, dimension_value)
+
+        query = urllib.urlencode({
+            'projectId': self.project_id,
+            'Namespace': self.namespace,
+            'MetricName': metric_name,
+            'Dimensions': dimensions,
+            'Period': period,
+            'StartTime': start_time,
+            'EndTime': end_time,
+            # 'Statistics',
+            # 'Convertor',
+            'AccessKey': self.access_key,
+        })
+        url = url + "?" + query
+        LOG.debug("GET %s" % url)
+        return self._request('GET', url)
 
     def post_metric(self, metric_name, metric_value,
                     dimension_key, dimension_value,
@@ -139,23 +203,29 @@ class Monitor(object):
         return signature
 
     def do_post(self, request_uri, param):
+        return self._request('POST', request_uri, param)
+
+    def _request(self, method, request_uri, param=None):
+        method = method.upper()
+
         for i in xrange(5):
             try:
                 conn = httplib.HTTPConnection(self.url, timeout=5)
-                conn.request('POST', request_uri, body=param,
+                conn.request(method, request_uri, body=param,
                              headers=self.headers)
                 response = conn.getresponse()
                 if response.status != 200:
-                    LOG.error("send alarm error: (status:%s):%s \ncontent:%s" %
+                    LOG.error("HTTP (status:%s):%s \ncontent:%s" %
                               (response.status, response.reason,
                                response.read().decode('utf8')))
                     continue  # retry
-                break
+                return response.read()
             except Exception:
                 time.sleep(i * 2)
             finally:
                 if 'conn' in locals():
                     conn.close()
+
 
 CLIENT = None
 
