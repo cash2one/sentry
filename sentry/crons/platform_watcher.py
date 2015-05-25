@@ -158,6 +158,10 @@ class PlatformWatcherManager(object):
         return self.memcache_client.get(host).get('uuids', [])
 
     def _get_instance_network_status(self, uuid):
+        db_ins = dbapi.instance_network_status_get_all(
+            search_dict={'uuid': uuid}).all()
+        if len(db_ins) != 0:
+            return VM_NETWORK_ABNORMAL
         return VM_NETWORK_NORMAL
 
     def _get_instance_heartbeat_status(self, uuid):

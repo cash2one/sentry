@@ -176,6 +176,9 @@
 # Neutron event handlers (list value)
 #neutron_event_handlers=neutron,bi_log
 
+# Neutron critical event handlers (list value)
+#neutron_critical_event_handlers=log_error,neutron_monitor
+
 # Seconds to wait for a response from call or multicall
 # (integer value)
 #neutron_rpc_response_timeout=60

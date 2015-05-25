@@ -128,10 +128,12 @@ class Manager(green.GreenletDaemon):
         LOG.info("Declare neutron consumers")
         self.neutron_pipeline = Pipeline.create(self.pool,
                                                 CONF.neutron_event_handlers)
+        self.neutron_critical_pipeline = Pipeline.create(self.pool,
+                                        CONF.neutron_critical_event_handlers)
         self.neutron_collector.declare_consumer('neutron_notifications.info',
                                                 self.neutron_pipeline)
         self.neutron_collector.declare_consumer(
-            'neutron_notifications.critical', self.log_error_pipeline
+            'neutron_notifications.critical', self.neutron_critical_pipeline
         )
         # messages in 'neutron_dsn.critical' are duplicate with these in
         # 'neutron_notifications.critical', so just purge them.
