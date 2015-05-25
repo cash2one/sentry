@@ -5,3 +5,4 @@ from sentry.api.v1 import config  # noqa
 from sentry.api.v1 import alarm  # noqa
 from sentry.api.v1 import service  # noqa
 from sentry.api.v1 import statsd  # noqa
+from sentry.api.v1 import platform_status  # noqa
