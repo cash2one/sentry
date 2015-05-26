@@ -103,3 +103,11 @@ def platform_status_get_all(*args, **kwargs):
 
 def platform_status_get_by_updated_at(*args, **kwargs):
     return IMPL.platform_status_get_by_updated_at(*args, **kwargs)
+
+
+def metric_get_all(*args, **kwargs):
+    return IMPL.metric_get_all(*args, **kwargs)
+
+
+def metric_create_or_update(*args, **kwargs):
+    return IMPL.metric_create_or_update(*args, **kwargs)

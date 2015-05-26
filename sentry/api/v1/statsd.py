@@ -2,6 +2,7 @@ import datetime
 
 from sentry.api.v1.app import route
 from sentry import ncm
+from sentry.db import api as dbapi
 from sentry.openstack.common import timeutils
 from sentry.openstack.common import jsonutils
 
@@ -15,10 +16,7 @@ def data_to_points(raw_data):
     ret = []
     # creatTime eg. 1431703800000 is compatiable with javascript.
     for metric in metric_datas:
-        # Work around flot always think timestamp is UTC
-        # we are in UTC +8
-        timestamp = metric['createTime'] + 1000 * 60 * 60 * 8
-        ret.append([timestamp, metric['average']])
+        ret.append([metric['createTime'], metric['average']])
     return ret
 
 
@@ -40,6 +38,11 @@ def get_period(request_period):
 
 @route('/metric/<ns>/<dimen_name>/<dimen_value>/<metric>/<hour:int>')
 def metric(ns, dimen_name, dimen_value, metric, hour):
+    """Return metric datas in recent hours.
+
+    GET /v1/metric/openstack/http_api/all/http_rt_count/1
+    GET /v1/metric/openstack/http_api/all/http_rt_mean/1
+    """
     client = ncm.get_client()
 
     # Get future 2 minute data here
@@ -56,3 +59,57 @@ def metric(ns, dimen_name, dimen_value, metric, hour):
         'label': label,
         'data': data_to_points(raw_data),
     }
+
+
+@route('/metric/status/<ns>/<dimen_name>')
+def list(ns, dimen_name):
+    """Return metric latest status.
+
+    Make something like this:
+
+        {
+            'metrics': [
+                {
+                    "namespace": "openstack",
+                    "dimension_name": "http_api",
+                    "dimension_value": "all",
+                    "metrics": {
+                        "http_rt_count": 30.0,
+                        "http_rt_mean": 10.0,
+                        "http_rt_upper_90": 0.3
+                    }
+                },
+                {
+                    "namespace": "openstack",
+                    "dimension_name": "http_api",
+                    "dimension_value": "compute_get_all",
+                    "metrics": {
+                        "http_rt_count": 10.0,
+                        "http_rt_mean": 9.0,
+                        "http_rt_lower": 2.2
+                    }
+                }
+            ]
+        }
+    """
+
+    query = dbapi.metric_get_all({'namespace': ns, 'dimen_name': dimen_name})
+
+    metrics = {}
+
+    for metric in query.all():
+        key = '%s_%s_%s' % (metric.namespace,
+                            metric.dimen_name,
+                            metric.dimen_value)
+        if key not in metrics:
+            # Create one
+            metric_obj = {}
+            metric_obj['namespace'] = metric.namespace
+            metric_obj['dimension_name'] = metric.dimen_name
+            metric_obj['dimension_value'] = metric.dimen_value
+            metric_obj['metrics'] = {}
+            metrics[key] = metric_obj
+
+        metrics[key]['metrics'][metric.metric_name] = metric.metric_value
+
+    return {'metrics': metrics}

@@ -485,3 +485,36 @@ def platform_status_get_by_updated_at(older_then):
     query = platform_status_get_all()
     query = query.filter(models.PlatformStatus.updated_at <= older_then)
     return query
+
+
+def metric_get_all(search_dict={}, sorts=[]):
+    return _model_complict_query(models.StatsdMetric, search_dict, sorts)
+
+
+def metric_create_or_update(namespace, dimen_name, dimen_value, metric_name,
+                            metric_value):
+    session = get_session()
+    with session.begin():
+        metric = session.query(models.StatsdMetric). \
+                filter(models.StatsdMetric.namespace == namespace). \
+                filter(models.StatsdMetric.dimen_name == dimen_name). \
+                filter(models.StatsdMetric.dimen_value == dimen_value). \
+                filter(models.StatsdMetric.metric_name == metric_name). \
+                with_lockmode('update'). \
+                first()
+
+        if metric is None:
+            metric = models.StatsdMetric(
+                namespace=namespace,
+                dimen_name=dimen_name,
+                dimen_value=dimen_value,
+                metric_name=metric_name,
+                metric_value=metric_value,
+            )
+
+        # Fresh it
+        metric.updated_at = timeutils.local_now()
+        metric.metric_value = metric_value
+
+        session.add(metric)
+    return metric

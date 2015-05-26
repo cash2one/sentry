@@ -15,11 +15,15 @@ $(function() {
       xaxis: { 
         mode:"time",
         timeformat: "%Y-%m-%e %H:%M:%S",
+        timezone: "browser",
+      },
+      yaxis: {
+        show: true,
       },
       series: {
           lines: { show: true },
-          points: { show: true }
-      }
+          points: { show: false }
+      },
     };
     $.plot('#flot-box', [data], options);
   }

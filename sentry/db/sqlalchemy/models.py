@@ -397,3 +397,25 @@ class PlatformStatus(BASE, BaseModel):
                                                 self.item_name,
                                                 self.item_type,
                                                 self.state)
+
+
+class StatsdMetric(BASE, BaseModel):
+
+    __tablename__ = 'statsd_metric'
+    __table_args__ = (
+        Index("sm_namespace_dimen_name_idx", 'namespace', 'dimen_name'),
+    )
+
+    namespace = Column(String(255))
+    dimen_name = Column(String(255))
+    dimen_value = Column(String(255))
+    metric_name = Column(String(255))
+    metric_value = Column(Float())
+    updated_at = Column(LocalDateTime(), default=timeutils.local_now)
+
+    def __repr__(self):
+        return '<StatsdMetric %s.%s.%s.%s.%s>' % (self.namespace,
+                                                  self.dimen_name,
+                                                  self.dimen_value,
+                                                  self.metric_name,
+                                                  self.metric_value)

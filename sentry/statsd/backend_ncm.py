@@ -1,4 +1,5 @@
 from sentry import ncm
+from sentry.db import api as dbapi
 
 
 class NCMBackend(object):
@@ -24,8 +25,15 @@ class NCMBackend(object):
                 full_name = '%s_%s' % (metric_name, name)
                 self.client.post_metric(full_name, value, dimens_name,
                                         dimens_value, agg_dimens)
+                dbapi.metric_create_or_update(
+                    namespace, dimens_name, dimens_value, full_name, value
+                )
 
         elif (isinstance(metric_values, float) or
                                         isinstance(metric_values, int)):
             self.client.post_metric(metric_name, metric_values, dimens_name,
                                     dimens_value, agg_dimens)
+            dbapi.metric_create_or_update(
+                namespace, dimens_name, dimens_value, metric_name,
+                metric_values
+            )
