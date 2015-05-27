@@ -292,6 +292,7 @@ class PlatformWatcherManager(object):
 
 @cron.cronjob(CONF.platform_watcher.watch_interval)
 def watch_platform_status():
-    LOG.info("Start to Watch platform status.")
-    pw = PlatformWatcherManager()
-    pw.process()
+    if CONF.platform_watcher.enabled:
+        LOG.info("Start to Watch platform status.")
+        pw = PlatformWatcherManager()
+        pw.process()
