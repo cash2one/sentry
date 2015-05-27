@@ -1,21 +1,20 @@
 """
-Eventlet based, cron like jobs
+Eventlet based, cron like jobs.
 """
-import urllib2
+import time
 import eventlet
-import base64
 
-from sentry.crons import platform_watcher
 from sentry import green
-from sentry.db import api as dbapi
-from sentry import config
 from sentry.openstack.common import log as logging
-from sentry.openstack.common import jsonutils
 
+__all__ = [
+    'get_engine', 'cronjob',
+]
 LOG = logging.getLogger(__name__)
 
 
 class CronJob(object):
+    """A wrapper about job for CronEngine."""
 
     def __init__(self, function, slow_start_s, interval_s):
         self.function = function
@@ -27,10 +26,16 @@ class CronJob(object):
             if self.slow_start_s:
                 eventlet.sleep(self.slow_start_s)
 
+            start = time.time()
             try:
                 self.function()
             except Exception:
                 LOG.exception('')
+
+            end = time.time()
+            delta = end - start
+            LOG.debug("%s finished in %s. sleep %s" %
+                      (self.function, delta, self.interval_s))
 
             eventlet.sleep(self.interval_s)
 
@@ -39,44 +44,62 @@ class CronJob(object):
 
 
 class CronEngine(green.GreenletDaemon):
+    """The Cronjob manager"""
 
     def __init__(self):
         self.pool = eventlet.GreenPool()
         self.functions = {}
 
     def register(self, function, slow_start_s, interval_s):
+        """Register a job into engine. The job immediately start running.
+
+        :param function: An callable object, like a function.
+        :param slow_start_s: int, If given, the cron job will wait given
+                            seconds before running.
+        :param interval_s: int, the interval in seconds between each time.
+
+        """
+        LOG.debug("Loading cron job: %s, slow: %s, interval: %s" %
+                  (function, slow_start_s, interval_s))
         job = CronJob(function, slow_start_s, interval_s)
         thread = self.pool.spawn(job.loopingcall)
         self.functions[job] = thread
         return thread
 
-
-def subscribe_oslist():
-    oelist_url = config.get_config('oelist_url')
-    LOG.info("Fetching oelist from: %s" % oelist_url)
-
-    for retry in xrange(5):
-        try:
-            oelist_base64_content = urllib2.urlopen(oelist_url).read()
-            break
-        except Exception as ex:
-            LOG.error("Fetch oelist failed: %s, retry" % ex)
-            eventlet.sleep(2 * retry)
-            continue
-
-    oelist_json = base64.decodestring(oelist_base64_content)
-    oelist = jsonutils.loads(oelist_json)
-    for error in oelist['oelist']:
-        hash_str = error['hash_str']
-        db_error = dbapi.exc_info_get_by_hash_str(hash_str)
-        if db_error:
-            LOG.debug("Error in hash_str: %s set on_process to True.")
-            dbapi.exc_info_update(db_error.uuid, {'on_process': True})
-
-    LOG.info("Subscribe oelist done.")
+    def load_jobs(self, module='sentry.crons'):
+        """Load cronjob from a module path."""
+        # the __init__ of module will take care of real loading.
+        __import__(module)
 
 
-def watch_platform_status():
-    LOG.info("Start to Watch platform status.")
-    pw = platform_watcher.PlatformWatcherManager()
-    pw.process()
+ENGINE = CronEngine()
+
+
+def get_engine():
+    return ENGINE
+
+
+def cronjob(interval_s, slow_start=None):
+    """A decoration to easily register a cronjob.
+
+    Example:
+
+        @cronjob(60, 10)
+        def foo():
+            pass
+
+    The function foo() will wait about 10 second before the first time run.
+    And when first time finished, wait about 60 second, then set off
+    another time.
+    """
+
+    def wrapper(func):
+
+        ENGINE.register(func, slow_start, interval_s)
+
+        def inner(*args, **kwargs):
+            func(*args, **kwargs)
+
+        return inner
+
+    return wrapper

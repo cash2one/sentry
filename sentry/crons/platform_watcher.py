@@ -3,6 +3,7 @@ import datetime
 
 from oslo.config import cfg
 
+from sentry import cron
 from sentry.db import api as dbapi
 from sentry.alarm import api as alarm_api
 from sentry.openstack.common import log as logging
@@ -287,3 +288,10 @@ class PlatformWatcherManager(object):
         db_platform = dbapi.platform_status_get_by_updated_at(old_time)
         LOG.info("Clean expired platform status: %s" % db_platform.all())
         db_platform.delete()
+
+
+@cron.cronjob(CONF.platform_watcher.watch_interval)
+def watch_platform_status():
+    LOG.info("Start to Watch platform status.")
+    pw = PlatformWatcherManager()
+    pw.process()
