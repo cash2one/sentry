@@ -137,6 +137,9 @@ class PlatformWatcherManager(object):
         # key is hostname, value is HostStateInfo(hostname)
         self.status = {}
 
+        #key is hostname, value is uuid list
+        self.vms = {}
+
     def __repr__(self):
         return "%s" % self.status
 
@@ -156,7 +159,14 @@ class PlatformWatcherManager(object):
             self.status[s.hostname].add_service(s.binary, state)
 
     def _get_instance_list_by_host(self, host):
-        return self.memcache_client.get(host).get('uuids', [])
+        host_info = self.memcache_client.get(host)
+        if host_info and type(host_info) is dict:
+            self.vms[host] = host_info.get('uuids', [])
+        else:
+            LOG.warn("Can not get uuids of host %s from memcache, use cache!"
+                     % host)
+
+        return self.vms.get(host, [])
 
     def _get_instance_network_status(self, uuid):
         db_ins = dbapi.instance_network_status_get_all(
