@@ -6,23 +6,17 @@ def format_platform_status(db_platform_status):
     result = {"platform_status": []}
     platform_status = {}
     for item in db_platform_status:
+        if item.hostname not in platform_status.keys():
+            platform_status[item.hostname] = {"vms": {}, "services": {},
+                                              "status": None,
+                                              "updated_at": None}
         if item.item_type == 'node':
-            if item.hostname not in platform_status.keys():
-                platform_status[item.hostname] = {}
             platform_status[item.hostname]["status"] = item.state
             platform_status[item.hostname]["updated_at"] = item.updated_at
         elif item.item_type == 'service':
-            if item.hostname not in platform_status.keys():
-                platform_status[item.hostname] = {}
-            if "services" not in platform_status[item.hostname].keys():
-                platform_status[item.hostname]["services"] = {}
             platform_status[item.hostname]["services"].update({item.item_name:
                                                                item.state})
         elif item.item_type == 'vm':
-            if item.hostname not in platform_status.keys():
-                platform_status[item.hostname] = {}
-            if "vms" not in platform_status[item.hostname].keys():
-                platform_status[item.hostname]["vms"] = {}
             platform_status[item.hostname]["vms"].update({item.item_name:
                                                           item.state})
     for host in platform_status.keys():
