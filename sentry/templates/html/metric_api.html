@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% set CURRENT = "metrics" %}
+
+{% block extra_css %}
+<link href="http://cdn.bootcss.com/datatables/1.10.7/css/jquery.dataTables.min.css" rel="stylesheet">
+<style>
+  #rt_flot, #rpm_flot {
+    height: 250px;
+  }
+</style>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="http://cdn.bootcss.com/flot/0.8.3/jquery.flot.min.js"></script>
+<script src="http://cdn.bootcss.com/flot/0.8.3/jquery.flot.time.min.js"></script>
+
+<script src="http://cdn.bootcss.com/datatables/1.10.7/js/jquery.dataTables.min.js"></script>
+
+<script type="text/javascript" language="javascript">
+$(document).ready(function() {
+  $('.datatable').dataTable({
+      stateSave: true,
+      "pageLength": 50,
+  });
+
+  var options = {
+    xaxis: { 
+      mode:"time",
+      timeformat: "%Y-%m-%e %H:%M:%S",
+      timezone: "browser",
+    },
+    yaxis: {
+      show: true,
+    },
+    series: {
+        lines: { show: true },
+        points: { show: false }
+    },
+    legend: {
+      backgroundOpacity: 0.0,
+    },
+  };
+  d1 = {{ data1 }}
+  d2 = {{ data2 }}
+  d3 = {{ data3 }}
+  $.plot('#rt_flot', [d1, d2, d3], options);
+
+  d4 = {{ data4 }}
+  d5 = {{ data5 }}
+  d6 = {{ data6 }}
+  $.plot('#rpm_flot', [d4, d5, d6], options);
+
+});
+</script>
+{% endblock %}
+
+
+{% block content %}
+
+<h2>Response Time</h2>
+<hr/>
+<div id="rt_flot">
+</div>
+
+<h2>Request Per Minute</h2>
+<hr/>
+<div id="rt_flot">
+<div id="rpm_flot">
+</div>
+
+<h2>HTTP API Detail</h2>
+<hr/>
+<div id="rt_flot">
+<div id="detail">
+  <table class="table table-striped datatable">
+    <thead>
+      <tr>
+        <th>HTTP API</th>
+        <th>50% RT</th>
+        <th>90% RT</th>
+        <th>100% RT</th>
+        <th>RPM</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for metric in latest %}
+      <tr>
+        <td>{{ metric.dimension_value }}</td>
+        <td>{{ metric.metrics.http_rt_mean }}</td>
+        <td>{{ metric.metrics.http_rt_upper_90 }}</td>
+        <td>{{ metric.metrics.http_rt_upper }}</td>
+        <td>{{ metric.metrics.http_rt_count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
