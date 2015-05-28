@@ -26,8 +26,8 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li><a href="#">Dashboard</a></li>
-            <li><a href="#">Metrics</a></li>
+            <li><a href="/web">Dashboard</a></li>
+            <li {% if CURRENT == 'metrics' %}class="active"{%endif%}><a href="/web/metrics">Metrics</a></li>
             <li {% if CURRENT == 'services' %}class="active"{%endif%}><a href="/web/services">Services</a></li>
             <li><a href="#contact">Errors</a></li>
             <li><a href="#contact">Notifications</a></li>

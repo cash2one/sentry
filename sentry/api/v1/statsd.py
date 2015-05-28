@@ -44,6 +44,8 @@ def metric(ns, dimen_name, dimen_value, metric, hour):
     GET /v1/metric/openstack/http_api/all/http_rt_mean/1
     """
     client = ncm.get_client()
+    if not client:
+        return {}
 
     # Get future 2 minute data here
     end = timeutils.local_now() + datetime.timedelta(minutes=2)
@@ -62,7 +64,7 @@ def metric(ns, dimen_name, dimen_value, metric, hour):
 
 
 @route('/metric/status/<ns>/<dimen_name>')
-def list(ns, dimen_name):
+def latest(ns, dimen_name):
     """Return metric latest status.
 
     Make something like this:
