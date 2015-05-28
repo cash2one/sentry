@@ -66,6 +66,31 @@ class PlatformWatcherManagerTest(test.TestCase):
         self.assertEqual('normal',
                          pw._get_instance_heartbeat_status('fake-uuid1'))
 
+    def test_get_instance_network_status(self):
+        def fake_instance_network_status_get_by_updated_at(*args, **kwargs):
+            class SqlInstanceNetworkStatus():
+                def __init__(fake_self, ins):
+                    fake_self.ins = ins
+
+                def all(fake_self):
+                    return fake_self.ins
+
+            if kwargs["search_dict"].get('uuid') == 'fake-uuid1':
+                return SqlInstanceNetworkStatus([])
+            elif kwargs["search_dict"].get('uuid') == 'fake-uuid2':
+                return SqlInstanceNetworkStatus(['fake-inst_net_stat1',
+                                                 'fake-inst-net-stat2'])
+
+        self.stubs.Set(sentry.db.api,
+                       'instance_network_status_get_by_updated_at',
+                       fake_instance_network_status_get_by_updated_at)
+
+        pw = platform_watcher.PlatformWatcherManager()
+        self.assertEqual('normal',
+                         pw._get_instance_network_status('fake-uuid1'))
+        self.assertEqual('abnormal',
+                         pw._get_instance_network_status('fake-uuid2'))
+
     def test_get_instance_status(self):
         def fake_get_instance_heartbeat_status(fake_self, uuid):
             if uuid == 'fake-uuid1':

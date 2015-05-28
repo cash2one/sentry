@@ -175,7 +175,10 @@ class PlatformWatcherManager(object):
         return self.vms.get(host, [])
 
     def _get_instance_network_status(self, uuid):
-        db_ins = dbapi.instance_network_status_get_all(
+        delta = CONF.platform_watcher.instance_abnormal_period
+        old_time = timeutils.local_now() - datetime.timedelta(seconds=delta)
+
+        db_ins = dbapi.instance_network_status_get_by_updated_at(old_time,
             search_dict={'uuid': uuid}).all()
         if len(db_ins) != 0:
             return VM_NETWORK_ABNORMAL

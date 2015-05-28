@@ -445,8 +445,10 @@ def instance_network_status_get_all(search_dict={}, sorts=[]):
     return query
 
 
-def instance_network_status_get_by_updated_at(older_then):
-    query = instance_network_status_get_all()
+def instance_network_status_get_by_updated_at(older_then, search_dict={},
+                                              sorts=[]):
+    query = instance_network_status_get_all(search_dict=search_dict,
+                                            sorts=sorts)
     query = query.filter(models.InstanceNetworkStatus.updated_at <= older_then)
     return query
 
@@ -507,8 +509,9 @@ def platform_status_get_all(search_dict={}, sorts=[]):
     return query
 
 
-def platform_status_get_by_updated_at(older_then):
-    query = platform_status_get_all()
+def platform_status_get_by_updated_at(older_then, search_dict={}, sorts=[]):
+    query = platform_status_get_all(search_dict=search_dict,
+                                    sorts=sorts)
     query = query.filter(models.PlatformStatus.updated_at <= older_then)
     return query
 
