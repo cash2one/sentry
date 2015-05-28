@@ -112,4 +112,4 @@ def list(ns, dimen_name):
 
         metrics[key]['metrics'][metric.metric_name] = metric.metric_value
 
-    return {'metrics': metrics}
+    return {'metrics': metrics.values()}
