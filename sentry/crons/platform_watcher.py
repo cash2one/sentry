@@ -24,7 +24,7 @@ platform_watcher_opts = [
     cfg.IntOpt("service_abnormal_period", default=330,
                help="When service is abnormal during this period(seconds), "
                "then it's been taken as abnormal for platform watcher."),
-    cfg.IntOpt("instance_abnormal_period", default=60,
+    cfg.IntOpt("instance_abnormal_period", default=180,
                help="When instance is abnormal during this period(seconds), "
                "then it's been taken as abnormal for platform watcher."),
     cfg.IntOpt("status_expired_period", default=3600,
@@ -33,6 +33,12 @@ platform_watcher_opts = [
                "should be deprecated."),
     cfg.BoolOpt("alarm_enabled", default=False,
                 help="Whether to alarm platform abnormal."),
+    cfg.BoolOpt("node_abnormal_alarm_enabled", default=False,
+                help="Whether to alarm platform node abnormal."),
+    cfg.BoolOpt("service_abnormal_alarm_enabled", default=False,
+                help="Whether to alarm platform service abnormal."),
+    cfg.BoolOpt("vm_abnormal_alarm_enabled", default=False,
+                help="Whether to alarm platform vm abnormal."),
 ]
 CONF.register_opts(platform_watcher_opts, 'platform_watcher')
 
@@ -270,11 +276,14 @@ class PlatformWatcherManager(object):
         LOG.info("abnormal_services: %s" % abnormal_services)
         LOG.info("abnormal_nodes: %s" % abnormal_nodes)
 
-        if len(abnormal_nodes) != 1:
+        if (len(abnormal_nodes) != 1
+                and CONF.platform_watcher.node_abnormal_alarm_enabled):
             self.alarm_api.alarm_nodes_abnormal(abnormal_nodes)
-        if len(abnormal_services) != 1:
+        if (len(abnormal_services) != 1
+                and CONF.platform_watcher.service_abnormal_alarm_enabled):
             self.alarm_api.alarm_services_abnormal(abnormal_services)
-        if len(abnormal_vms) != 1:
+        if (len(abnormal_vms) != 1
+                and CONF.platform_watcher.vm_abnormal_alarm_enabled):
             self.alarm_api.alarm_vms_abnormal(abnormal_vms)
 
     def process(self):

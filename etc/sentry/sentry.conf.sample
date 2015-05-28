@@ -716,7 +716,7 @@
 # When instance is abnormal during this period(seconds), then
 # it's been taken as abnormal for platform watcher. (integer
 # value)
-#instance_abnormal_period=60
+#instance_abnormal_period=180
 
 # When service or instance status is not been updated during
 # this period(seconds), the status data should be deprecated.
@@ -725,6 +725,15 @@
 
 # Whether to alarm platform abnormal. (boolean value)
 #alarm_enabled=false
+
+# Whether to alarm platform node abnormal. (boolean value)
+#node_abnormal_alarm_enabled=false
+
+# Whether to alarm platform service abnormal. (boolean value)
+#service_abnormal_alarm_enabled=false
+
+# Whether to alarm platform vm abnormal. (boolean value)
+#vm_abnormal_alarm_enabled=false
 
 
 [rpc_notifier2]
