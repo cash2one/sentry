@@ -97,6 +97,10 @@ def platform_status_create_or_update(*args, **kwargs):
     return IMPL.platform_status_create_or_update(*args, **kwargs)
 
 
+def platform_status_bulk_create_or_update(*args, **kwargs):
+    return IMPL.platform_status_bulk_create_or_update(*args, **kwargs)
+
+
 def platform_status_get_all(*args, **kwargs):
     return IMPL.platform_status_get_all(*args, **kwargs)
 
