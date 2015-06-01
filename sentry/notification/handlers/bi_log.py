@@ -24,7 +24,7 @@ bi_options = [
                default="sentry-bi.log",
                help="The file name of BI log. Default is sentry_bi.log"),
     cfg.IntOpt('log_interval',
-               default=7,
+               default=1,
                help="The days that the BI log will holds. Default is 7 days"),
 ]
 CONF.register_opts(bi_options, 'BI')
