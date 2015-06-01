@@ -20,6 +20,7 @@ used for key value tags. The first item of tags will be dimension, the other of
 tags will be aggregation_dimension.
 """
 
+import time
 import socket
 import logging as ori_logging
 import sys
@@ -371,12 +372,17 @@ class StatsServer(object):
 
     def do_report(self):
         while True:
+            start = time.time()
+
             LOG.info("Push to backend")
             self._do_report(self.counter_samples)
             self._do_report(self.timer_samples)
-
             self._clear()
-            interval = CONF.statsd.flush_interval
+
+            end = time.time()
+            span = end - start
+
+            interval = (CONF.statsd.flush_interval - round(span))
             LOG.info("Pushed, sleep %s" % interval)
             eventlet.sleep(interval)
 
