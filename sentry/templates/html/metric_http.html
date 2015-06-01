@@ -1,8 +1,9 @@
 {% extends "_metric_base.html" %}
 
-{% set CURRENT = "metrics_api" %}
+{% set CURRENT = "metrics_http" %}
 
 {% block flot_detail %}
+{% if latest %}
 <h2>HTTP API Detail</h2>
 <hr/>
 <div id="rt_flot">
@@ -20,7 +21,11 @@
     <tbody>
       {% for metric in latest %}
       <tr>
-        <td>{{ metric.dimension_value }}</td>
+        <td>
+            <a href="{{ metric.dimension_value }}/">
+                {{ metric.dimension_value }}
+            </a>
+        </td>
         <td>{{ metric.metrics.http_rt_mean }}</td>
         <td>{{ metric.metrics.http_rt_upper_90 }}</td>
         <td>{{ metric.metrics.http_rt_upper }}</td>
@@ -30,4 +35,5 @@
     </tbody>
   </table>
 </div>
+{% endif %}
 {% endblock %}

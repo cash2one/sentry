@@ -27,7 +27,7 @@ $(document).ready(function() {
   var options = {
     xaxis: { 
       mode:"time",
-      timeformat: "%Y-%m-%e %H:%M:%S",
+      timeformat: "%Y-%m-%d %H:%M:%S",
       timezone: "browser",
     },
     yaxis: {
@@ -52,44 +52,30 @@ $(document).ready(function() {
 
 {% block content %}
 
-<h2>Response Time</h2>
+<h2>{{ api_name }}</h2>
 <hr/>
+
+<div id='toolbox' class="pull-right">
+  <a href="?h=1" class="btn btn-default {% if hour == 1 %}btn-primary{%endif%}">1h</a>
+  <a href="?h=3" class="btn btn-default {% if hour == 3 %}btn-primary{%endif%}">3h</a>
+  <a href="?h=6" class="btn btn-default {% if hour == 6 %}btn-primary{%endif%}">6h</a>
+  <a href="?h=12" class="btn btn-default {% if hour == 12 %}btn-primary{%endif%}">12h</a>
+  <a href="?h=24" class="btn btn-default {% if hour == 24 %}btn-primary{%endif%}">24h</a>
+  <a href="?h=72" class="btn btn-default {% if hour == 72 %}btn-primary{%endif%}">3d</a>
+  <a href="?h=168" class="btn btn-default {% if hour == 168 %}btn-primary{%endif%}">7d</a>
+  <a href="?h=720" class="btn btn-default {% if hour == 720 %}btn-primary{%endif%}">30d</a>
+</div>
+
+<h3>Response Time</h3>
 <div id="rt_flot">
 </div>
 
-<h2>Request Per Minute</h2>
-<hr/>
+<h3>Request Per Minute</h3>
 <div id="rt_flot">
 <div id="rpm_flot">
 </div>
 
 {% block flot_detail %}
-<h2>HTTP API Detail</h2>
-<hr/>
-<div id="rt_flot">
-<div id="detail">
-  <table class="table table-striped datatable">
-    <thead>
-      <tr>
-        <th>HTTP API</th>
-        <th>50% RT</th>
-        <th>90% RT</th>
-        <th>100% RT</th>
-        <th>RPM</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for metric in latest %}
-      <tr>
-        <td>{{ metric.dimension_value }}</td>
-        <td>{{ metric.metrics.http_rt_mean }}</td>
-        <td>{{ metric.metrics.http_rt_upper_90 }}</td>
-        <td>{{ metric.metrics.http_rt_upper }}</td>
-        <td>{{ metric.metrics.http_rt_count }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
 {% endblock %}
+
 {% endblock %}
