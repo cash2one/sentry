@@ -9,3 +9,4 @@ sentry.egg-info/
 build/
 sentry.conf
 sentry/db/sentry.sqlite
+log/
