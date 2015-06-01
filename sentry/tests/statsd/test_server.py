@@ -16,6 +16,21 @@ class TimeQueueTestCase(test.TestCase):
             'tags': 'a:b'
         }
 
+    def test_just_onerecord(self):
+        queue = server.TimerQueue()
+        queue.push_sample(self.make_sample(450))
+
+        ret = queue.report()
+        self.assertEqual(ret['mean'], 450)
+        self.assertEqual(ret['sum'], 450)
+        self.assertEqual(ret['count'], 1)
+        self.assertEqual(ret['lower'], 450)
+        self.assertEqual(ret['upper'], 450)
+
+        self.assertEqual(ret['mean_90'], 450)
+        self.assertEqual(ret['upper_90'], 450)
+        self.assertEqual(ret['sum_90'], 450)
+
     def test_report_ok(self):
         # Test case copy from:
         # https://blog.pkhamre.com/understanding-statsd-and-graphite/

@@ -118,7 +118,7 @@ class TimerQueue(MetricQueue):
     def split_sample(items, percentage=0.5):
         """Caller should make sure `items` is ordered from low to high.
         """
-        index = int(len(items) * percentage)
+        index = int(round(len(items) * percentage))
         try:
             return items[:index]
         except IndexError:
