@@ -119,8 +119,12 @@ class KombuConsumer(mixins.ConsumerMixin, _KombuConnectionMixin):
             durable=self._config.amqp_durable_queues,
             auto_delete=self._config.amqp_auto_delete,
             exclusive=False,     # oslo.messaging set it to False
+            queue_arguments=self._queue_arguments(),
         )
         self._consumers[callback].append(queue)
+
+    def _queue_arguments(self):
+        return {'x-ha-policy': 'all'} if self._config.rabbit_ha_queues else {}
 
     def consume_in_thread(self):
         eventlet.spawn(self.run)
