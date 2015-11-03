@@ -61,7 +61,10 @@ class Handler(object):
         if not msg_type:
             return
 
-        if msg_type not in ['compute.instance.delete.end']:
+        if msg_type not in ['compute.instance.delete.end',
+                            # for NSEC
+                            'compute.instance.public_interface.attach',
+                            'compute.instance.public_interface.detach']:
             return
 
         message = copy.deepcopy(message)
