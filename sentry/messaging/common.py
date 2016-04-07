@@ -40,6 +40,12 @@ class RabbitConfig(object):
         self.kombu_ssl_certfile = ''
         self.kombu_ssl_ca_certs = ''
         self.rpc_response_timeout = 60
+        self.kombu_reconnect_delay = 1.0
+        self.kombu_transport = 'pyamqp'
+        self.kombu_keepalive_enable = True
+        self.kombu_keepalive_idle = 30
+        self.kombu_keepalive_interval = 3
+        self.kombu_keepalive_count = 3
 
         # Below items should be change before using.
         self.rabbit_host = 'localhost'

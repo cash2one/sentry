@@ -437,6 +437,25 @@
 # (string value)
 #kombu_ssl_ca_certs=
 
+# How long to wait before reconnecting in response to an AMQP
+# consumer cancel notification. (floating point value)
+#kombu_reconnect_delay=1.0
+
+# Default transport for kombu (string value)
+#kombu_transport=pyamqp
+
+# enable keeplive for kombu transport. (boolean value)
+#kombu_keepalive_enable=true
+
+# keeplive_idle for kombu transport. (integer value)
+#kombu_keepalive_idle=30
+
+# keeplive_interval for kombu transport. (integer value)
+#kombu_keepalive_interval=3
+
+# keeplive_count for kombu transport. (integer value)
+#kombu_keepalive_count=3
+
 # The RabbitMQ broker address where a single node is used
 # (string value)
 #rabbit_host=localhost

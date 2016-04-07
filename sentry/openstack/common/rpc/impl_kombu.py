@@ -53,6 +53,25 @@ kombu_opts = [
                default='',
                help=('SSL certification authority file '
                      '(valid only if SSL enabled)')),
+    cfg.FloatOpt('kombu_reconnect_delay',
+                 default=1.0,
+                 help='How long to wait before reconnecting in response to an '
+                      'AMQP consumer cancel notification.'),
+    cfg.StrOpt('kombu_transport',
+               default='pyamqp',
+               help='Default transport for kombu'),
+    cfg.BoolOpt('kombu_keepalive_enable',
+                default=True,
+                help='enable keeplive for kombu transport.'),
+    cfg.IntOpt('kombu_keepalive_idle',
+               default=30,
+               help='keeplive_idle for kombu transport.'),
+    cfg.IntOpt('kombu_keepalive_interval',
+               default=3,
+               help='keeplive_interval for kombu transport.'),
+    cfg.IntOpt('kombu_keepalive_count',
+               default=3,
+               help='keeplive_count for kombu transport.'),
     cfg.StrOpt('rabbit_host',
                default='localhost',
                help='The RabbitMQ broker address where a single node is used'),
@@ -452,6 +471,16 @@ class Connection(object):
                 p_key = server_params_to_kombu_params.get(sp_key, sp_key)
                 params[p_key] = value
 
+            if self.conf.kombu_keepalive_enable:
+                params.update({'transport': 'pyamqp'})
+                params['transport_options'] = {
+                    'confirm_publish': True,
+                    'on_blocked': self._on_connection_blocked,
+                    'on_unblocked': self._on_connection_unblocked,
+                    'keepalive_idle': self.conf.kombu_keepalive_idle,
+                    'keepalive_interval': self.conf.kombu_keepalive_interval,
+                    'keepalive_count': self.conf.kombu_keepalive_count}
+
             if self.conf.fake_rabbit:
                 params['transport'] = 'memory'
             else:
@@ -469,6 +498,14 @@ class Connection(object):
 
         self.connection = None
         self.reconnect()
+
+    @staticmethod
+    def _on_connection_blocked(reason):
+        LOG.error(_("The broker has blocked the connection: %s"), reason)
+
+    @staticmethod
+    def _on_connection_unblocked(reason):
+        LOG.error(_("The broker has unblocked the connection"))
 
     def _fetch_ssl_params(self):
         """Handles fetching what ssl params should be used for the connection
