@@ -497,6 +497,12 @@
 # value)
 #rabbit_ha_queues=false
 
+# Positive integer representing duration in seconds for queue
+# TTL (x-expires). Queues which are unused for the duration of
+# the TTL are automatically deleted. The parameter affects
+# only reply and fanout queues. (integer value)
+#rabbit_transient_queues_ttl=600
+
 
 #
 # Options defined in sentry.openstack.common.rpc.impl_qpid

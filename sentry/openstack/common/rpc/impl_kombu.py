@@ -110,6 +110,12 @@ kombu_opts = [
                 help='use H/A queues in RabbitMQ (x-ha-policy: all).'
                      'You need to wipe RabbitMQ database when '
                      'changing this option.'),
+    cfg.IntOpt('rabbit_transient_queues_ttl',
+               default=600,
+               help='Positive integer representing duration in seconds for '
+                    'queue TTL (x-expires). Queues which are unused for the '
+                    'duration of the TTL are automatically deleted. The '
+                    'parameter affects only reply and fanout queues.'),
 
 ]
 
@@ -118,7 +124,7 @@ cfg.CONF.register_opts(kombu_opts)
 LOG = rpc_common.LOG
 
 
-def _get_queue_arguments(conf):
+def _get_queue_arguments(conf, rabbit_queue_ttl=0):
     """Construct the arguments for declaring a queue.
 
     If the rabbit_ha_queues option is set, we declare a mirrored queue
@@ -128,8 +134,25 @@ def _get_queue_arguments(conf):
 
     Setting x-ha-policy to all means that the queue will be mirrored
     to all nodes in the cluster.
+
+    If the rabbit_queue_ttl option is > 0, then the queue is
+    declared with the "Queue TTL" value as described here:
+
+      https://www.rabbitmq.com/ttl.html
+
+    Setting a queue TTL causes the queue to be automatically deleted
+    if it is unused for the TTL duration.  This is a helpful safeguard
+    to prevent queues with zero consumers from growing without bound.
     """
-    return {'x-ha-policy': 'all'} if conf.rabbit_ha_queues else {}
+    args = {}
+
+    if conf.rabbit_ha_queues:
+        args['x-ha-policy'] = 'all'
+
+    if rabbit_queue_ttl > 0:
+        args['x-expires'] = rabbit_queue_ttl * 1000
+
+    return args
 
 
 class ConsumerBase(object):
@@ -235,7 +258,8 @@ class DirectConsumer(ConsumerBase):
         """
         # Default options
         options = {'durable': False,
-                   'queue_arguments': _get_queue_arguments(conf),
+                   'queue_arguments': _get_queue_arguments(
+                       conf, conf.rabbit_transient_queues_ttl),
                    'auto_delete': True,
                    'exclusive': False}
         options.update(kwargs)
@@ -308,7 +332,8 @@ class FanoutConsumer(ConsumerBase):
 
         # Default options
         options = {'durable': False,
-                   'queue_arguments': _get_queue_arguments(conf),
+                   'queue_arguments': _get_queue_arguments(
+                       conf, conf.rabbit_transient_queues_ttl),
                    'auto_delete': True,
                    'exclusive': False}
         options.update(kwargs)
